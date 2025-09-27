@@ -8,9 +8,9 @@ Comprehensive F# bindings and tooling for the entire Cloudflare platform, bringi
 
 ## Overview
 
-CloudflareFS provides complete F# bindings for Cloudflare's platform, enabling developers to leverage the full power of Cloudflare services with F#'s type safety and functional programming paradigms. Built on [Fable](https://fable.io/) for JavaScript interop and utilizing [Glutinum](https://github.com/glutinum-org/cli) for automated binding generation, this toolkit bridges the gap between F# and Cloudflare's extensive service ecosystem.
+CloudflareFS aims to provide complete F# bindings for Cloudflare's most recent SDKs, enabling developers to leverage the full power of Cloudflare services with F#'s type safety and functional programming paradigms. Built on [Fable](https://fable.io/) for JavaScript interop and utilizing [Glutinum](https://github.com/glutinum-org/cli) for automated binding generation, this toolkit bridges the gap between F# and Cloudflare's extensive service ecosystem.
 
-### Key Features
+### Key Goals
 
 - **Complete Coverage**: Bindings for Workers, R2, D1, KV, Durable Objects, Queues, and 50+ Cloudflare services
 - **Type Safety**: Full F# type safety across runtime and management APIs
@@ -18,31 +18,6 @@ CloudflareFS provides complete F# bindings for Cloudflare's platform, enabling d
 - **Developer Experience**: Computation expressions, active patterns, and idiomatic F# APIs
 - **Automated Generation**: 70% auto-generated from TypeScript/OpenAPI definitions
 - **Enterprise Ready**: Dual MIT/Apache 2.0 licensing with patent protection options
-
-## Quick Start
-
-```fsharp
-// Workers example with type-safe KV access
-open CloudFlare.Worker
-open CloudFlare.KV
-
-let handler (request: Request) (env: Env) (ctx: ExecutionContext) =
-    worker {
-        let! value = env.MY_KV.get("key")
-        return Response.create($"Value: {value}")
-    }
-
-// Durable Objects with F# types
-type Counter() =
-    inherit DurableObject()
-
-    member this.increment() = async {
-        let! current = this.state.get<int>("count")
-        let next = current + 1
-        do! this.state.put("count", next)
-        return next
-    }
-```
 
 ## Installation
 
@@ -69,7 +44,7 @@ cf-tools init my-worker
 
 CloudflareFS is organized into three layers:
 
-### 1. Runtime Layer (Fable � JavaScript)
+### 1. Runtime Layer (Fable -> JavaScript)
 Bindings for code executing in Workers/Pages environments, generated from `@cloudflare/*` TypeScript packages:
 - Worker Context, Fetch, Cache, Streams
 - Storage: KV, R2, D1, Durable Objects
