@@ -1,0 +1,44 @@
+--- a/src/Glutinum.Converter/Transform.fs
++++ b/src/Glutinum.Converter/Transform.fs
+@@ -25,7 +25,8 @@ type TransformContext
+         reporter: Reporter,
+         currentScopeName: string,
+         typeMemory: GlueType list,
+-        ?parent: TransformContext
++        ?parent: TransformContext,
++        ?visitedInterfaces: Set<string>
+     )
+     =
+
+@@ -42,6 +43,8 @@ type TransformContext
+     member val CurrentScopeName = currentScopeName
+
+     member val TypeMemory = typeMemory
++
++    member val VisitedInterfaces = defaultArg visitedInterfaces Set.empty
+
+     member val _Reporter = reporter
+
+@@ -77,6 +80,7 @@ type TransformContext
+             currentScopeName,
+             typeMemory,
+             parent = this
++            visitedInterfaces = this.VisitedInterfaces
+         )
+
+     member this.ExposeType(fsharpType: FSharpType) : FSharpType =
+@@ -1567,6 +1571,11 @@ let private transformToFsharpMember
+         )
+
+ let private transformInterface (context: TransformContext) (info: GlueInterface) : FSharpInterface =
++    // Check if we've already visited this interface to prevent infinite recursion
++    if context.VisitedInterfaces.Contains(info.FullName) then
++        // Return a simple placeholder to break the cycle
++        { Name = info.Name; OriginalName = info.Name; Members = []; Attributes = []; Inheritance = [] }
++    else
++    // Add this interface to the visited set
++    let context = { context with VisitedInterfaces = context.VisitedInterfaces.Add(info.FullName) }
++
+     let name, context = sanitizeNameAndPushScope info.Name context
+
+     let membersComingFromPartial =

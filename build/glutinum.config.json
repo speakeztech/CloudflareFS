@@ -1,0 +1,50 @@
+{
+  "naming": {
+    "strategy": "PascalCase",
+    "preserveOriginal": true
+  },
+  "modules": {
+    "strategy": "PerFile",
+    "generateIndex": false
+  },
+  "documentation": {
+    "generate": true,
+    "includeJsDoc": true
+  },
+  "typeOverrides": {
+    "ReadableStream": "Browser.Types.ReadableStream",
+    "WritableStream": "Browser.Types.WritableStream",
+    "ArrayBuffer": "JS.ArrayBuffer",
+    "Uint8Array": "JS.Uint8Array",
+    "FormData": "Browser.Types.FormData",
+    "Headers": "Browser.Types.Headers",
+    "URL": "Browser.Types.URL",
+    "WebSocket": "Browser.Types.WebSocket",
+    "Promise": "JS.Promise",
+    "DurableObjectId": "CloudFlare.Core.DurableObjectId",
+    "DurableObjectNamespace": "CloudFlare.Core.DurableObjectNamespace",
+    "KVNamespace": "CloudFlare.Core.KVNamespace",
+    "R2Bucket": "CloudFlare.Core.R2Bucket",
+    "D1Database": "CloudFlare.Core.D1Database",
+    "Queue": "CloudFlare.Core.Queue",
+    "Fetcher": "CloudFlare.Core.Fetcher"
+  },
+  "interfaces": {
+    "strategy": "ConvertToRecord",
+    "generateStaticMembers": true
+  },
+  "unions": {
+    "strategy": "GenerateOverloads"
+  },
+  "optionals": {
+    "strategy": "UseOption"
+  },
+  "promises": {
+    "wrapWith": "JS.Promise"
+  },
+  "attributes": {
+    "addAllowNullLiteral": true,
+    "addImportMember": true,
+    "importPath": "@cloudflare/workers-types"
+  }
+}

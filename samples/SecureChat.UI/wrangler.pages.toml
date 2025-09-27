@@ -1,0 +1,16 @@
+# Cloudflare Pages configuration
+name = "securechat-ui"
+compatibility_date = "2024-01-01"
+
+# Build configuration
+[build]
+command = "npm run fable:build && npm run build"
+build_output_directory = "dist"
+
+# Environment variables for production API
+[env.production.vars]
+API_URL = "https://secure-chat.yourdomain.workers.dev"
+
+# Preview environment
+[env.preview.vars]
+API_URL = "https://secure-chat-preview.yourdomain.workers.dev"

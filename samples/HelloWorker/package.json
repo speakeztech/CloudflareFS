@@ -1,0 +1,14 @@
+{
+  "name": "hello-worker",
+  "version": "1.0.0",
+  "description": "Simple Cloudflare Worker example using CloudflareFS",
+  "main": "dist/HelloWorker.js",
+  "scripts": {
+    "build": "dotnet fable . --outDir dist",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^3.99.0"
+  }
+}

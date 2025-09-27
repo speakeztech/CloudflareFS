@@ -2,7 +2,21 @@
   "permissions": {
     "allow": [
       "Read(//d/repos/SpeakEZ/content/proposals/**)",
-      "Bash(pwsh:*)"
+      "Bash(pwsh:*)",
+      "Bash(npm install)",
+      "Bash(npm view:*)",
+      "Bash(npm install:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln add:*)",
+      "Bash(dotnet build)",
+      "Bash(dotnet fsi:*)",
+      "Bash(npx @glutinum/cli:*)",
+      "Bash(node:*)",
+      "Bash(Remove-Item \"src/Runtime/CloudFlare.Worker.Context/Library.fs\" -Force)",
+      "Read(//d/repos/cli/src/**)",
+      "Read(//d/repos/cli/**)",
+      "Read(//d/repos/r2-webdav/**)",
+      "Bash(Remove-Item:*)"
     ],
     "deny": [],
     "ask": []

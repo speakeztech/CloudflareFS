@@ -1,0 +1,27 @@
+{
+  "name": "cloudflarefs",
+  "version": "0.1.0",
+  "description": "F# bindings generator for Cloudflare services",
+  "private": true,
+  "scripts": {
+    "install-glutinum": "npm install -g @glutinum/cli",
+    "generate": "node ./generators/generate-all.js",
+    "generate-worker": "npx @glutinum/cli ./node_modules/@cloudflare/workers-types/index.d.ts --out-file ./src/Runtime/CloudFlare.Worker.Context/Generated.fs",
+    "generate-ai": "npx @glutinum/cli ./node_modules/@cloudflare/ai/dist/index.d.ts --out-file ./src/Runtime/CloudFlare.AI/Generated.fs",
+    "postinstall": "echo 'Run npm run generate to create F# bindings'"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "@cloudflare/ai": "^1.0.63",
+    "@cloudflare/vitest-pool-workers": "^0.5.39",
+    "@cloudflare/pages-shared": "^0.13.75",
+    "@types/node": "^22.10.2",
+    "wrangler": "^3.99.0",
+    "miniflare": "^3.20241106.2",
+    "typescript": "^5.7.2"
+  },
+  "optionalDependencies": {
+    "@cloudflare/kv-asset-handler": "^0.3.4",
+    "@cloudflare/workers-shared": "^0.11.0"
+  }
+}

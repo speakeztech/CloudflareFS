@@ -482,3 +482,22 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# CloudflareFS specific
+.claude/
+temp/
+tmp/
+.fable/
+dist/
+.wrangler/
+.dev.vars
+.mf/
+*.js
+*.js.map
+!vite.config.js
+!tailwind.config.js
+!postcss.config.js
+!wrangler.config.js
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

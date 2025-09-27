@@ -42,41 +42,41 @@ cf-tools init my-worker
 
 ## Architecture
 
-CloudflareFS is organized into three layers:
+CloudflareFS uses a two-layer architecture:
 
-### 1. Runtime Layer (Fable -> JavaScript)
-Bindings for code executing in Workers/Pages environments, generated from `@cloudflare/*` TypeScript packages:
-- Worker Context, Fetch, Cache, Streams
-- Storage: KV, R2, D1, Durable Objects
-- Queues, Vectorize, Hyperdrive
-- AI, WebSockets, WebCrypto
+### 1. Runtime Layer (In-Worker APIs)
+Bindings for code executing inside Workers, using Fable for JavaScript interop:
+- **Core Types** ✅: Request, Response, Headers, ExecutionContext
+- **Storage** ✅: KV, R2, D1 (each in separate focused projects)
+- **AI** ✅: Workers AI bindings
+- **Planned**: Durable Objects, Queues, Analytics Engine, Vectorize
 
 ### 2. Management Layer (REST APIs)
-F# clients for Cloudflare's control plane, generated from OpenAPI schemas:
-- Zero Trust (Access, Gateway, Tunnels, CASB, DLP)
-- DNS, Load Balancing, WAF
-- Analytics, Billing, User Management
+F# clients for Cloudflare's control plane, generated using Hawaii from OpenAPI specs:
+- **Planned**: Account management, DNS, Workers deployment
+- **Planned**: Zero Trust (Access, Gateway, Tunnels)
+- **Planned**: Resource creation (KV namespaces, R2 buckets, D1 databases)
 
-### 3. Tool Layer
-Development and deployment utilities:
-- Wrangler CLI wrapper
-- Secret management with encryption
-- Miniflare integration for testing
-- Project templates and scaffolding
+## Current Implementation Status
 
-## Package Structure
+### ✅ Completed
 
-| Package | Description | Source |
+| Package | Description | Location |
+|---------|-------------|----------|
+| **CloudFlare.Worker.Context** | Core Worker types (Request, Response, Headers) | `src/Runtime/CloudFlare.Worker.Context` |
+| **CloudFlare.KV** | Key-Value store bindings with helpers | `src/Runtime/CloudFlare.KV` |
+| **CloudFlare.R2** | R2 object storage bindings with helpers | `src/Runtime/CloudFlare.R2` |
+| **CloudFlare.D1** | D1 database bindings with query helpers | `src/Runtime/CloudFlare.D1` |
+| **CloudFlare.AI** | Workers AI service bindings | `src/Runtime/CloudFlare.AI` |
+
+### 🔄 In Progress / Planned
+
+| Package | Description | Status |
 |---------|-------------|--------|
-| **CloudflareFS.Core** | Shared types and utilities | Hand-written |
-| **CloudflareFS.Worker** | Workers runtime bindings | Generated from `@cloudflare/workers-types` |
-| **CloudflareFS.KV** | Key-Value store | Generated from `@cloudflare/workers-types` |
-| **CloudflareFS.R2** | Object storage (S3-compatible) | Generated from `@cloudflare/workers-types` |
-| **CloudflareFS.D1** | SQLite database | Generated from `@cloudflare/workers-types` |
-| **CloudflareFS.AI** | Workers AI bindings | Generated from `@cloudflare/ai` |
-| **CloudflareFS.ZeroTrust** | Zero Trust services | Generated from OpenAPI |
-| **CloudflareFS.DNS** | DNS management | Generated from OpenAPI |
-| **CloudflareFS.Wrangler** | CLI tooling wrapper | Hand-written |
+| **CloudFlare.DurableObjects** | Durable Objects bindings | Empty folder, planned |
+| **CloudFlare.Queues** | Message queue bindings | Empty folder, planned |
+| **CloudFlare.Vectorize** | Vector database bindings | Empty folder, planned |
+| **CloudFlare.Api** | Management APIs via Hawaii | Generators configured, awaiting implementation |
 
 ## Advanced Features
 
@@ -185,26 +185,52 @@ cd CloudflareFS
 
 # Install dependencies
 dotnet tool restore
-npm install
+npm install -g @glutinum/cli
+dotnet tool install -g hawaii
 
-# Generate bindings
-dotnet fsi build/Generate.fsx
-
-# Build all packages
+# Build runtime bindings
+cd src/Runtime/CloudFlare.Worker.Context
 dotnet build
 
-# Run tests
-dotnet test
+# Build sample applications
+cd samples/HelloWorker
+dotnet fable . --outDir dist
+npx wrangler dev
 ```
 
 ### Regenerating Bindings
 ```bash
-# Update TypeScript bindings via Glutinum
-npm update @cloudflare/workers-types
-dotnet fsi build/GenerateBindings.fsx
+# Runtime bindings (Glutinum)
+cd generators/glutinum
+.\generate-bindings.ps1
 
-# Update REST API clients from OpenAPI
-dotnet fsi build/GenerateOpenApi.fsx
+# Management APIs (Hawaii)
+cd generators/hawaii
+.\generate-bindings.ps1
+```
+
+## Sample Projects
+
+### HelloWorker
+Basic Worker demonstrating KV and request handling:
+```bash
+cd samples/HelloWorker
+dotnet fable . --outDir dist
+npx wrangler dev
+```
+
+### SecureChat
+Production-ready chat API with:
+- User authentication via Cloudflare Secrets
+- D1 database for message storage
+- PowerShell scripts for user management
+- Separate React UI with Tailwind CSS
+
+```bash
+cd samples/SecureChat
+.\scripts\add-user.ps1 -Username alice -Password "Pass123!"
+dotnet fable . --outDir dist
+npx wrangler dev
 ```
 
 ## Contributing
@@ -219,14 +245,30 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## Roadmap
 
-- [ ] Core Workers bindings
-- [ ] Storage services (KV, R2, D1)
-- [ ] Zero Trust management APIs
-- [ ] Complete AI service bindings
-- [ ] MoQ relay support (pending Cloudflare release)
+### Phase 1: Runtime Bindings (Mostly Complete)
+- [x] Core Workers bindings (Request, Response, Headers)
+- [x] KV storage bindings with F# helpers
+- [x] R2 object storage bindings
+- [x] D1 database bindings
+- [x] AI service bindings
+- [ ] Durable Objects
+- [ ] Queues
+- [ ] Analytics Engine
+
+### Phase 2: Management APIs (Starting)
+- [ ] Set up Hawaii for OpenAPI generation
+- [ ] Account and user management
+- [ ] KV/R2/D1 resource creation
+- [ ] Workers deployment APIs
+- [ ] DNS management
+- [ ] Zero Trust services
+
+### Phase 3: Developer Experience
+- [ ] CLI tooling
+- [ ] Project templates
 - [ ] Type provider for wrangler.toml
-- [ ] Visual Studio Code extension
-- [ ] Complete test coverage
+- [ ] VS Code extension
+- [ ] Comprehensive documentation
 
 ## Support
 

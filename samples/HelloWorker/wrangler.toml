@@ -1,0 +1,12 @@
+name = "hello-worker"
+main = "dist/HelloWorker.js"
+compatibility_date = "2024-01-01"
+
+# KV Namespace binding (optional)
+# [[kv_namespaces]]
+# binding = "MY_KV"
+# id = "your-kv-namespace-id"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "development"

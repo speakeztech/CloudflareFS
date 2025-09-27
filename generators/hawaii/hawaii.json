@@ -1,0 +1,26 @@
+{
+  "namespace": "CloudFlare.Api",
+  "synchronous": false,
+  "target": "fsharp",
+  "emptyDefinitions": "ignore",
+  "createJsonSerializerOptions": true,
+  "overrideSchema": {
+    "CloudflareApiResponse": {
+      "generateClient": false
+    }
+  },
+  "overrideOperationIds": {
+    "kv-namespaces-list": "ListKVNamespaces",
+    "kv-namespaces-create": "CreateKVNamespace",
+    "kv-namespaces-delete": "DeleteKVNamespace",
+    "r2-buckets-list": "ListR2Buckets",
+    "r2-buckets-create": "CreateR2Bucket",
+    "r2-buckets-delete": "DeleteR2Bucket",
+    "d1-databases-list": "ListD1Databases",
+    "d1-databases-create": "CreateD1Database",
+    "d1-databases-delete": "DeleteD1Database",
+    "workers-scripts-list": "ListWorkerScripts",
+    "workers-scripts-upload": "UploadWorkerScript",
+    "workers-scripts-delete": "DeleteWorkerScript"
+  }
+}

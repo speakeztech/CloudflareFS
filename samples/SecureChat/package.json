@@ -1,0 +1,15 @@
+{
+  "name": "secure-chat",
+  "version": "1.0.0",
+  "description": "Secure chat application using CloudflareFS with D1 and KV",
+  "main": "dist/SecureChat.js",
+  "scripts": {
+    "build": "dotnet fable . --outDir dist",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 execute secure-chat-db --local --file=./schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^3.99.0"
+  }
+}
