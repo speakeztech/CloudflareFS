@@ -16,7 +16,8 @@
       "Read(//d/repos/cli/src/**)",
       "Read(//d/repos/cli/**)",
       "Read(//d/repos/r2-webdav/**)",
-      "Bash(Remove-Item:*)"
+      "Bash(Remove-Item:*)",
+      "Read(//d/repos/Cloudflare/api-schemas/**)"
     ],
     "deny": [],
     "ask": []

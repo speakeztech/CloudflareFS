@@ -1,0 +1,57 @@
+# CloudflareFS Generators - Git Ignore
+# =====================================
+# This directory contains generation scripts and configurations
+# but all temporary/generated files should be ignored
+
+# Temporary directories for extraction/processing
+glutinum/temp/
+hawaii/temp/
+hawaii/extracted/
+temp/
+tmp/
+
+# Downloaded or copied TypeScript definitions
+*.d.ts
+!glutinum/workers-types.d.ts.example
+
+# Extracted OpenAPI files (regenerated from source)
+*-openapi.json
+!configs/*-openapi.json
+
+# Keep configuration files
+!hawaii/configs/
+!glutinum/configs/
+
+# Generated output (tracked in src/ instead)
+Generated.fs
+*.generated.fs
+
+# Log files
+*.log
+*.log.*
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# IDE files
+.vs/
+.vscode/
+.idea/
+
+# Build artifacts
+bin/
+obj/
+
+# NPM packages (if locally installed)
+node_modules/
+package-lock.json
+
+# Python cache (if using any Python scripts)
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db
