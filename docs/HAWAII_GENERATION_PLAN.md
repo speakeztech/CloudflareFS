@@ -380,54 +380,6 @@ let workflow accountId = async {
 }
 ```
 
-## Directory Structure
-
-```
-CloudflareFS/
-├── generators/
-│   ├── hawaii/
-│   │   ├── extract-service-openapi.ps1    # Service extraction script
-│   │   ├── generate-management-apis.ps1   # Batch generation script
-│   │   ├── temp/                           # TEMPORARY (gitignored)
-│   │   │   ├── KV-openapi.json
-│   │   │   ├── R2-openapi.json
-│   │   │   └── D1-openapi.json
-│   │   ├── .gitignore                      # Ignore temp directory
-│   │   └── configs/                        # Hawaii configurations (committed)
-│   │       ├── KV-hawaii.json
-│   │       ├── R2-hawaii.json
-│   │       └── D1-hawaii.json
-│   └── ...
-│
-└── src/
-    ├── Runtime/                            # Layer 1: In-Worker APIs
-    │   ├── CloudFlare.Worker.Context/
-    │   ├── CloudFlare.KV/
-    │   ├── CloudFlare.R2/
-    │   └── CloudFlare.D1/
-    │
-    └── Management/                         # Layer 2: Management APIs
-        ├── CloudFlare.Api/                 # Unified client
-        │   ├── Client.fs
-        │   ├── Authentication.fs
-        │   └── CloudFlare.Api.fsproj
-        │
-        ├── CloudFlare.Api.Storage.KV/      # KV management
-        │   ├── Generated.fs                # Hawaii output
-        │   ├── Extensions.fs               # F# helpers
-        │   └── CloudFlare.Api.Storage.KV.fsproj
-        │
-        ├── CloudFlare.Api.Storage.R2/      # R2 management
-        │   ├── Generated.fs
-        │   ├── Extensions.fs
-        │   └── CloudFlare.Api.Storage.R2.fsproj
-        │
-        └── CloudFlare.Api.Storage.D1/      # D1 management
-            ├── Generated.fs
-            ├── Extensions.fs
-            └── CloudFlare.Api.Storage.D1.fsproj
-```
-
 ## Benefits of This Approach
 
 ### 1. Manageable Scope
@@ -455,25 +407,32 @@ CloudflareFS/
 - Custom post-processing per service
 - Gradual rollout of updates
 
-## Timeline
+## Progress
 
-### Week 1: Infrastructure
-- [ ] Set up extraction pipeline
-- [ ] Create Hawaii configurations
+### Infrastructure
+- [x] Set up extraction pipeline
+- [x] Create Hawaii configurations
 - [ ] Test with KV service
 
-### Week 2: Core Services
+### Core Services
 - [ ] Generate KV management API
-- [ ] Generate R2 management API
-- [ ] Generate D1 management API
+- [x] Generate R2 management API
+- [x] Generate D1 management API
 - [ ] Create unified client
 
-### Week 3: Extensions
+### Additional Services Generated
+- [x] Generate Analytics management API
+- [x] Generate Queues management API
+- [x] Generate Vectorize management API (V2)
+- [x] Generate Hyperdrive management API
+- [x] Generate DurableObjects management API
+
+### Extensions
 - [ ] Add F# idiomatic wrappers
 - [ ] Create computation expressions
 - [ ] Add async workflow helpers
 
-### Week 4: Testing & Documentation
+### Testing & Documentation
 - [ ] Integration tests
 - [ ] Usage examples
 - [ ] API documentation
