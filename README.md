@@ -56,15 +56,23 @@ CloudflareFS/
 | **Runtime** | CloudFlare.R2 | Object storage bindings |
 | **Runtime** | CloudFlare.D1 | Database bindings |
 | **Runtime** | CloudFlare.AI | Workers AI bindings |
+| **Runtime** | CloudFlare.Queues | Message queue bindings |
+| **Runtime** | CloudFlare.Vectorize | Vector database bindings |
+| **Runtime** | CloudFlare.Hyperdrive | Database connection pooling |
+| **Runtime** | CloudFlare.DurableObjects | Stateful serverless compute |
 | **Management** | CloudFlare.Management.R2 | R2 bucket management |
 | **Management** | CloudFlare.Management.D1 | D1 database management |
 | **Management** | CloudFlare.Management.Analytics | Analytics API client |
+| **Management** | CloudFlare.Management.Queues | Queue management |
+| **Management** | CloudFlare.Management.Vectorize | Vector index management |
+| **Management** | CloudFlare.Management.Hyperdrive | Connection config management |
+| **Management** | CloudFlare.Management.DurableObjects | Namespace management |
 
 ### 🔄 In Progress
 
 - CloudFlare.Management.KV (Hawaii generation issues)
 - CloudFlare.Management.Workers (Hawaii generation issues)
-- Runtime bindings for Durable Objects, Queues, Vectorize
+- Browser APIs (WebSockets, Streams, Cache, WebCrypto)
 
 ## Installation
 

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>CloudFlare.Queues</PackageId>
+    <Description>F# bindings for Cloudflare Queues - Message queue service for Workers</Description>
+    <Version>0.1.0</Version>
+    <Authors>CloudflareFS Contributors</Authors>
+    <PackageTags>cloudflare;queues;fsharp;fable;workers;messaging</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Types.fs" />
+    <Compile Include="Helpers.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\CloudFlare.Core\CloudFlare.Core.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fable.Core" Version="4.3.0" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>CloudFlare.Vectorize</PackageId>
+    <Description>F# bindings for Cloudflare Vectorize - Vector database for AI and semantic search</Description>
+    <Version>0.1.0</Version>
+    <Authors>CloudflareFS Contributors</Authors>
+    <PackageTags>cloudflare;vectorize;vector;database;ai;ml;fsharp;fable</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Types.fs" />
+    <Compile Include="Helpers.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\CloudFlare.Core\CloudFlare.Core.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fable.Core" Version="4.3.0" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,10 @@
+{
+  "schema": "./temp/Queues-openapi.json",
+  "project": "CloudFlare.Management.Queues",
+  "output": "./Generated-Queues",
+  "namespace": "CloudFlare.Management.Queues",
+  "synchronous": false,
+  "target": "fsharp",
+  "generateClient": true,
+  "clientName": "QueuesManagementClient"
+}

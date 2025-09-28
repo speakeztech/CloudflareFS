@@ -90,6 +90,50 @@ let services = [
       ]
       OperationPrefix = "logs"
       Description = "Logs API" }
+
+    { Name = "Queues"
+      PathPatterns = [
+          "/accounts/{account_id}/queues"
+          "/accounts/{account_id}/queues/{queue_id}"
+          "/accounts/{account_id}/queues/{queue_id}/consumers"
+          "/accounts/{account_id}/queues/{queue_id}/consumers/{consumer_id}"
+          "/accounts/{account_id}/queues/{queue_id}/messages"
+          "/accounts/{account_id}/queues/{queue_id}/messages/ack"
+          "/accounts/{account_id}/queues/{queue_id}/messages/batch"
+          "/accounts/{account_id}/queues/{queue_id}/messages/pull"
+          "/accounts/{account_id}/queues/{queue_id}/purge"
+      ]
+      OperationPrefix = "queues"
+      Description = "Message Queue Management API" }
+
+    { Name = "Vectorize"
+      PathPatterns = [
+          "/accounts/{account_id}/vectorize/indexes"
+          "/accounts/{account_id}/vectorize/indexes/{index_name}"
+          "/accounts/{account_id}/vectorize/indexes/{index_name}/delete-by-ids"
+          "/accounts/{account_id}/vectorize/indexes/{index_name}/get-by-ids"
+          "/accounts/{account_id}/vectorize/indexes/{index_name}/insert"
+          "/accounts/{account_id}/vectorize/indexes/{index_name}/query"
+          "/accounts/{account_id}/vectorize/indexes/{index_name}/upsert"
+      ]
+      OperationPrefix = "vectorize"
+      Description = "Vector Database Management API" }
+
+    { Name = "Hyperdrive"
+      PathPatterns = [
+          "/accounts/{account_id}/hyperdrive/configs"
+          "/accounts/{account_id}/hyperdrive/configs/{hyperdrive_id}"
+      ]
+      OperationPrefix = "hyperdrive"
+      Description = "Database Connection Pooling API" }
+
+    { Name = "DurableObjects"
+      PathPatterns = [
+          "/accounts/{account_id}/workers/durable_objects/namespaces"
+          "/accounts/{account_id}/workers/durable_objects/namespaces/{id}/objects"
+      ]
+      OperationPrefix = "durable-objects"
+      Description = "Durable Objects Management API" }
 ]
 
 // Load the OpenAPI specification

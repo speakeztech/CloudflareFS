@@ -1,0 +1,10 @@
+{
+  "schema": "./temp/Hyperdrive-openapi.json",
+  "project": "CloudFlare.Management.Hyperdrive",
+  "output": "./Generated-Hyperdrive",
+  "namespace": "CloudFlare.Management.Hyperdrive",
+  "synchronous": false,
+  "target": "fsharp",
+  "generateClient": true,
+  "clientName": "HyperdriveManagementClient"
+}

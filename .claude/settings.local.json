@@ -21,7 +21,14 @@
       "Bash(dotnet tool install:*)",
       "Bash(hawaii:*)",
       "Read(//d/repos/Hawaii/src/**)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(while read file)",
+      "Bash(done)",
+      "Bash(for:*)",
+      "Bash(do echo \"=== $dir ===\")",
+      "Bash(ls:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet restore:*)"
     ],
     "deny": [],
     "ask": []

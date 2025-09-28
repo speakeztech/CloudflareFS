@@ -1,0 +1,10 @@
+{
+  "schema": "./temp/DurableObjects-openapi.json",
+  "project": "CloudFlare.Management.DurableObjects",
+  "output": "./Generated-DurableObjects",
+  "namespace": "CloudFlare.Management.DurableObjects",
+  "synchronous": false,
+  "target": "fsharp",
+  "generateClient": true,
+  "clientName": "DurableObjectsManagementClient"
+}

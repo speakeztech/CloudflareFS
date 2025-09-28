@@ -1,0 +1,10 @@
+{
+  "schema": "./temp/Vectorize-openapi.json",
+  "project": "CloudFlare.Management.Vectorize",
+  "output": "./Generated-Vectorize",
+  "namespace": "CloudFlare.Management.Vectorize",
+  "synchronous": false,
+  "target": "fsharp",
+  "generateClient": true,
+  "clientName": "VectorizeManagementClient"
+}
