@@ -338,49 +338,6 @@ Firetower will provide Erlang Observer-style monitoring for Cloudflare, deployab
 - **Distributed Tracing**: Request flow across Workers and services
 - **Cost Analytics**: Real-time billing estimates and optimization suggestions
 
-#### Deployment Models
-
-```fsharp
-// Deploy Firetower on Cloudflare Pages for team access
-let firetowerConfig = pages {
-    name "firetower-monitor"
-    source "./firetower/dist"
-
-    // Use Cloudflare's own platform to monitor Cloudflare
-    bindings [
-        AnalyticsEngine("METRICS")
-        D1Database("ALERTS_DB")
-    ]
-
-    authentication {
-        cloudflareAccess {
-            allowEmails ["*@company.com"]
-        }
-    }
-}
-```
-
-### Type Providers & IntelliSense
-
-CloudflareFS will leverage F# type providers for compile-time safety:
-
-```fsharp
-// Type provider reads wrangler.toml and generates types
-type MyWorker = WranglerProvider<"./wrangler.toml">
-
-// Full IntelliSense for all bindings
-let processRequest env =
-    let cache = env.Bindings.CACHE  // Typed as KVNamespace
-    let db = env.Bindings.DATABASE  // Typed as D1Database
-
-// Type provider for live Cloudflare resources
-type ProdAccount = CloudflareProvider<accountId="...">
-
-// Browse actual resources with IntelliSense
-let bucket = ProdAccount.R2.Buckets.``my-assets``
-let database = ProdAccount.D1.Databases.``prod-db``
-```
-
 ### Unified Development Experience
 
 The complete CloudflareFS toolkit will provide:
@@ -393,7 +350,7 @@ The complete CloudflareFS toolkit will provide:
 
 ## Documentation
 
-- [Architecture Decisions](docs/ARCHITECTURE_DECISIONS.md) - Detailed architecture documentation
+- [Architecture Decisions](docs/ARCHITECTURE_DECISIONS.md) - Current roadmap
 - [Runtime vs Management](docs/RUNTIME_VS_MANAGEMENT.md) - Understanding the dual-layer design
 - [Firetower Concept](docs/FIRETOWER_CONCEPT.md) - Monitoring tool design
 - [Samples](samples/) - Some examples that are being used to prove out the framework as it develops
