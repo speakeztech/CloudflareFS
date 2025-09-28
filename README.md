@@ -4,11 +4,19 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE-MIT)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE-APACHE)
 
-Comprehensive F# bindings and tooling for the entire Cloudflare platform, bringing type-safe, functional-first development to edge computing and cloud infrastructure.
+<div align="center">
+
+  ### 🚧 Preliminary Work - Not Production Ready 🚧
+
+</div>
+
+CloudflareFS is an ambitious initiative to bring the power of F# to the Cloudflare platform through comprehensive, type-safe bindings. We're looking to use F#-based automated tooling to auto-generate up-to-date F# bindings for Cloudflare's entire ecosystem, generated directly from their TypeScript definitions and OpenAPI specifications. So this project is as much about updating the Hawaii and Glutinum projects as it is about building these bindings for use with Cloudflare.
+
+Our vision is to enable functional-first, type-safe development for edge computing and cloud infrastructure, where F# developers can leverage the full capabilities of Cloudflare's platform with the same confidence and expressiveness they expect from their language.
 
 ## Overview
 
-CloudflareFS provides complete F# bindings for Cloudflare's platform through a **dual-layer architecture**:
+CloudflareFS aims to provide complete F# bindings for Cloudflare's platform through a **dual-layer architecture**:
 - **Runtime APIs**: In-Worker JavaScript interop for edge computing
 - **Management APIs**: REST clients for infrastructure provisioning
 
@@ -47,7 +55,9 @@ CloudflareFS/
 
 ## Current Implementation Status
 
-### ✅ Completed
+> **⚠️ Important Note**: While code generation is largely functional, this project requires extensive testing and validation before production use. Generated bindings need comprehensive test coverage and real-world validation across all Cloudflare services.
+
+### ✅ Generated
 
 | Layer | Package | Description |
 |-------|---------|-------------|
