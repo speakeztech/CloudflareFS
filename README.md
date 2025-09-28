@@ -10,9 +10,9 @@
 
 </div>
 
-CloudflareFS is an ambitious initiative to bring the power of F# to the Cloudflare platform through comprehensive, type-safe bindings. We're looking to use F#-based automated tooling to auto-generate up-to-date F# bindings for Cloudflare's entire ecosystem, generated directly from their TypeScript definitions and OpenAPI specifications. So this project is as much about updating the Hawaii and Glutinum projects as it is about building these bindings for use with Cloudflare.
+CloudflareFS brings F# to the Cloudflare platform through comprehensive, type-safe bindings auto-generated from TypeScript definitions and OpenAPI specifications. This project aims to advance both the binding generation tools (Hawaii and Glutinum) and eventually deliver production-ready F# libraries for Cloudflare's entire ecosystem.
 
-Our vision is to enable functional-first, type-safe development for edge computing and cloud infrastructure, where F# developers can leverage the full capabilities of Cloudflare's platform with the same confidence and expressiveness they expect from their language.
+Our vision is to enable functional-first, type-safe development for edge computing and cloud infrastructure.
 
 ## Overview
 
