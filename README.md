@@ -25,21 +25,21 @@ Built on [Fable](https://fable.io/) for JavaScript compilation, [Glutinum](https
 
 ### Two-Layer Design
 
-```
+```bash
 CloudflareFS/
-├── src/
-│   ├── Runtime/           # In-Worker APIs (JavaScript interop)
-│   │   ├── CloudFlare.Worker.Context/
-│   │   ├── CloudFlare.D1/
-│   │   ├── CloudFlare.R2/
-│   │   ├── CloudFlare.KV/
-│   │   └── CloudFlare.AI/
-│   │
-│   └── Management/        # REST APIs (HTTP clients)
-│       ├── CloudFlare.Management.D1/
-│       ├── CloudFlare.Management.R2/
-│       ├── CloudFlare.Management.Analytics/
-│       └── CloudFlare.Management.KV/
+└─ src/
+   ├── Runtime/           # In-Worker APIs (JavaScript interop)
+   │   ├── CloudFlare.Worker.Context/
+   │   ├── CloudFlare.D1/
+   │   ├── CloudFlare.R2/
+   │   ├── CloudFlare.KV/
+   │   └── CloudFlare.AI/
+   │
+   └── Management/        # REST APIs (HTTP clients)
+       ├── CloudFlare.Management.D1/
+       ├── CloudFlare.Management.R2/
+       ├── CloudFlare.Management.Analytics/
+       └── CloudFlare.Management.KV/
 ```
 
 ### Runtime Layer (In-Worker)
@@ -436,7 +436,7 @@ Unless you explicitly state otherwise, any contribution intentionally submitted 
 
 CloudflareFS stands on the shoulders of giants:
 
-- **[Fable](https://fable.io/)** - The magnificent F# to JavaScript compiler. Special thanks to Alfonso García-Caro and all contributors.
+- **[Fable](https://fable.io/)** - The magnificent F# to JavaScript compiler. Special thanks to Alfonso García-Caro, Maxime Mangel and all maintainers/contributors.
 
 - **[Glutinum](https://github.com/glutinum-org)** - TypeScript to F# binding generator. Thanks to Maxime Mangel for this invaluable tool.
 
@@ -446,4 +446,4 @@ CloudflareFS stands on the shoulders of giants:
 
 - **[Cloudflare](https://cloudflare.com)** - For building an incredible edge platform and commitment to open source.
 
-This project is our contribution back to these amazing communities.
+This project is SpeakEZ's contribution back to these amazing communities.
