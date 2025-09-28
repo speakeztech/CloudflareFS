@@ -6,18 +6,18 @@ CloudflareFS implements a **dual-layer API architecture** that separates runtime
 
 ```
 CloudflareFS/
-├── src/
-│   ├── Runtime/           # In-Worker APIs (JavaScript interop)
-│   │   ├── CloudFlare.D1/
-│   │   ├── CloudFlare.R2/
-│   │   ├── CloudFlare.KV/
-│   │   └── CloudFlare.Worker.Context/
-│   │
-│   └── Management/        # REST APIs (HTTP clients)
-│       ├── CloudFlare.Management.D1/
-│       ├── CloudFlare.Management.R2/
-│       ├── CloudFlare.Management.KV/
-│       └── CloudFlare.Management.Analytics/
+└── src/
+   ├── Runtime/           # In-Worker APIs (JavaScript interop)
+   │   ├── CloudFlare.D1/
+   │   ├── CloudFlare.R2/
+   │   ├── CloudFlare.KV/
+   │   └── CloudFlare.Worker.Context/
+   │
+   └── Management/        # REST APIs (HTTP clients)
+       ├── CloudFlare.Management.D1/
+       ├── CloudFlare.Management.R2/
+       ├── CloudFlare.Management.KV/
+       └── CloudFlare.Management.Analytics/
 ```
 
 ## Runtime APIs (In-Worker)
@@ -95,6 +95,7 @@ let provisionDatabase (accountId: string) (apiToken: string) =
 ```
 
 ### Management API Characteristics:
+
 - Full CRUD operations on resources
 - Account-level administration
 - Billing and usage information
@@ -114,9 +115,12 @@ let provisionDatabase (accountId: string) (apiToken: string) =
 | Execute Worker | ✅ Direct invocation | ✅ Via HTTP trigger |
 | Deploy Worker | ❌ Not available | ✅ `client.UpdateWorkerScript(...)` |
 
-## Typical Workflow
+## Workflow Options
+
+This process is still under review, but it's worth nothing the "head space" that various approaches require as design moves toward implementation.
 
 1. **Infrastructure Setup** (Management API)
+
    ```fsharp
    // CLI tool or deployment script
    let! database = managementClient.CreateDatabase(accountId, "app-db")
@@ -125,6 +129,7 @@ let provisionDatabase (accountId: string) (apiToken: string) =
    ```
 
 2. **Configure Bindings** (wrangler.toml)
+
    ```toml
    [[d1_databases]]
    binding = "DATABASE"
@@ -141,6 +146,7 @@ let provisionDatabase (accountId: string) (apiToken: string) =
    ```
 
 3. **Runtime Operations** (Runtime API)
+
    ```fsharp
    // Inside Worker
    let handleRequest (env: Env) =
@@ -153,6 +159,7 @@ let provisionDatabase (accountId: string) (apiToken: string) =
 ## Generation Pipeline
 
 ### Runtime APIs (Glutinum)
+
 ```bash
 # TypeScript → F#
 npx @glutinum/cli generate ./node_modules/@cloudflare/workers-types/index.d.ts \
@@ -161,6 +168,7 @@ npx @glutinum/cli generate ./node_modules/@cloudflare/workers-types/index.d.ts \
 ```
 
 ### Management APIs (Hawaii)
+
 ```bash
 # OpenAPI → F#
 hawaii --config ./generators/hawaii/d1-hawaii.json
@@ -197,4 +205,4 @@ let deploy (config: DeployConfig) =
     }
 ```
 
-This dual-layer approach provides the flexibility to build any Cloudflare tool or application entirely in F#.
+This dual-layer approach would provide the flexibility to build any Cloudflare tool or application entirely in F#.

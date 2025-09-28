@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-**UPDATE (September 2024)**: CloudflareFS has made significant progress! Major services including Queues, Vectorize, Hyperdrive, and Durable Objects are now fully implemented with both Runtime and Management APIs. Platform coverage has increased from ~30% to ~80%.
+**UPDATE (September 2024)**: CloudflareFS has made initial progress! Major services including Queues, Vectorize, Hyperdrive, and Durable Objects are now fully derived from translation tooling with both Runtime and Management APIs. Initial platform coverage has increased from ~30% to ~80% while significant work remains to structure tests, examples and back-porting updates into Glutinum and Hawaii as findings from this process show avenues for improving those tools.
 
 ## Service Implementation Status
 

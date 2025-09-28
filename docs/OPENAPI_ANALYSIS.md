@@ -7,6 +7,7 @@ This document analyzes the Cloudflare OpenAPI schemas located at `D:/repos/Cloud
 ## 1. OpenAPI Structure Overview
 
 ### File Organization
+
 ```
 D:/repos/Cloudflare/api-schemas/
 ├── openapi.json    # JSON format (15.5MB)
@@ -15,6 +16,7 @@ D:/repos/Cloudflare/api-schemas/
 ```
 
 ### Specification Structure
+
 ```yaml
 openapi: 3.0.3
 info:
@@ -44,53 +46,58 @@ components:     # Lines 1-77293
 ### Service Taxonomy
 
 #### Storage Services (CloudflareFS Core)
-```
+
 KV Namespaces:
-  - GET/POST    /accounts/{account_id}/storage/kv/namespaces
-  - GET/PUT/DEL /accounts/{account_id}/storage/kv/namespaces/{namespace_id}
-  - GET/PUT/DEL /accounts/{account_id}/storage/kv/namespaces/{namespace_id}/values/{key}
-  - GET         /accounts/{account_id}/storage/kv/namespaces/{namespace_id}/keys
+
+- GET/POST    /accounts/{account_id}/storage/kv/namespaces
+- GET/PUT/DEL /accounts/{account_id}/storage/kv/namespaces/{namespace_id}
+- GET/PUT/DEL /accounts/{account_id}/storage/kv/namespaces/{namespace_id}/values/{key}
+- GET         /accounts/{account_id}/storage/kv/namespaces/{namespace_id}/keys
 
 R2 Buckets:
-  - GET/POST    /accounts/{account_id}/r2/buckets
-  - GET/PUT/DEL /accounts/{account_id}/r2/buckets/{bucket_name}
-  - POST        /accounts/{account_id}/r2/buckets/{bucket_name}/sippy
+
+- GET/POST    /accounts/{account_id}/r2/buckets
+- GET/PUT/DEL /accounts/{account_id}/r2/buckets/{bucket_name}
+- POST        /accounts/{account_id}/r2/buckets/{bucket_name}/sippy
 
 D1 Databases:
-  - GET/POST    /accounts/{account_id}/d1/database
-  - GET/DEL     /accounts/{account_id}/d1/database/{database_id}
-  - POST        /accounts/{account_id}/d1/database/{database_id}/query
-```
+
+- GET/POST    /accounts/{account_id}/d1/database
+- GET/DEL     /accounts/{account_id}/d1/database/{database_id}
+
 
 #### Compute Services
-```
+
 Workers:
-  - GET/PUT     /accounts/{account_id}/workers/scripts/{script_name}
-  - POST        /accounts/{account_id}/workers/scripts/{script_name}/versions
-  - GET/POST    /accounts/{account_id}/workers/scripts/{script_name}/schedules
+
+- GET/PUT     /accounts/{account_id}/workers/scripts/{script_name}
+- POST        /accounts/{account_id}/workers/scripts/{script_name}/versions
+- GET/POST    /accounts/{account_id}/workers/scripts/{script_name}/schedules
 
 Durable Objects:
-  - GET         /accounts/{account_id}/workers/durable_objects/namespaces
-  - POST        /accounts/{account_id}/workers/durable_objects/namespaces/{id}/objects
+
+- GET         /accounts/{account_id}/workers/durable_objects/namespaces
+- POST        /accounts/{account_id}/workers/durable_objects/namespaces/{id}/objects
 
 Pages:
-  - GET/POST    /accounts/{account_id}/pages/projects
-  - POST        /accounts/{account_id}/pages/projects/{project_name}/deployments
-```
+
+- GET/POST    /accounts/{account_id}/pages/projects
+- POST        /accounts/{account_id}/pages/projects/{project_name}/deployments
 
 #### Security & Access Control
-```
+
 Zero Trust Access:
-  - GET/POST    /accounts/{account_id}/access/applications
-  - GET/POST    /accounts/{account_id}/access/groups
-  - GET/POST    /accounts/{account_id}/access/policies
-  - GET/POST    /accounts/{account_id}/access/service_tokens
+
+- GET/POST    /accounts/{account_id}/access/applications
+- GET/POST    /accounts/{account_id}/access/groups
+- GET/POST    /accounts/{account_id}/access/policies
+- GET/POST    /accounts/{account_id}/access/service_tokens
 
 Firewall:
-  - GET/POST    /zones/{zone_id}/firewall/rules
-  - GET/POST    /zones/{zone_id}/firewall/waf/packages
-  - GET/POST    /zones/{zone_id}/rulesets
-```
+
+- GET/POST    /zones/{zone_id}/firewall/rules
+- GET/POST    /zones/{zone_id}/firewall/waf/packages
+- GET/POST    /zones/{zone_id}/rulesets
 
 ## 3. Schema Patterns and Conventions
 
@@ -130,8 +137,10 @@ interface CloudflareResponse<T> {
 
 ## 4. CloudflareFS Component Mapping Strategy
 
-### Layer 1: Runtime APIs (Already Complete)
+### Layer 1: Runtime APIs (Already In-Process)
+
 These are **NOT** in the OpenAPI spec as they run inside Workers:
+
 - ✅ CloudFlare.Worker.Context
 - ✅ CloudFlare.KV (runtime operations)
 - ✅ CloudFlare.R2 (runtime operations)
@@ -141,7 +150,8 @@ These are **NOT** in the OpenAPI spec as they run inside Workers:
 ### Layer 2: Management APIs (To Generate via Hawaii)
 
 #### Phase 1: Core Storage Management
-```
+
+
 CloudFlare.Api.KV:
   - Namespace management (create/delete/list)
   - Bulk operations
@@ -156,10 +166,10 @@ CloudFlare.Api.D1:
   - Database management (create/delete/list)
   - Migration tools
   - Backup/restore
-```
+
 
 #### Phase 2: Compute Management
-```
+
 CloudFlare.Api.Workers:
   - Script deployment
   - Version management
@@ -175,10 +185,10 @@ CloudFlare.Api.Pages:
   - Project management
   - Deployment pipelines
   - Custom domains
-```
+
 
 #### Phase 3: Security & DNS
-```
+
 CloudFlare.Api.Access:
   - Application policies
   - Service tokens
@@ -188,43 +198,11 @@ CloudFlare.Api.DNS:
   - Record management
   - DNSSEC
   - Zone transfers
-```
 
 ## 5. Hawaii Generation Strategy
 
-### Proposed Project Structure
-```
-src/Management/
-├── CloudFlare.Api.Core/           # Shared types and base client
-│   ├── Client.fs                  # Base HTTP client with auth
-│   ├── Types.fs                   # Common types (Response, Error)
-│   └── Pagination.fs              # Pagination helpers
-│
-├── CloudFlare.Api.Storage/        # Storage services
-│   ├── KV/
-│   │   ├── Generated.fs          # Hawaii-generated from OpenAPI
-│   │   └── Extensions.fs         # F# idiomatic wrappers
-│   ├── R2/
-│   │   ├── Generated.fs
-│   │   └── Extensions.fs
-│   └── D1/
-│       ├── Generated.fs
-│       └── Extensions.fs
-│
-├── CloudFlare.Api.Compute/        # Compute services
-│   ├── Workers/
-│   ├── DurableObjects/
-│   └── Pages/
-│
-└── CloudFlare.Api.Security/       # Security services
-    ├── Access/
-    ├── Firewall/
-    └── WAF/
-```
-
-### Hawaii Configuration Strategy
-
 #### Service-Specific Generation
+
 Create separate Hawaii configurations for each service to maintain modularity:
 
 ```json
@@ -244,6 +222,7 @@ Create separate Hawaii configurations for each service to maintain modularity:
 ```
 
 #### Selective Endpoint Extraction
+
 Use a preprocessing script to extract service-specific endpoints:
 
 ```powershell
@@ -285,6 +264,7 @@ $filtered | ConvertTo-Json -Depth 100 | Out-File "$Service-openapi.json"
 ### F# Wrapper Strategy
 
 #### Computation Expressions
+
 ```fsharp
 module CloudFlare.Api.Storage.KV.Extensions
 
@@ -305,6 +285,7 @@ let kv client = KVBuilder(client)
 ```
 
 #### Async Workflows
+
 ```fsharp
 let deployApplication accountId = async {
     use client = new CloudflareClient(apiToken)
@@ -334,25 +315,25 @@ let deployApplication accountId = async {
 
 ## 6. Implementation Roadmap
 
-### Phase 1: Foundation (Week 1-2)
+### Phase 1: Foundation 
 1. Set up Hawaii toolchain
 2. Create OpenAPI extraction scripts
 3. Generate CloudFlare.Api.Core with shared types
 4. Implement authentication and client base
 
-### Phase 2: Storage APIs (Week 3-4)
+### Phase 2: Storage APIs
 1. Extract and generate KV management APIs
 2. Extract and generate R2 management APIs
 3. Extract and generate D1 management APIs
 4. Create F# idiomatic wrappers
 
-### Phase 3: Compute APIs (Week 5-6)
+### Phase 3: Compute APIs
 1. Extract and generate Workers APIs
 2. Extract and generate Durable Objects APIs
 3. Extract and generate Pages APIs
 4. Integration tests with local Miniflare
 
-### Phase 4: Security & DNS (Week 7-8)
+### Phase 4: Security & DNS
 1. Extract and generate Access APIs
 2. Extract and generate DNS APIs
 3. Extract and generate Firewall APIs
@@ -422,4 +403,6 @@ let deployApplication accountId = async {
 
 ## Conclusion
 
-The Cloudflare OpenAPI specification provides a comprehensive foundation for generating F# management APIs via Hawaii. By organizing the APIs into logical service groups and creating targeted generation configurations, we can build a modular, maintainable, and type-safe F# SDK for Cloudflare's management plane that complements our existing runtime bindings.
+The Cloudflare OpenAPI specification provides a comprehensive foundation for generating F# management APIs via Hawaii. While the Hawaii application may require updates in order to ingest and process the full range of API schema information, that is a small portion of the overall effort.
+
+By organizing the APIs into logical service groups and creating targeted generation configurations, we can build a modular, maintainable, and type-safe F# SDK for Cloudflare's management plane that complements our existing runtime bindings.
