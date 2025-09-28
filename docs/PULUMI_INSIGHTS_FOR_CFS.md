@@ -152,17 +152,17 @@ The `LocalWorkspace` class (from Pulumi.Automation) reveals how Pulumi achieves 
 ```csharp
 public sealed class LocalWorkspace : Workspace
 {
-    // State is stored in Pulumi.{stack}.yaml files
-    // This enables git-based state management
+    // Pulumi uses file-based state storage, while CloudflareFS
+    // leverages Cloudflare's native infrastructure for state management
 
     // Operations are idempotent through state comparison
     public async Task<UpdateResult> UpdateAsync(...)
     {
-        // 1. Reads current state from Pulumi.{stack}.yaml
+        // 1. Reads current state from backend
         // 2. Runs the program to compute desired state
         // 3. Diffs current vs desired
         // 4. Applies only necessary changes
-        // 5. Updates Pulumi.{stack}.yaml
+        // 5. Updates state in backend
     }
 }
 ```
@@ -478,23 +478,24 @@ let deployProduction accountId = cloudflare {
 
 ### 5. CloudflareFS Workspace Implementation
 
-While Pulumi uses LocalWorkspace for state management, CloudflareFS has different requirements due to its edge-first, actor-model architecture:
+CloudflareFS leverages Cloudflare's own infrastructure for state management, storing application state within Cloudflare's native services:
 
 ```fsharp
-// Inspired by Pulumi's LocalWorkspace
+// CloudflareFS stores state within Cloudflare's infrastructure
 type CloudflareWorkspace(workDir: string) =
 
-    // State stored in CloudflareFS.{environment}.yaml like Pulumi
-    member this.LoadState(environment: string) =
-        let stateFile = Path.Combine(workDir, $"CloudflareFS.{environment}.yaml")
-        if File.Exists stateFile then
-            yaml.deserialize<CloudflareState>(File.ReadAllText stateFile)
-        else
-            CloudflareState.empty
+    // State persisted in Cloudflare-native backends (KV/D1)
+    // providing distributed, edge-native state management
+    member this.LoadState(environment: string) = async {
+        // Primary: Read from Cloudflare KV/D1 for distributed state
+        let! state = CloudflareStateBackend.load environment
+        return state |> Option.defaultValue CloudflareState.empty
+    }
 
-    member this.SaveState(environment: string, state: CloudflareState) =
-        let stateFile = Path.Combine(workDir, $"CloudflareFS.{environment}.yaml")
-        File.WriteAllText(stateFile, yaml.serialize state)
+    member this.SaveState(environment: string, state: CloudflareState) = async {
+        // Persist to Cloudflare's infrastructure for team collaboration
+        do! CloudflareStateBackend.save environment state
+    }
 
     member this.Update(environment: string, program: unit -> Output<unit>) = async {
         // 1. Load current state
@@ -518,14 +519,14 @@ type CloudflareWorkspace(workDir: string) =
         return newState
     }
 
-// State Backend following Pulumi's model
+// State Backend leveraging Cloudflare's infrastructure
 module CfsIdempotency =
 
-    // State Storage matching Pulumi's approach
+    // State Storage options within Cloudflare's ecosystem
     type StateBackend =
-        | Local of path: string  // Like Pulumi's file backend
-        | CloudflareKV of namespace: string  // Cloudflare-native
-        | S3 of bucket: string  // Like Pulumi's S3 backend
+        | CloudflareKV of namespace: string  // Distributed KV storage
+        | CloudflareD1 of database: string  // SQL-based state with D1
+        | CloudflareR2 of bucket: string  // Object storage for large state
 
     // 2. Resource fingerprinting
     let computeFingerprint (inputs: Map<string, obj>) =
@@ -593,7 +594,7 @@ cfs refresh
 ### Advantages to Adopt
 
 1. **Output<T> Monad**: Brilliant pattern for tracking dependencies, secrets, and known/unknown values
-2. **State in YAML**: Human-readable, git-friendly state files
+2. **State Management Pattern**: Adapted to use Cloudflare's native infrastructure for persistence
 3. **Resource Registration at Construction**: Enables automatic dependency tracking
 4. **F# Wrapper Patterns**: The Pulumi.FSharp module shows excellent functional patterns
 5. **LocalWorkspace Model**: Clean separation of state management from resource definitions
@@ -610,7 +611,7 @@ cfs refresh
 ### Selective Influences from Pulumi (Where Aligned with Our Vision)
 
 1. **Output<T> Pattern**: Track dependencies, secrets, and unknowns
-2. **YAML State Files**: Git-friendly, human-readable
+2. **State Tracking**: Adapted to use Cloudflare's infrastructure (KV/D1/R2)
 3. **Workspace Abstraction**: Separate execution context from resources
 4. **F# Functional Helpers**: apply, bind, pair, all operations
 
@@ -685,10 +686,10 @@ This analysis of Pulumi .NET provides useful context for certain implementation 
 ### Implementation Priority
 
 1. **Phase 1**: Output<T> type with dependency tracking
-2. **Phase 2**: YAML-based state management
+2. **Phase 2**: Cloudflare-native state management (KV/D1)
 3. **Phase 3**: CloudflareWorkspace with diff/apply
 4. **Phase 4**: Full computation expression builder
-5. **Phase 5**: Cloudflare-native enhancements
+5. **Phase 5**: Advanced Cloudflare platform integrations
 
 ## Legal and Technical Disclaimer
 

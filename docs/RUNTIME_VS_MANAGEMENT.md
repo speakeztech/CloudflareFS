@@ -117,32 +117,33 @@ let provisionDatabase (accountId: string) (apiToken: string) =
 
 ## Workflow Options
 
-This process is still under review, but it's worth nothing the "head space" that various approaches require as design moves toward implementation.
+This process is still under review, but it's worth noting the "head space" that various approaches require as design moves toward implementation.
+
+**Important**: CloudflareFS's goal is to make F# .fsx configuration of solutions a first-class consideration. All infrastructure should be defined in code, not configuration files. While we may export wrangler.toml for compatibility with existing Cloudflare tooling, it is an express goal of this framework to operate code-first.
 
 1. **Infrastructure Setup** (Management API)
 
    ```fsharp
-   // CLI tool or deployment script
+   // CLI tool or deployment script - pure F# code
    let! database = managementClient.CreateDatabase(accountId, "app-db")
    let! kvNamespace = managementClient.CreateNamespace(accountId, "cache")
    let! r2Bucket = managementClient.CreateBucket(accountId, "assets")
    ```
 
-2. **Configure Bindings** (wrangler.toml)
+2. **Configure Bindings** (F# code, NOT TOML)
 
-   ```toml
-   [[d1_databases]]
-   binding = "DATABASE"
-   database_name = "app-db"
-   database_id = "abc-123-def"
+   ```fsharp
+   // CloudflareFS code-first approach - bindings defined in F#
+   let workerBindings = [
+       D1Database("DATABASE", databaseId = "abc-123-def")
+       KVNamespace("CACHE", namespaceId = "xyz-456-789")
+       R2Bucket("ASSETS", bucketName = "assets")
+   ]
 
-   [[kv_namespaces]]
-   binding = "CACHE"
-   id = "xyz-456-789"
-
-   [[r2_buckets]]
-   binding = "ASSETS"
-   bucket_name = "assets"
+   // Optional: Export to wrangler.toml for legacy compatibility only
+   // This is a concession, not the primary workflow
+   let exportToWranglerToml() =
+       workerBindings |> WranglerCompat.exportBindings "wrangler.toml"
    ```
 
 3. **Runtime Operations** (Runtime API)
