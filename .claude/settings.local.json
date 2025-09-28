@@ -28,7 +28,13 @@
       "Bash(do echo \"=== $dir ===\")",
       "Bash(ls:*)",
       "Bash(dotnet build:*)",
-      "Bash(dotnet restore:*)"
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet add:*)",
+      "Bash(npx glutinum:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(jq:*)",
+      "Read(//d/repos/Hawaii/**)"
     ],
     "deny": [],
     "ask": []

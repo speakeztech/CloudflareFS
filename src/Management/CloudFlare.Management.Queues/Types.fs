@@ -114,6 +114,9 @@ type ``mqhttp-consumer`` =
           settings = None
           ``type`` = None }
 
+type mqconsumer = ``mqworker-consumer``
+type mqproducer = ``mqworker-producer``
+
 type mqqueue =
     { consumers: Option<list<mqconsumer>>
       consumers_total_count: Option<float>

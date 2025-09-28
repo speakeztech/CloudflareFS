@@ -45,9 +45,9 @@ type ``vectorizeindex-preset`` =
     | [<CompiledName "cohere/embed-multilingual-v2.0">] CohereEmbedMultilingualV2Numeric_0
     member this.Format() =
         match this with
-        | ``@cfBaaiBgeSmallEnV1Numeric_5`` -> "@cf/baai/bge-small-en-v1.5"
-        | ``@cfBaaiBgeBaseEnV1Numeric_5`` -> "@cf/baai/bge-base-en-v1.5"
-        | ``@cfBaaiBgeLargeEnV1Numeric_5`` -> "@cf/baai/bge-large-en-v1.5"
+        | (@cfBaaiBgeSmallEnV1Numeric_5) -> "@cf/baai/bge-small-en-v1.5"
+        | (@cfBaaiBgeBaseEnV1Numeric_5) -> "@cf/baai/bge-base-en-v1.5"
+        | (@cfBaaiBgeLargeEnV1Numeric_5) -> "@cf/baai/bge-large-en-v1.5"
         | OpenaiTextEmbeddingAdaNumeric_002 -> "openai/text-embedding-ada-002"
         | CohereEmbedMultilingualV2Numeric_0 -> "cohere/embed-multilingual-v2.0"
 
@@ -492,71 +492,51 @@ type ``vectorizevector-list-item`` =
     static member Create (id: ``vectorizevector-identifier``): ``vectorizevector-list-item`` = { id = id }
 
 [<RequireQualifiedAccess>]
-type VectorizeListVectorizeIndexes =
+type ``Vectorize(Deprecated)ListVectorizeIndexes`` =
     ///List Vectorize Index Response
     | OK of payload: string
 
 [<RequireQualifiedAccess>]
-type VectorizeCreateVectorizeIndex =
+type ``Vectorize(Deprecated)CreateVectorizeIndex`` =
     ///Create Vectorize Index Response
     | OK of payload: string
 
 [<RequireQualifiedAccess>]
-type VectorizeDeleteVectorizeIndex =
+type ``Vectorize(Deprecated)DeleteVectorizeIndex`` =
     ///Delete Vectorize Index Response
     | OK of payload: string
 
 [<RequireQualifiedAccess>]
-type VectorizeGetVectorizeIndex =
+type ``Vectorize(Deprecated)GetVectorizeIndex`` =
     ///Get Vectorize Index Response
     | OK of payload: string
 
 [<RequireQualifiedAccess>]
-type VectorizeDeleteVectorsById =
+type ``Vectorize(Deprecated)UpdateVectorizeIndex`` =
+    ///Update Vectorize Index Response
+    | OK of payload: string
+
+[<RequireQualifiedAccess>]
+type ``Vectorize(Deprecated)DeleteVectorsById`` =
     ///Delete Vector Identifiers Response
     | OK of payload: string
 
 [<RequireQualifiedAccess>]
-type VectorizeGetVectorsById =
+type ``Vectorize(Deprecated)GetVectorsById`` =
     ///Get Vectors By Identifier Response
     | OK of payload: string
 
 [<RequireQualifiedAccess>]
-type VectorizeIndexInfo =
-    ///Get Vectorize Index Info Response
-    | OK of payload: string
-
-[<RequireQualifiedAccess>]
-type VectorizeInsertVector =
+type ``Vectorize(Deprecated)InsertVector`` =
     ///Insert Vectors Response
     | OK of payload: string
 
 [<RequireQualifiedAccess>]
-type VectorizeListVectors =
-    ///List Vectors Response
-    | OK of payload: string
-
-[<RequireQualifiedAccess>]
-type VectorizeCreateMetadataIndex =
-    ///Create Metadata Index Response
-    | OK of payload: string
-
-[<RequireQualifiedAccess>]
-type VectorizeDeleteMetadataIndex =
-    ///Delete Metadata Index Response
-    | OK of payload: string
-
-[<RequireQualifiedAccess>]
-type VectorizeListMetadataIndexes =
-    ///List Metadata Index Response
-    | OK of payload: string
-
-[<RequireQualifiedAccess>]
-type VectorizeQueryVector =
+type ``Vectorize(Deprecated)QueryVector`` =
     ///Query Vectors Response
     | OK of payload: string
 
 [<RequireQualifiedAccess>]
-type VectorizeUpsertVector =
-    ///Upsert Vectors Response
+type ``Vectorize(Deprecated)UpsertVector`` =
+    ///Insert Vectors Response
     | OK of payload: string

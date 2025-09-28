@@ -108,16 +108,21 @@ let services = [
 
     { Name = "Vectorize"
       PathPatterns = [
-          "/accounts/{account_id}/vectorize/indexes"
-          "/accounts/{account_id}/vectorize/indexes/{index_name}"
-          "/accounts/{account_id}/vectorize/indexes/{index_name}/delete-by-ids"
-          "/accounts/{account_id}/vectorize/indexes/{index_name}/get-by-ids"
-          "/accounts/{account_id}/vectorize/indexes/{index_name}/insert"
-          "/accounts/{account_id}/vectorize/indexes/{index_name}/query"
-          "/accounts/{account_id}/vectorize/indexes/{index_name}/upsert"
+          "/accounts/{account_id}/vectorize/v2/indexes"
+          "/accounts/{account_id}/vectorize/v2/indexes/{index_name}"
+          "/accounts/{account_id}/vectorize/v2/indexes/{index_name}/delete_by_ids"
+          "/accounts/{account_id}/vectorize/v2/indexes/{index_name}/get_by_ids"
+          "/accounts/{account_id}/vectorize/v2/indexes/{index_name}/info"
+          "/accounts/{account_id}/vectorize/v2/indexes/{index_name}/insert"
+          "/accounts/{account_id}/vectorize/v2/indexes/{index_name}/list"
+          "/accounts/{account_id}/vectorize/v2/indexes/{index_name}/metadata_index/create"
+          "/accounts/{account_id}/vectorize/v2/indexes/{index_name}/metadata_index/delete"
+          "/accounts/{account_id}/vectorize/v2/indexes/{index_name}/metadata_index/list"
+          "/accounts/{account_id}/vectorize/v2/indexes/{index_name}/query"
+          "/accounts/{account_id}/vectorize/v2/indexes/{index_name}/upsert"
       ]
       OperationPrefix = "vectorize"
-      Description = "Vector Database Management API" }
+      Description = "Vector Database Management API (V2)" }
 
     { Name = "Hyperdrive"
       PathPatterns = [

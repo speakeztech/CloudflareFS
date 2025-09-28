@@ -7,10 +7,6 @@ open System
 open CloudFlare.Worker.Context
 open CloudFlare.Worker.Context.Globals
 
-// Convert JS promises to F# async
-let inline promiseToAsync (p: JS.Promise<'T>) : Async<'T> =
-    Async.AwaitPromise p
-
 // Response builder helpers
 module ResponseBuilder =
     let json (data: 'T) (status: int) =
@@ -73,4 +69,4 @@ module Request =
 
 // Async computation expression extensions for Workers
 type AsyncBuilder with
-    member x.Source(p: JS.Promise<'T>) = promiseToAsync p
+    member x.Source(p: JS.Promise<'T>) = Async.AwaitPromise p

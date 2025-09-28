@@ -55,8 +55,8 @@ type MessageBatch<'Body> =
 
 /// Queue event for Workers
 [<AllowNullLiteral>]
+[<Interface>]
 type QueueEvent<'Body> =
-    inherit ExtendableEvent
     abstract member batch: MessageBatch<'Body> with get
 
 /// Queue consumer interface for processing messages

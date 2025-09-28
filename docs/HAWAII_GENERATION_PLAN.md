@@ -34,6 +34,54 @@ graph LR
     G --> H[Composed Client]
 ```
 
+## Important Lessons Learned
+
+### Vectorize V2 Migration (September 2025)
+
+**Issue**: The Vectorize Management API client was generated empty (no methods) despite successful Hawaii execution.
+
+**Root Cause Analysis**:
+1. The Cloudflare OpenAPI specification contained only deprecated V1 endpoints (`/vectorize/indexes`)
+2. Hawaii correctly skips deprecated operations by default
+3. Cloudflare deprecated V1 in August 2024 in favor of V2
+
+**Resolution**:
+1. Updated `extract-services.fsx` to use V2 paths:
+   ```fsharp
+   PathPatterns = [
+       "/accounts/{account_id}/vectorize/v2/indexes"
+       "/accounts/{account_id}/vectorize/v2/indexes/{index_name}"
+       // ... other V2 endpoints
+   ]
+   ```
+2. Re-extracted the OpenAPI spec with V2 paths
+3. Successfully generated full client with 14 methods
+
+**Key Takeaways**:
+- Always check API documentation for version deprecations
+- Hawaii's behavior of skipping deprecated operations is correct and desirable
+- Service extraction scripts must be kept up-to-date with API versions
+- When a client generates empty, check for deprecated operations in the OpenAPI spec
+
+### Pattern Matching with Special Characters
+
+**Issue**: F# compilation errors with `@` symbols in pattern matching for model names.
+
+**Example Error**:
+```fsharp
+// Error FS0010: Unexpected symbol '@' in pattern
+| (@cfBaaiBgeSmallEnV1Numeric_5) -> "@cf/baai/bge-small-en-v1.5"
+```
+
+**Resolution**: Use backtick escaping for identifiers with special characters:
+```fsharp
+| ``@cfBaaiBgeSmallEnV1Numeric_5`` -> "@cf/baai/bge-small-en-v1.5"
+```
+
+**Files Affected**:
+- CloudFlare.Vectorize/Types.fs
+- Any generated code with model name enums
+
 ## Implementation Plan
 
 ### Step 1: Create Service Extraction Pipeline (to Temp Directory)
@@ -438,6 +486,8 @@ CloudflareFS/
 3. **Performance**: IntelliSense responds in < 1 second
 4. **Coverage**: All CRUD operations for KV, R2, D1
 5. **Usability**: Idiomatic F# with async workflows
+6. **API Version Handling**: Proper support for API version transitions (e.g., V1 to V2)
+7. **Deprecated Operation Handling**: Clear documentation when APIs are deprecated
 
 ## Conclusion
 

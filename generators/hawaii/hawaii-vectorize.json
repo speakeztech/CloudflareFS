@@ -1,0 +1,9 @@
+{
+  "schema": "./temp/Vectorize-openapi.json",
+  "project": "CloudFlare.Management.Vectorize",
+  "output": "../../src/Management/CloudFlare.Management.Vectorize",
+  "asyncReturnType": "async",
+  "target": "fsharp",
+  "synchronous": false,
+  "emptyDefinitions": "ignore"
+}

@@ -64,7 +64,7 @@ CloudflareFS/
 | **Management** | CloudFlare.Management.D1 | D1 database management |
 | **Management** | CloudFlare.Management.Analytics | Analytics API client |
 | **Management** | CloudFlare.Management.Queues | Queue management |
-| **Management** | CloudFlare.Management.Vectorize | Vector index management |
+| **Management** | CloudFlare.Management.Vectorize | Vector index management (V2 API) |
 | **Management** | CloudFlare.Management.Hyperdrive | Connection config management |
 | **Management** | CloudFlare.Management.DurableObjects | Namespace management |
 
@@ -73,6 +73,12 @@ CloudflareFS/
 - CloudFlare.Management.KV (Hawaii generation issues)
 - CloudFlare.Management.Workers (Hawaii generation issues)
 - Browser APIs (WebSockets, Streams, Cache, WebCrypto)
+
+### 📝 Recent Updates
+
+- **Vectorize V2 Migration**: Successfully migrated from deprecated V1 API to V2 (August 2024). Hawaii correctly skips deprecated operations.
+- **Pattern Matching Fixes**: Resolved F# pattern matching issues with @ symbols in generated code using backtick escaping.
+- **Full Compilation**: All Runtime and Management packages now compile cleanly with zero errors.
 
 ## Installation
 

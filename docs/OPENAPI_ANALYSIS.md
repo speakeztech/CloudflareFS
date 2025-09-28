@@ -364,6 +364,22 @@ let deployApplication accountId = async {
 - Cloudflare API is at v4.0.0
 - Need to track API changes and regenerate bindings
 - Consider version-specific generated folders
+- **Important**: Check for deprecated endpoints before generation
+- **Lesson from Vectorize**: V1 endpoints were deprecated August 2024, V2 is now GA
+
+### Handling Deprecated Operations
+
+**Case Study: Vectorize API Migration**
+- **Problem**: OpenAPI spec contained only deprecated V1 endpoints
+- **Symptom**: Hawaii generated empty client (no methods)
+- **Root Cause**: Hawaii correctly skips operations marked as deprecated
+- **Solution**: Update extraction scripts to use current API versions
+
+**Best Practices**:
+1. Always check Cloudflare's changelog for deprecation notices
+2. Monitor generated client output for unexpected empty results
+3. Keep extraction patterns up-to-date with current API versions
+4. Document API version requirements in configuration files
 
 ### Authentication
 - API Token (recommended)
@@ -387,6 +403,22 @@ let deployApplication accountId = async {
 3. **Maintainability**: Automated regeneration from OpenAPI
 4. **Developer Experience**: Idiomatic F# with async workflows
 5. **Completeness**: Access to entire Cloudflare platform
+6. **Deprecation Handling**: Hawaii automatically filters deprecated operations
+7. **Version Management**: Service extraction allows API version flexibility
+
+## 9. Generation Pipeline Validation
+
+### Pre-Generation Checklist
+1. Verify API endpoints are not deprecated
+2. Check extraction patterns match current API paths
+3. Validate generated client has expected methods
+4. Test with small subset before full generation
+
+### Post-Generation Validation
+1. Ensure all expected operations are present
+2. Check for compilation errors (e.g., special characters in patterns)
+3. Verify async return types are consistent
+4. Test basic CRUD operations
 
 ## Conclusion
 

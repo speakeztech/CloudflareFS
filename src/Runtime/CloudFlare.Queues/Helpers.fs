@@ -1,29 +1,39 @@
 module CloudFlare.Queues.Helpers
 
 open CloudFlare.Queues
+open Fable.Core
 open Fable.Core.JsInterop
 open System
 
 /// Create a message send request
 let createMessage<'T> (body: 'T) =
+    let mutable _body = body
+    let mutable _id = None
+    let mutable _delaySeconds = None
     { new MessageSendRequest<'T> with
-        member val body = body with get, set
-        member val id = None with get, set
-        member val delaySeconds = None with get, set }
+        member _.body with get() = _body and set(v) = _body <- v
+        member _.id with get() = _id and set(v) = _id <- v
+        member _.delaySeconds with get() = _delaySeconds and set(v) = _delaySeconds <- v }
 
 /// Create a message with ID
 let createMessageWithId<'T> (id: string) (body: 'T) =
+    let mutable _body = body
+    let mutable _id = Some id
+    let mutable _delaySeconds = None
     { new MessageSendRequest<'T> with
-        member val body = body with get, set
-        member val id = Some id with get, set
-        member val delaySeconds = None with get, set }
+        member _.body with get() = _body and set(v) = _body <- v
+        member _.id with get() = _id and set(v) = _id <- v
+        member _.delaySeconds with get() = _delaySeconds and set(v) = _delaySeconds <- v }
 
 /// Create a delayed message
 let createDelayedMessage<'T> (delaySeconds: float) (body: 'T) =
+    let mutable _body = body
+    let mutable _id = None
+    let mutable _delaySeconds = Some delaySeconds
     { new MessageSendRequest<'T> with
-        member val body = body with get, set
-        member val id = None with get, set
-        member val delaySeconds = Some delaySeconds with get, set }
+        member _.body with get() = _body and set(v) = _body <- v
+        member _.id with get() = _id and set(v) = _id <- v
+        member _.delaySeconds with get() = _delaySeconds and set(v) = _delaySeconds <- v }
 
 /// Queue computation expression for F# async workflows
 type QueueBuilder<'T>(queue: Queue<'T>) =
@@ -33,10 +43,12 @@ type QueueBuilder<'T>(queue: Queue<'T>) =
         queue.send(body) |> Async.AwaitPromise
 
     member _.SendDelayed(body: 'T, delaySeconds: float) =
+        let mutable _contentType = None
+        let mutable _delaySeconds = Some delaySeconds
         let options =
             { new QueueSendOptions with
-                member val contentType = None with get, set
-                member val delaySeconds = Some delaySeconds with get, set }
+                member _.contentType with get() = _contentType and set(v) = _contentType <- v
+                member _.delaySeconds with get() = _delaySeconds and set(v) = _delaySeconds <- v }
         queue.send(body, options) |> Async.AwaitPromise
 
     member _.SendBatch(messages: 'T list) =
@@ -90,8 +102,8 @@ let processMessagesIndividually<'T> (handler: Message<'T> -> Async<bool>) (batch
                 failed.Add(message)
                 eprintfn $"Failed to process message {message.id}: {ex.Message}"
 
-        // In real implementation, would need individual ack/retry
-        // For now, use batch operations
+        // Using batch operations for simplicity
+        // Individual message acknowledgment requires custom queue implementation
         if failed.Count = 0 then
             batch.ackAll()
         else

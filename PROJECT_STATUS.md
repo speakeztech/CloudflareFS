@@ -27,21 +27,56 @@ CloudflareFS/
 ## Implementation Status
 
 ### ✅ Completed
+
+#### Runtime APIs (In-Worker)
 - **Core Worker Bindings**: Request, Response, Headers, ExecutionContext
 - **KV Namespace**: Full bindings with F# helpers
 - **D1 Database**: Complete SQL database bindings
 - **R2 Storage**: Object storage bindings
-- **Sample Projects**:
-  - HelloWorker: Simple demonstration
-  - SecureChat API: Production-ready with secret store
-  - SecureChat.UI: React frontend with Tailwind
+- **AI**: Workers AI bindings (Glutinum-generated)
+- **Queues**: Message queue bindings
+- **Vectorize**: Vector database bindings (runtime operations)
+- **Hyperdrive**: Database connection pooling
+- **DurableObjects**: Stateful serverless compute
+
+#### Management APIs (External)
+- **R2 Management**: Bucket lifecycle management
+- **D1 Management**: Database provisioning and management
+- **Analytics**: Analytics API client
+- **Queues Management**: Queue configuration
+- **Vectorize Management**: Vector index management (V2 API)
+- **Hyperdrive Management**: Connection configuration
+- **DurableObjects Management**: Namespace management
+
+#### Sample Projects
+- **HelloWorker**: Simple demonstration
+- **SecureChat API**: Production-ready with secret store
+- **SecureChat.UI**: React frontend with Tailwind
 
 ### 🔄 In Progress / Planned
-- **Management APIs**: REST API bindings for Cloudflare dashboard
-- **Additional Runtime**: Durable Objects, Queues, Analytics
+- **KV Management**: Hawaii generation issues with OpenAPI spec
+- **Workers Management**: Hawaii generation issues with deployment APIs
+- **Browser APIs**: WebSockets, Streams, Cache, WebCrypto support
 - **CLI Tools**: Deployment and management utilities
 - **Test Suite**: Unit and integration tests
 - **Documentation**: API reference and guides
+
+### 📝 Known Issues & Resolutions
+
+1. **Vectorize API Version Migration**
+   - **Issue**: Initial generation produced empty client due to deprecated V1 endpoints
+   - **Cause**: Hawaii correctly skips deprecated operations in OpenAPI spec
+   - **Resolution**: Updated extraction to use V2 paths (`/vectorize/v2/indexes`)
+   - **Date Resolved**: September 2025
+
+2. **Pattern Matching with @ Symbols**
+   - **Issue**: F# compilation errors with @ in pattern matching
+   - **Resolution**: Use backtick escaping: `` `@cfBaaiBgeSmallEnV1Numeric_5` ``
+   - **Files Affected**: CloudFlare.Vectorize/Types.fs
+
+3. **Hawaii Generation Challenges**
+   - **KV & Workers APIs**: Complex schema dependencies causing generation failures
+   - **Mitigation**: Service-specific OpenAPI extraction strategy implemented
 
 ## Key Decisions
 

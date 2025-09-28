@@ -1,35 +1,17 @@
-module rec CloudFlare.AI.Generated
+module rec Glutinum
 
 open Fable.Core
 open Fable.Core.JsInterop
 open System
 
-// Type aliases for missing types from TypeScript definitions
-type AiModelListType = obj
-type AiModelsSearchParams = obj
-type AiModelsSearchObject = obj
-type ConversionResponse = obj
-type Response = obj  // Will be Response type from Fetch API
-type Blob = obj  // Will be Blob type from Web APIs
-// Define Error as an interface instead of type alias
-[<AllowNullLiteral>]
-[<Interface>]
-type Error =
-    abstract member name: string with get, set
-    abstract member message: string with get, set
-    abstract member stack: string option with get, set
-
-// Define Record without type parameters
-type Record = obj
-
 [<AbstractClass>]
 [<Erase>]
 type Exports =
-    [<Import("Ai", "@cloudflare/ai"); EmitConstructor>]
+    [<Import("Ai", "REPLACE_ME_WITH_MODULE_NAME"); EmitConstructor>]
     static member Ai<'AiModelList when 'AiModelList :> AiModelListType> () : Ai<'AiModelList> = nativeOnly
-    [<Import("AiGateway", "@cloudflare/ai"); EmitConstructor>]
+    [<Import("AiGateway", "REPLACE_ME_WITH_MODULE_NAME"); EmitConstructor>]
     static member AiGateway () : AiGateway = nativeOnly
-    [<Import("AutoRAG", "@cloudflare/ai"); EmitConstructor>]
+    [<Import("AutoRAG", "REPLACE_ME_WITH_MODULE_NAME"); EmitConstructor>]
     static member AutoRAG () : AutoRAG = nativeOnly
 
 [<AllowNullLiteral>]
@@ -129,8 +111,8 @@ type AIGatewayProviders =
 [<AllowNullLiteral>]
 [<Interface>]
 type AIGatewayHeaders =
-    abstract member ``cf-aig-metadata``: U2<AIGatewayHeaders.CfAigMetadata.U2.Case1, string> with get, set
-    abstract member ``cf-aig-custom-cost``: U3<AIGatewayHeaders.CfAigCustomCost.U3.Case1, AIGatewayHeaders.CfAigCustomCost.U3.Case2, string> with get, set
+    abstract member ``cf-aig-metadata``: U2<AIGatewayHeaders.````cf-aig-metadata````.U2.Case1, string> with get, set
+    abstract member ``cf-aig-custom-cost``: U3<AIGatewayHeaders.````cf-aig-custom-cost````.U3.Case1, AIGatewayHeaders.````cf-aig-custom-cost````.U3.Case2, string> with get, set
     abstract member ``cf-aig-cache-ttl``: U2<float, string> with get, set
     abstract member ``cf-aig-skip-cache``: U2<bool, string> with get, set
     abstract member ``cf-aig-cache-key``: string with get, set
@@ -244,6 +226,9 @@ type AutoRagSearchResponse =
     abstract member has_more: bool with get, set
     abstract member next_page: U2<string, obj> with get, set
 
+type AutoRagListResponse =
+    ResizeArray<AutoRagListResponse>
+
 [<AllowNullLiteral>]
 [<Interface>]
 type AutoRagAiSearchResponse =
@@ -260,6 +245,7 @@ type AutoRAG =
     abstract member list: unit -> JS.Promise<AutoRagListResponse>
     abstract member search: ``params``: AutoRagSearchRequest -> JS.Promise<AutoRagSearchResponse>
     abstract member aiSearch: ``params``: AutoRagAiSearchRequestStreaming -> JS.Promise<Response>
+    abstract member aiSearch: ``params``: AutoRagAiSearchRequest -> JS.Promise<AutoRagAiSearchResponse>
     abstract member aiSearch: ``params``: AutoRagAiSearchRequest -> JS.Promise<U2<AutoRagAiSearchResponse, Response>>
 
 [<AllowNullLiteral>]
@@ -341,8 +327,7 @@ type BasicImageTransformationsGravityCoordinates =
 [<AllowNullLiteral>]
 [<Interface>]
 type RequestInitCfProperties =
-    // Instead of inheriting from Record<string, obj>, we define an indexer
-    abstract member Item: string -> obj with get, set
+    inherit Record<string, obj>
     abstract member cacheEverything: bool option with get, set
     /// <summary>
     /// A request's cache key is what determines if two requests are
@@ -422,6 +407,30 @@ module Ai =
             member val gateway : GatewayOptions option = nativeOnly with get, set
             member val extraHeaders : obj option = nativeOnly with get, set
 
+        [<Global>]
+        [<AllowNullLiteral>]
+        type files
+            [<ParamObject; Emit("$0")>]
+            (
+                name: string,
+                blob: Blob
+            ) =
+
+            member val name : string = nativeOnly with get, set
+            member val blob : Blob = nativeOnly with get, set
+
+        [<Global>]
+        [<AllowNullLiteral>]
+        type options
+            [<ParamObject; Emit("$0")>]
+            (
+                ?gateway: GatewayOptions,
+                ?extraHeaders: obj
+            ) =
+
+            member val gateway : GatewayOptions option = nativeOnly with get, set
+            member val extraHeaders : obj option = nativeOnly with get, set
+
 module GatewayRetries =
 
     [<RequireQualifiedAccess>]
@@ -469,7 +478,7 @@ module AiGatewayLog =
 
 module AIGatewayHeaders =
 
-    module CfAigMetadata =
+    module ````cf-aig-metadata```` =
 
         module U2 =
 
@@ -479,7 +488,7 @@ module AIGatewayHeaders =
                 [<EmitIndexer>]
                 abstract member Item: key: string -> U5<float, string, bool, obj, obj> with get, set
 
-    module CfAigCustomCost =
+    module ````cf-aig-custom-cost```` =
 
         module U3 =
 
@@ -510,8 +519,8 @@ module AIGatewayUniversalRequest =
     [<AllowNullLiteral>]
     [<Interface>]
     type headers =
-        abstract member ``cf-aig-metadata``: U2<AIGatewayUniversalRequest.headers.Partial.CfAigMetadata.U2.Case1, string> option with get, set
-        abstract member ``cf-aig-custom-cost``: U3<AIGatewayUniversalRequest.headers.Partial.CfAigCustomCost.U3.Case1, AIGatewayUniversalRequest.headers.Partial.CfAigCustomCost.U3.Case2, string> option with get, set
+        abstract member ``cf-aig-metadata``: U2<AIGatewayUniversalRequest.headers.Partial.````cf-aig-metadata````.U2.Case1, string> option with get, set
+        abstract member ``cf-aig-custom-cost``: U3<AIGatewayUniversalRequest.headers.Partial.````cf-aig-custom-cost````.U3.Case1, AIGatewayUniversalRequest.headers.Partial.````cf-aig-custom-cost````.U3.Case2, string> option with get, set
         abstract member ``cf-aig-cache-ttl``: U2<float, string> option with get, set
         abstract member ``cf-aig-skip-cache``: U2<bool, string> option with get, set
         abstract member ``cf-aig-cache-key``: string option with get, set
@@ -528,7 +537,7 @@ module AIGatewayUniversalRequest =
 
         module Partial =
 
-            module CfAigMetadata =
+            module ````cf-aig-metadata```` =
 
                 module U2 =
 
@@ -538,7 +547,7 @@ module AIGatewayUniversalRequest =
                         [<EmitIndexer>]
                         abstract member Item: key: string -> U5<float, string, bool, obj, obj> with get, set
 
-            module CfAigCustomCost =
+            module ````cf-aig-custom-cost```` =
 
                 module U3 =
 

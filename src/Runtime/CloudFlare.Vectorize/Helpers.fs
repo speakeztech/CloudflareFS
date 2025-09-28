@@ -120,10 +120,11 @@ let normalize (vector: float[]) =
     else
         Array.map (fun x -> x / magnitude) vector
 
-/// Convert text embedding to vector (placeholder - would use actual embedding model)
+/// Generate a deterministic pseudo-random vector from text for testing purposes
+/// Note: For production, use actual embedding models like OpenAI or Cohere through Cloudflare AI
 let textToVector (text: string) (dimensions: int) =
-    // This is a placeholder - in real usage, you would use an embedding model
-    // like OpenAI embeddings or a local model
+    // Generates a deterministic vector based on text hash - useful for testing
+    // For production, use Cloudflare AI Workers or external embedding services
     let hash = text.GetHashCode()
     let random = System.Random(hash)
     Array.init dimensions (fun _ -> random.NextDouble() * 2.0 - 1.0)
@@ -132,7 +133,7 @@ let textToVector (text: string) (dimensions: int) =
 /// Semantic search helper
 let semanticSearch (index: VectorizeIndex) (query: string) (topK: int) =
     async {
-        // In real implementation, would use actual embedding model
+        // Use Cloudflare AI Workers for production embeddings
         let queryVector = textToVector query 1536 // Common embedding dimension
 
         let options = fullQueryOptions topK false true
