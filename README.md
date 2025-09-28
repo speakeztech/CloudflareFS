@@ -14,7 +14,8 @@ CloudflareFS brings F# to the Cloudflare platform through comprehensive, type-sa
 
 ## Overview
 
-CloudflareFS aims to provide complete F# bindings for Cloudflare's platform through a **dual-layer architecture**:
+CloudflareFS is more than a set of libraries, it is designed to provide a complete set of F# tools that targets Cloudflare's platform through a **dual-layer architecture**:
+
 - **Runtime APIs**: In-Worker JavaScript interop for edge computing
 - **Management APIs**: REST clients for infrastructure provisioning
 
@@ -47,13 +48,13 @@ CloudflareFS/
 - **Usage**: Direct platform access with microsecond latency
 
 ### Management Layer (External)
-- **Purpose**: Infrastructure provisioning and management
+- **Purpose**: Infrastructure provisioning, monitoring and management
 - **Source**: OpenAPI specs via Hawaii
 - **Usage**: REST API clients for external tools
 
 ## Current Implementation Status
 
-> **⚠️ Important Note**: While code generation is largely functional, this project requires extensive testing and validation before production use. Generated bindings need comprehensive test coverage and real-world validation across all Cloudflare services.
+> **⚠️ Important Note**: While the generated code is coherent, extensive testing and validation is required before production use.
 
 ### ✅ Generated
 
@@ -278,53 +279,133 @@ dotnet fable . --outDir dist
 npx wrangler dev
 ```
 
-## Future Roadmap
+## Vision & Roadmap
 
-### CloudflareFS CLI (`cfs`)
-F#-based alternative to Wrangler:
+> **Note**: The following features represent future roadmap elements for CloudflareFS as a complete toolkit.
+
+### The CloudflareFS CLI (`cfs`)
+
+The `cfs` command-line tool will be a key command-and-control element of CloudflareFS, providing a type-safe, F#-first wrapper to Wrangler that unifies both runtime deployment and management plane orchestration. Unlike traditional TOML-based configuration, `cfs` will use F# scripts for infrastructure-as-code with full IntelliSense support.
+
+#### Deployment Flexibility
+
 ```fsharp
-// Deploy with F# script instead of wrangler.toml
-cfs deploy ./deploy.fsx
+// deploy.fsx - Type-safe deployment configuration
+#r "nuget: CloudflareFS"
+open CloudflareFS.Deployment
 
-// deploy.fsx
-let config = {
-    name = "my-worker"
-    compatibilityDate = "2024-01-01"
-    bindings = [
-        D1Database("DATABASE", databaseId)
-        KVNamespace("CACHE", namespaceId)
+let deploy env = cloudflare {
+    account (getAccountId env)
+
+    worker $"api-service-{env}" {
+        // Intelligent resource management
+        kv "CACHE" (ensureOrCreate "cache-namespace")
+        r2 "STORAGE" (ensureOrCreate "assets-bucket")
+        d1 "DATABASE" (ensureOrCreate "app-database" {
+            migrations = "./migrations"
+            location = "wnam"
+        })
+
+        route $"api-{env}.example.com/*"
+        compatibilityDate "2024-01-01"
+    }
+}
+
+// Execute with different modes:
+// cfs deploy ./deploy.fsx              # Direct API deployment
+// cfs deploy ./deploy.fsx --offline    # Generate wrangler.toml
+// cfs deploy ./deploy.fsx --hybrid     # Provision + TOML generation
+```
+
+#### Orchestration Capabilities
+
+The CLI will handle the complete lifecycle of Cloudflare resources:
+
+- **Provisioning**: Create and configure KV namespaces, R2 buckets, D1 databases
+- **Migration**: Database schema migrations, data transfers, blue-green deployments
+- **Monitoring**: Real-time logs, metrics, and alerts directly in the terminal
+- **Testing**: Integration test runners for Workers
+- **Rollback**: Intelligent deployment history with one-command rollbacks
+
+### Firetower - Visual Platform Observatory
+
+Firetower will provide Erlang Observer-style monitoring for Cloudflare, deployable both as a desktop application and on Cloudflare Pages itself:
+
+#### Real-Time Observability
+
+- **Worker Health**: CPU usage, memory consumption, request rates, error tracking
+- **Resource Monitoring**: KV operations, R2 bandwidth, D1 query performance
+- **Distributed Tracing**: Request flow across Workers and services
+- **Cost Analytics**: Real-time billing estimates and optimization suggestions
+
+#### Deployment Models
+
+```fsharp
+// Deploy Firetower on Cloudflare Pages for team access
+let firetowerConfig = pages {
+    name "firetower-monitor"
+    source "./firetower/dist"
+
+    // Use Cloudflare's own platform to monitor Cloudflare
+    bindings [
+        AnalyticsEngine("METRICS")
+        D1Database("ALERTS_DB")
     ]
+
+    authentication {
+        cloudflareAccess {
+            allowEmails ["*@company.com"]
+        }
+    }
 }
 ```
 
-### Firetower Monitoring Tool
-Real-time Cloudflare platform monitoring:
-- Desktop app via Avalonia.FuncUI
-- Web deployment on Cloudflare Pages
-- Live metrics, logs, and alerts
-- Inspired by Erlang's Observer
+### Type Providers & IntelliSense
 
-### Type Provider for wrangler.toml
+CloudflareFS will leverage F# type providers for compile-time safety:
+
 ```fsharp
+// Type provider reads wrangler.toml and generates types
 type MyWorker = WranglerProvider<"./wrangler.toml">
 
-// Fully typed bindings from config
-let db = MyWorker.Bindings.DATABASE
-let kv = MyWorker.Bindings.CACHE
+// Full IntelliSense for all bindings
+let processRequest env =
+    let cache = env.Bindings.CACHE  // Typed as KVNamespace
+    let db = env.Bindings.DATABASE  // Typed as D1Database
+
+// Type provider for live Cloudflare resources
+type ProdAccount = CloudflareProvider<accountId="...">
+
+// Browse actual resources with IntelliSense
+let bucket = ProdAccount.R2.Buckets.``my-assets``
+let database = ProdAccount.D1.Databases.``prod-db``
 ```
+
+### Unified Development Experience
+
+The complete CloudflareFS toolkit will provide:
+
+1. **Local Development**: Full Worker emulation with F# hot-reload with full multi-Worker local development support that Cloudflare supports
+2. **CI/CD Integration**: GitHub Actions first, with GitLab CI templates for later in the roadmap
+3. **Multi-Environment Management**: Development, staging, and production configurations
+4. **Team Collaboration**: Shared deployment scripts with role-based permissions
+5. **Compliance & Auditing**: Deployment history, change tracking, and approval workflows
 
 ## Documentation
 
 - [Architecture Decisions](docs/ARCHITECTURE_DECISIONS.md) - Detailed architecture documentation
 - [Runtime vs Management](docs/RUNTIME_VS_MANAGEMENT.md) - Understanding the dual-layer design
 - [Firetower Concept](docs/FIRETOWER_CONCEPT.md) - Monitoring tool design
-- [Samples](samples/) - Working examples
+- [Samples](samples/) - Some examples that are being used to prove out the framework as it develops
 
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ### Development Areas
+
+Basically everything is in a constant state of flux right now. We're finding 'wrinkles' in both Glutinum and Hawaii that will need ironing out if they're going to produce "fire and forget" binding generation. Right now the focus is on finding those gaps and determining whether it's just a matter of building pre- and post-processing here in CloudflareFS or "working back" into those tools and updating them for general use.
+
 - Complete remaining Runtime bindings (Durable Objects, Queues)
 - Fix Hawaii generation for KV/Workers Management APIs
 - Build the `cfs` CLI tool
