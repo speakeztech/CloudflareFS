@@ -5,6 +5,7 @@ open Fable.Core
 open Fable.Core.JsInterop
 open System
 open CloudFlare.Worker.Context
+open CloudFlare.Worker.Context.Globals
 
 // Convert JS promises to F# async
 let inline promiseToAsync (p: JS.Promise<'T>) : Async<'T> =

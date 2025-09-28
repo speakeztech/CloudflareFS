@@ -39,7 +39,7 @@ type DurableObjectStub =
     abstract member fetch: request: Request -> JS.Promise<Response>
 
     /// Send a fetch with string URL
-    abstract member fetch: url: string * ?init: RequestInit -> JS.Promise<Response>
+    abstract member fetch: url: string * ?init: obj -> JS.Promise<Response>
 
 /// Durable Object namespace for creating and accessing objects
 [<AllowNullLiteral>]
@@ -56,6 +56,62 @@ type DurableObjectNamespace =
 
     /// Get a Durable Object stub
     abstract member get: id: DurableObjectId * ?options: DurableObjectNamespaceGetDurableObjectOptions -> DurableObjectStub
+
+/// WebSocket for Durable Objects
+[<AllowNullLiteral>]
+[<Interface>]
+type WebSocket =
+    /// Accept the WebSocket connection
+    abstract member accept: unit -> unit
+
+    /// Send a message
+    abstract member send: message: string -> unit
+
+    /// Send binary data
+    abstract member send: message: JS.ArrayBuffer -> unit
+
+    /// Close the WebSocket
+    abstract member close: ?code: int * ?reason: string -> unit
+
+    /// Ready state
+    abstract member readyState: int with get
+
+    /// URL of the WebSocket
+    abstract member url: string with get
+
+    /// Protocol
+    abstract member protocol: string with get
+
+    /// Extensions
+    abstract member extensions: string with get
+
+/// Options for listing storage
+[<AllowNullLiteral>]
+[<Interface>]
+type DurableObjectListOptions =
+    abstract member start: string option with get, set
+    abstract member startAfter: string option with get, set
+    abstract member ``end``: string option with get, set
+    abstract member prefix: string option with get, set
+    abstract member reverse: bool option with get, set
+    abstract member limit: int option with get, set
+    abstract member allowConcurrency: bool option with get, set
+    abstract member noCache: bool option with get, set
+
+/// Options for get operations
+[<AllowNullLiteral>]
+[<Interface>]
+type DurableObjectGetOptions =
+    abstract member allowConcurrency: bool option with get, set
+    abstract member noCache: bool option with get, set
+
+/// Options for put operations
+[<AllowNullLiteral>]
+[<Interface>]
+type DurableObjectPutOptions =
+    abstract member allowConcurrency: bool option with get, set
+    abstract member allowUnconfirmed: bool option with get, set
+    abstract member noCache: bool option with get, set
 
 /// Durable Object storage API
 [<AllowNullLiteral>]
@@ -106,31 +162,6 @@ and [<AllowNullLiteral>] [<Interface>] DurableObjectTransaction =
     /// Rollback the transaction
     abstract member rollback: unit -> unit
 
-/// Options for listing storage
-[<AllowNullLiteral>]
-type DurableObjectListOptions =
-    abstract member start: string option with get, set
-    abstract member startAfter: string option with get, set
-    abstract member ``end``: string option with get, set
-    abstract member prefix: string option with get, set
-    abstract member reverse: bool option with get, set
-    abstract member limit: int option with get, set
-    abstract member allowConcurrency: bool option with get, set
-    abstract member noCache: bool option with get, set
-
-/// Options for get operations
-[<AllowNullLiteral>]
-type DurableObjectGetOptions =
-    abstract member allowConcurrency: bool option with get, set
-    abstract member noCache: bool option with get, set
-
-/// Options for put operations
-[<AllowNullLiteral>]
-type DurableObjectPutOptions =
-    abstract member allowConcurrency: bool option with get, set
-    abstract member allowUnconfirmed: bool option with get, set
-    abstract member noCache: bool option with get, set
-
 /// Durable Object state
 [<AllowNullLiteral>]
 [<Interface>]
@@ -178,29 +209,3 @@ type IDurableObjectEnvironment =
     /// Access a Durable Object namespace binding by name
     [<Emit("$0[$1]")>]
     abstract member getDurableObjectNamespace: name: string -> DurableObjectNamespace
-
-/// WebSocket for Durable Objects
-and [<AllowNullLiteral>] [<Interface>] WebSocket =
-    /// Accept the WebSocket connection
-    abstract member accept: unit -> unit
-
-    /// Send a message
-    abstract member send: message: string -> unit
-
-    /// Send binary data
-    abstract member send: message: JS.ArrayBuffer -> unit
-
-    /// Close the WebSocket
-    abstract member close: ?code: int * ?reason: string -> unit
-
-    /// Ready state
-    abstract member readyState: int with get
-
-    /// URL of the WebSocket
-    abstract member url: string with get
-
-    /// Protocol
-    abstract member protocol: string with get
-
-    /// Extensions
-    abstract member extensions: string with get

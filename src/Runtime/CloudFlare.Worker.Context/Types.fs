@@ -74,8 +74,10 @@ type ResponseConstructor =
     abstract member json: obj * ?init: ResponseInit -> Response
     abstract member redirect: url: string * ?status: float -> Response
 
-[<Global>]
-let Headers: HeadersConstructor = jsNative
+/// Global constructors module
+module Globals =
+    [<Global>]
+    let Headers: HeadersConstructor = jsNative
 
-[<Global>]
-let Response: ResponseConstructor = jsNative
+    [<Global>]
+    let Response: ResponseConstructor = jsNative

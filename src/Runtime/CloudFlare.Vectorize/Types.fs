@@ -22,13 +22,13 @@ type VectorizeVector =
     abstract member id: string with get, set
     abstract member values: float[] with get, set
     abstract member metadata: VectorizeVectorMetadata option with get, set
-    abstract member namespace: string option with get, set
+    abstract member ``namespace``: string option with get, set
 
 /// Query options for vector search
 [<AllowNullLiteral>]
 type VectorizeQueryOptions =
     abstract member topK: int option with get, set
-    abstract member namespace: string option with get, set
+    abstract member ``namespace``: string option with get, set
     abstract member includeValues: bool option with get, set
     abstract member includeMetadata: bool option with get, set
     abstract member filter: obj option with get, set
