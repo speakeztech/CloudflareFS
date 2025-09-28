@@ -1,0 +1,22 @@
+{
+  "namespace": "CloudFlare.Api.Storage.KV",
+  "synchronous": false,
+  "target": "fsharp",
+  "emptyDefinitions": "ignore",
+  "generateClient": true,
+  "clientName": "KVManagementClient",
+  "overrideOperationIds": {
+    "workers-kv-namespace-list-namespaces": "ListNamespaces",
+    "workers-kv-namespace-create-a-namespace": "CreateNamespace",
+    "workers-kv-namespace-remove-a-namespace": "DeleteNamespace",
+    "workers-kv-namespace-get-a-namespace": "GetNamespace",
+    "workers-kv-namespace-rename-a-namespace": "UpdateNamespace",
+    "workers-kv-namespace-list-a-namespace'-s-keys": "ListKeys",
+    "workers-kv-namespace-write-key-value-pair-with-metadata": "PutValue",
+    "workers-kv-namespace-read-key-value-pair": "GetValue",
+    "workers-kv-namespace-delete-key-value-pair": "DeleteValue",
+    "workers-kv-namespace-write-multiple-key-value-pairs": "BulkWrite",
+    "workers-kv-namespace-delete-multiple-key-value-pairs-deprecated": "BulkDelete",
+    "workers-kv-namespace-read-the-metadata-for-a-key": "GetMetadata"
+  }
+}

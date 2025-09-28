@@ -1,0 +1,10 @@
+{
+  "schema": "./temp/Analytics-openapi.json",
+  "project": "CloudFlare.Api.Analytics",
+  "output": "./Generated-Analytics",
+  "namespace": "CloudFlare.Api.Analytics",
+  "synchronous": false,
+  "target": "fsharp",
+  "generateClient": true,
+  "clientName": "AnalyticsClient"
+}

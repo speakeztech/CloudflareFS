@@ -1,0 +1,10 @@
+{
+  "schema": "./temp/Workers-openapi.json",
+  "project": "CloudFlare.Api.Compute.Workers",
+  "output": "./Generated-Workers",
+  "namespace": "CloudFlare.Api.Compute.Workers",
+  "synchronous": false,
+  "target": "fsharp",
+  "generateClient": true,
+  "clientName": "WorkersManagementClient"
+}

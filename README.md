@@ -8,211 +8,234 @@ Comprehensive F# bindings and tooling for the entire Cloudflare platform, bringi
 
 ## Overview
 
-CloudflareFS aims to provide complete F# bindings for Cloudflare's most recent SDKs, enabling developers to leverage the full power of Cloudflare services with F#'s type safety and functional programming paradigms. Built on [Fable](https://fable.io/) for JavaScript interop and utilizing [Glutinum](https://github.com/glutinum-org/cli) for automated binding generation, this toolkit bridges the gap between F# and Cloudflare's extensive service ecosystem.
+CloudflareFS provides complete F# bindings for Cloudflare's platform through a **dual-layer architecture**:
+- **Runtime APIs**: In-Worker JavaScript interop for edge computing
+- **Management APIs**: REST clients for infrastructure provisioning
 
-### Key Goals
-
-- **Complete Coverage**: Bindings for Workers, R2, D1, KV, Durable Objects, Queues, and 50+ Cloudflare services
-- **Type Safety**: Full F# type safety across runtime and management APIs
-- **Modern Architecture**: Support for emerging technologies (MoQ relay, Post-Quantum Cryptography)
-- **Developer Experience**: Computation expressions, active patterns, and idiomatic F# APIs
-- **Automated Generation**: 70% auto-generated from TypeScript/OpenAPI definitions
-- **Enterprise Ready**: Dual MIT/Apache 2.0 licensing with patent protection options
-
-## Installation
-
-### Core Runtime (Workers/Edge)
-```bash
-dotnet add package CloudflareFS.Worker
-dotnet add package CloudflareFS.KV
-dotnet add package CloudflareFS.R2
-```
-
-### Management APIs
-```bash
-dotnet add package CloudflareFS.DNS
-dotnet add package CloudflareFS.ZeroTrust
-```
-
-### Development Tools
-```bash
-dotnet tool install -g CloudflareFS.CLI
-cf-tools init my-worker
-```
+Built on [Fable](https://fable.io/) for JavaScript compilation, [Glutinum](https://github.com/glutinum-org/cli) for TypeScript binding generation, and [Hawaii](https://github.com/Zaid-Ajaj/Hawaii) for OpenAPI client generation.
 
 ## Architecture
 
-CloudflareFS uses a two-layer architecture:
+### Two-Layer Design
 
-### 1. Runtime Layer (In-Worker APIs)
-Bindings for code executing inside Workers, using Fable for JavaScript interop:
-- **Core Types** ✅: Request, Response, Headers, ExecutionContext
-- **Storage** ✅: KV, R2, D1 (each in separate focused projects)
-- **AI** ✅: Workers AI bindings
-- **Planned**: Durable Objects, Queues, Analytics Engine, Vectorize
+```
+CloudflareFS/
+├── src/
+│   ├── Runtime/           # In-Worker APIs (JavaScript interop)
+│   │   ├── CloudFlare.Worker.Context/
+│   │   ├── CloudFlare.D1/
+│   │   ├── CloudFlare.R2/
+│   │   ├── CloudFlare.KV/
+│   │   └── CloudFlare.AI/
+│   │
+│   └── Management/        # REST APIs (HTTP clients)
+│       ├── CloudFlare.Management.D1/
+│       ├── CloudFlare.Management.R2/
+│       ├── CloudFlare.Management.Analytics/
+│       └── CloudFlare.Management.KV/
+```
 
-### 2. Management Layer (REST APIs)
-F# clients for Cloudflare's control plane, generated using Hawaii from OpenAPI specs:
-- **Planned**: Account management, DNS, Workers deployment
-- **Planned**: Zero Trust (Access, Gateway, Tunnels)
-- **Planned**: Resource creation (KV namespaces, R2 buckets, D1 databases)
+### Runtime Layer (In-Worker)
+- **Purpose**: Operations inside Cloudflare Workers
+- **Source**: TypeScript definitions via Glutinum
+- **Usage**: Direct platform access with microsecond latency
+
+### Management Layer (External)
+- **Purpose**: Infrastructure provisioning and management
+- **Source**: OpenAPI specs via Hawaii
+- **Usage**: REST API clients for external tools
 
 ## Current Implementation Status
 
 ### ✅ Completed
 
-| Package | Description | Location |
-|---------|-------------|----------|
-| **CloudFlare.Worker.Context** | Core Worker types (Request, Response, Headers) | `src/Runtime/CloudFlare.Worker.Context` |
-| **CloudFlare.KV** | Key-Value store bindings with helpers | `src/Runtime/CloudFlare.KV` |
-| **CloudFlare.R2** | R2 object storage bindings with helpers | `src/Runtime/CloudFlare.R2` |
-| **CloudFlare.D1** | D1 database bindings with query helpers | `src/Runtime/CloudFlare.D1` |
-| **CloudFlare.AI** | Workers AI service bindings | `src/Runtime/CloudFlare.AI` |
+| Layer | Package | Description |
+|-------|---------|-------------|
+| **Runtime** | CloudFlare.Worker.Context | Core Worker types (Request, Response) |
+| **Runtime** | CloudFlare.KV | Key-Value storage bindings |
+| **Runtime** | CloudFlare.R2 | Object storage bindings |
+| **Runtime** | CloudFlare.D1 | Database bindings |
+| **Runtime** | CloudFlare.AI | Workers AI bindings |
+| **Management** | CloudFlare.Management.R2 | R2 bucket management |
+| **Management** | CloudFlare.Management.D1 | D1 database management |
+| **Management** | CloudFlare.Management.Analytics | Analytics API client |
 
-### 🔄 In Progress / Planned
+### 🔄 In Progress
 
-| Package | Description | Status |
-|---------|-------------|--------|
-| **CloudFlare.DurableObjects** | Durable Objects bindings | Empty folder, planned |
-| **CloudFlare.Queues** | Message queue bindings | Empty folder, planned |
-| **CloudFlare.Vectorize** | Vector database bindings | Empty folder, planned |
-| **CloudFlare.Api** | Management APIs via Hawaii | Generators configured, awaiting implementation |
+- CloudFlare.Management.KV (Hawaii generation issues)
+- CloudFlare.Management.Workers (Hawaii generation issues)
+- Runtime bindings for Durable Objects, Queues, Vectorize
 
-## Advanced Features
+## Installation
 
-### Computation Expressions
+### Runtime Packages (For Workers)
+```bash
+dotnet add package CloudFlare.Worker.Context
+dotnet add package CloudFlare.D1
+dotnet add package CloudFlare.R2
+dotnet add package CloudFlare.KV
+```
+
+### Management Packages (For Tools/Scripts)
+```bash
+dotnet add package CloudFlare.Management.D1
+dotnet add package CloudFlare.Management.R2
+dotnet add package CloudFlare.Management.Analytics
+```
+
+## Usage Examples
+
+### Complete Workflow: Infrastructure + Runtime
 
 ```fsharp
-// Async KV operations with CE
-let workflow = kv {
-    let! user = env.USERS.get(userId)
-    let! preferences = env.PREFS.get(userId)
-    return combine user preferences
+// 1. Infrastructure Setup (Management API - runs on your machine)
+open CloudFlare.Management.D1
+open System.Net.Http
+
+let setupInfrastructure (accountId: string) (apiToken: string) = async {
+    let httpClient = new HttpClient()
+    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiToken}")
+
+    let d1Client = D1ManagementClient(httpClient)
+    let! database = d1Client.CreateDatabase(
+        accountId = accountId,
+        name = "production-db",
+        primaryLocationHint = Some "wnam"
+    )
+
+    printfn $"Created database: {database.uuid}"
+    return database.uuid
 }
-```
 
-### Active Patterns
-
-```fsharp
-// Pattern matching for routing
-match request with
-| GET & Route "/api/users" -> handleGetUsers()
-| POST & Route "/api/users" -> handleCreateUser()
-| DELETE & Route "/api/users/:id" id -> handleDeleteUser(id)
-| _ -> Response.notFound()
-```
-
-### Type Providers (Coming Soon)
-
-```fsharp
-// Type-safe environment bindings from wrangler.toml
-type MyConfig = WranglerProvider<"./wrangler.toml">
-let kv = MyConfig.Bindings.MY_KV_NAMESPACE // Typed!
-```
-
-## Emerging Technology Support
-
-### Media over QUIC (MoQ)
-Prepared for Cloudflare's MoQ relay infrastructure:
-```fsharp
-open CloudflareFS.MoQ
-
-let relay = MoQClient("wss://moq-relay.cloudflare.com")
-let! track = relay.subscribe("audio/main")
-```
-
-### Post-Quantum Cryptography
-Support for X25519MLKEM768 and future PQC standards:
-```fsharp
-open CloudflareFS.PQC
-
-let! config = PQC.configure {
-    mode = PQCMode.Preferred
-    algorithms = ["X25519MLKEM768"]
-}
-```
-
-## Examples
-
-### Basic Worker
-```fsharp
-open CloudflareFS.Worker
+// 2. Runtime Operations (Runtime API - runs in Worker)
+open CloudFlare.D1
+open CloudFlare.Worker.Context
 
 [<Export>]
 let fetch (request: Request) (env: Env) (ctx: ExecutionContext) =
-    match request.method with
-    | "GET" -> Response.ok("Hello from F#!")
-    | _ -> Response.methodNotAllowed()
-```
+    async {
+        // env.DATABASE is bound via wrangler.toml
+        let db = env.DATABASE
 
-### Durable Object with State
-```fsharp
-type ChatRoom() =
-    inherit DurableObject()
+        match request.method with
+        | "GET" ->
+            let! users = db.prepare("SELECT * FROM users").all<User>()
+            return Response.json(users)
 
-    let mutable sessions = Set.empty<WebSocket>
+        | "POST" ->
+            let! body = request.json<User>()
+            let! result =
+                db.prepare("INSERT INTO users (name, email) VALUES (?, ?)")
+                  .bind(body.name, body.email)
+                  .run()
+            return Response.json({| success = result.success |})
 
-    member this.onWebSocket(ws: WebSocket) = async {
-        sessions <- sessions.Add(ws)
-        ws.accept()
-
-        ws.onMessage(fun msg ->
-            // Broadcast to all sessions
-            sessions |> Set.iter (fun s -> s.send(msg))
-        )
+        | _ -> return Response.methodNotAllowed()
     }
 ```
 
-### Zero Trust Integration
-```fsharp
-open CloudflareFS.ZeroTrust
+### KV Storage Example
 
-let! policy = Access.createPolicy {
-    name = "GitHub Auth Required"
-    decision = "allow"
-    include = [ EmailDomain "@mycompany.com" ]
-    require = [ GitHub { org = "mycompany" } ]
+```fsharp
+// Runtime API - Inside Worker
+open CloudFlare.KV
+
+let handleKVRequest (env: Env) = async {
+    // Get value
+    let! value = env.CACHE.get("user:123")
+
+    // Set with expiration
+    do! env.CACHE.put("session:abc", userJson,
+        KVPutOptions(expirationTtl = 3600))
+
+    // List keys with prefix
+    let! keys = env.CACHE.list(KVListOptions(prefix = "user:"))
+
+    return Response.json(keys)
 }
 ```
 
-## Development
+### R2 Object Storage Example
 
-### Building from Source
+```fsharp
+// Management API - Create bucket
+let createBucket (accountId: string) = async {
+    let r2Client = R2ManagementClient(httpClient)
+    let! bucket = r2Client.CreateBucket(
+        accountId = accountId,
+        name = "my-assets",
+        location = Some "wnam"
+    )
+    return bucket
+}
+
+// Runtime API - Use bucket
+let handleR2Request (env: Env) = async {
+    let bucket = env.ASSETS
+
+    // Get object
+    let! obj = bucket.get("image.png")
+    match obj with
+    | Some r2Object ->
+        return Response.create(r2Object.body,
+            ResponseInit(headers = r2Object.httpMetadata))
+    | None ->
+        return Response.notFound()
+}
+```
+
+## Building from Source
+
+### Prerequisites
+- .NET 8.0 or later
+- Node.js 18+
+- Glutinum CLI: `npm install -g @glutinum/cli`
+- Hawaii: `dotnet tool install -g hawaii`
+
+### Build Commands
+
 ```bash
-# Clone the repository
+# Clone repository
 git clone https://github.com/yourusername/CloudflareFS.git
 cd CloudflareFS
 
-# Install dependencies
-dotnet tool restore
-npm install -g @glutinum/cli
-dotnet tool install -g hawaii
+# Build Runtime bindings
+dotnet build src/Runtime/CloudFlare.Worker.Context
 
-# Build runtime bindings
-cd src/Runtime/CloudFlare.Worker.Context
-dotnet build
+# Build Management APIs
+dotnet build src/Management/CloudFlare.Management.D1
 
-# Build sample applications
+# Run sample Worker
 cd samples/HelloWorker
 dotnet fable . --outDir dist
 npx wrangler dev
 ```
 
-### Regenerating Bindings
-```bash
-# Runtime bindings (Glutinum)
-cd generators/glutinum
-.\generate-bindings.ps1
+## Generation Pipeline
 
-# Management APIs (Hawaii)
+### Runtime Bindings (TypeScript → F#)
+```bash
+cd generators/glutinum
+npx @glutinum/cli generate
+    ../../node_modules/@cloudflare/workers-types/index.d.ts \
+    --output ../../src/Runtime/CloudFlare.Worker.Context/Generated.fs
+```
+
+### Management APIs (OpenAPI → F#)
+```bash
 cd generators/hawaii
-.\generate-bindings.ps1
+
+# 1. Segment the massive OpenAPI spec
+dotnet fsi extract-services.fsx
+
+# 2. Generate F# clients
+hawaii --config d1-hawaii.json
 ```
 
 ## Sample Projects
 
 ### HelloWorker
-Basic Worker demonstrating KV and request handling:
+Basic Worker with KV storage:
 ```bash
 cd samples/HelloWorker
 dotnet fable . --outDir dist
@@ -220,10 +243,10 @@ npx wrangler dev
 ```
 
 ### SecureChat
-Production-ready chat API with:
+Production-ready chat API featuring:
 - User authentication via Cloudflare Secrets
-- D1 database for message storage
-- PowerShell scripts for user management
+- D1 database for message persistence
+- PowerShell user management scripts
 - Separate React UI with Tailwind CSS
 
 ```bash
@@ -233,49 +256,63 @@ dotnet fable . --outDir dist
 npx wrangler dev
 ```
 
+## Future Roadmap
+
+### CloudflareFS CLI (`cfs`)
+F#-based alternative to Wrangler:
+```fsharp
+// Deploy with F# script instead of wrangler.toml
+cfs deploy ./deploy.fsx
+
+// deploy.fsx
+let config = {
+    name = "my-worker"
+    compatibilityDate = "2024-01-01"
+    bindings = [
+        D1Database("DATABASE", databaseId)
+        KVNamespace("CACHE", namespaceId)
+    ]
+}
+```
+
+### Firetower Monitoring Tool
+Real-time Cloudflare platform monitoring:
+- Desktop app via Avalonia.FuncUI
+- Web deployment on Cloudflare Pages
+- Live metrics, logs, and alerts
+- Inspired by Erlang's Observer
+
+### Type Provider for wrangler.toml
+```fsharp
+type MyWorker = WranglerProvider<"./wrangler.toml">
+
+// Fully typed bindings from config
+let db = MyWorker.Bindings.DATABASE
+let kv = MyWorker.Bindings.CACHE
+```
+
+## Documentation
+
+- [Architecture Decisions](docs/ARCHITECTURE_DECISIONS.md) - Detailed architecture documentation
+- [Runtime vs Management](docs/RUNTIME_VS_MANAGEMENT.md) - Understanding the dual-layer design
+- [Firetower Concept](docs/FIRETOWER_CONCEPT.md) - Monitoring tool design
+- [Samples](samples/) - Working examples
+
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-### Development Prerequisites
-- .NET 8.0 or later
-- Node.js 18+ and npm
-- Glutinum CLI (`npm install -g @glutinum/cli`)
-- F# 8.0 or later
-
-## Roadmap
-
-### Phase 1: Runtime Bindings (Mostly Complete)
-- [x] Core Workers bindings (Request, Response, Headers)
-- [x] KV storage bindings with F# helpers
-- [x] R2 object storage bindings
-- [x] D1 database bindings
-- [x] AI service bindings
-- [ ] Durable Objects
-- [ ] Queues
-- [ ] Analytics Engine
-
-### Phase 2: Management APIs (Starting)
-- [ ] Set up Hawaii for OpenAPI generation
-- [ ] Account and user management
-- [ ] KV/R2/D1 resource creation
-- [ ] Workers deployment APIs
-- [ ] DNS management
-- [ ] Zero Trust services
-
-### Phase 3: Developer Experience
-- [ ] CLI tooling
-- [ ] Project templates
-- [ ] Type provider for wrangler.toml
-- [ ] VS Code extension
-- [ ] Comprehensive documentation
+### Development Areas
+- Complete remaining Runtime bindings (Durable Objects, Queues)
+- Fix Hawaii generation for KV/Workers Management APIs
+- Build the `cfs` CLI tool
+- Create more sample applications
+- Improve documentation
 
 ## Support
 
-- **Documentation**: [https://cloudflarefs.dev](https://cloudflarefs.dev)
 - **Issues**: [GitHub Issues](https://github.com/yourusername/CloudflareFS/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/yourusername/CloudflareFS/discussions)
-- **Examples**: See the `/samples` directory
 
 ## License
 
@@ -288,22 +325,22 @@ at your option.
 
 ### Contribution
 
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you shall be dual licensed as above, without any additional terms or conditions.
 
 ---
 
 ## Acknowledgments
 
-CloudflareFS stands on the shoulders of giants. We extend our deepest gratitude to:
+CloudflareFS stands on the shoulders of giants:
 
-- **[Fable](https://fable.io/)** - The magnificent F# to JavaScript compiler that makes this entire project possible. Special thanks to Alfonso Garc�a-Caro and all Fable contributors for creating and maintaining this essential bridge between F# and the JavaScript ecosystem.
+- **[Fable](https://fable.io/)** - The magnificent F# to JavaScript compiler. Special thanks to Alfonso García-Caro and all contributors.
 
-- **[Glutinum](https://github.com/glutinum-org)** - The TypeScript to F# binding generator that automates 70% of our binding generation. Thanks to Maxime Mangel for creating this invaluable tool that turns TypeScript definitions into idiomatic F# code.
+- **[Glutinum](https://github.com/glutinum-org)** - TypeScript to F# binding generator. Thanks to Maxime Mangel for this invaluable tool.
 
-- **[F# Software Foundation](https://fsharp.org/)** and the entire F# community - For fostering a language and ecosystem that makes functional programming practical, enjoyable, and powerful. Special recognition to Don Syme and the F# language design team at Microsoft Research.
+- **[Hawaii](https://github.com/Zaid-Ajaj/Hawaii)** - OpenAPI to F# client generator. Thanks to Zaid Ajaj for creating this and pioneering F# on Cloudflare Workers.
 
-- **[Cloudflare](https://cloudflare.com)** - For building an incredible edge computing platform and being steadfast advocates for open source. Your commitment to open standards, transparent development, and developer empowerment inspired this project.
+- **[F# Software Foundation](https://fsharp.org/)** - For fostering a language that makes functional programming practical and enjoyable.
 
-- **Early F# Cloudflare Pioneers** - Particularly Zaid Ajaj for creating the original Fable.CloudflareWorkers bindings that proved F# on Cloudflare was possible, and the community members who've been advocating for better F# support on edge platforms.
+- **[Cloudflare](https://cloudflare.com)** - For building an incredible edge platform and commitment to open source.
 
-This project is our contribution back to these amazing communities - a small "thank you" for all the tools, platforms, and inspiration you've provided. We hope CloudflareFS helps more developers experience the joy of functional programming on Cloudflare's platform.
+This project is our contribution back to these amazing communities.
