@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="CoreTests.fs" />
+    <Compile Include="ManagementTests.fs" />
+    <Compile Include="RuntimeTests.fs" />
+    <Compile Include="Main.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Expecto" Version="10.2.1" />
+    <PackageReference Include="Expecto.FsCheck" Version="10.2.1" />
+    <PackageReference Include="FsCheck" Version="2.16.6" />
+    <PackageReference Include="Fable.Mocha" Version="2.17.0" />
+    <PackageReference Include="Fable.Core" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Core\CloudFlare.Core\CloudFlare.Core.fsproj" />
+    <ProjectReference Include="..\..\src\Management\CloudFlare.Management.D1\CloudFlare.Management.D1.fsproj" />
+    <ProjectReference Include="..\..\src\Management\CloudFlare.Management.R2\CloudFlare.Management.R2.fsproj" />
+    <ProjectReference Include="..\..\src\Runtime\CloudFlare.AI\CloudFlare.AI.fsproj" />
+    <ProjectReference Include="..\..\src\Runtime\CloudFlare.Worker.Context\CloudFlare.Worker.Context.fsproj" />
+  </ItemGroup>
+
+</Project>

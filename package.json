@@ -8,7 +8,14 @@
     "generate": "node ./generators/generate-all.js",
     "generate-worker": "npx @glutinum/cli ./node_modules/@cloudflare/workers-types/index.d.ts --out-file ./src/Runtime/CloudFlare.Worker.Context/Generated.fs",
     "generate-ai": "npx @glutinum/cli ./node_modules/@cloudflare/ai/dist/index.d.ts --out-file ./src/Runtime/CloudFlare.AI/Generated.fs",
-    "postinstall": "echo 'Run npm run generate to create F# bindings'"
+    "postinstall": "echo 'Run npm run generate to create F# bindings'",
+    "test": "cd tests/CloudFlare.Tests && dotnet run",
+    "test:watch": "cd tests/CloudFlare.Tests && dotnet watch run",
+    "test:coverage": "cd tests/CloudFlare.Tests && dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover",
+    "test:fable": "cd tests/CloudFlare.Tests && npm run test:fable",
+    "build": "dotnet build",
+    "clean": "dotnet clean",
+    "restore": "dotnet restore"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241127.0",

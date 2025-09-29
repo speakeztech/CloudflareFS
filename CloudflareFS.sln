@@ -39,6 +39,10 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CloudFlare.Management.Hyper
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CloudFlare.Management.DurableObjects", "src\Management\CloudFlare.Management.DurableObjects\CloudFlare.Management.DurableObjects.fsproj", "{2870A75E-A9BB-45E0-97C4-2F8415800FF5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CloudFlare.Tests", "tests\CloudFlare.Tests\CloudFlare.Tests.fsproj", "{D880DB3B-AE14-4B21-AA91-3F56DD30334D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -217,6 +221,18 @@ Global
 		{2870A75E-A9BB-45E0-97C4-2F8415800FF5}.Release|x64.Build.0 = Release|Any CPU
 		{2870A75E-A9BB-45E0-97C4-2F8415800FF5}.Release|x86.ActiveCfg = Release|Any CPU
 		{2870A75E-A9BB-45E0-97C4-2F8415800FF5}.Release|x86.Build.0 = Release|Any CPU
+		{D880DB3B-AE14-4B21-AA91-3F56DD30334D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D880DB3B-AE14-4B21-AA91-3F56DD30334D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D880DB3B-AE14-4B21-AA91-3F56DD30334D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D880DB3B-AE14-4B21-AA91-3F56DD30334D}.Debug|x64.Build.0 = Debug|Any CPU
+		{D880DB3B-AE14-4B21-AA91-3F56DD30334D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D880DB3B-AE14-4B21-AA91-3F56DD30334D}.Debug|x86.Build.0 = Debug|Any CPU
+		{D880DB3B-AE14-4B21-AA91-3F56DD30334D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D880DB3B-AE14-4B21-AA91-3F56DD30334D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D880DB3B-AE14-4B21-AA91-3F56DD30334D}.Release|x64.ActiveCfg = Release|Any CPU
+		{D880DB3B-AE14-4B21-AA91-3F56DD30334D}.Release|x64.Build.0 = Release|Any CPU
+		{D880DB3B-AE14-4B21-AA91-3F56DD30334D}.Release|x86.ActiveCfg = Release|Any CPU
+		{D880DB3B-AE14-4B21-AA91-3F56DD30334D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -239,5 +255,6 @@ Global
 		{4C179833-8256-44F1-9D8E-E4479FAF70B0} = {F3244B3D-53C5-18F9-F232-08909C1DCBB5}
 		{694B6EA7-155D-4BB4-A538-2D1C5AC0F980} = {F3244B3D-53C5-18F9-F232-08909C1DCBB5}
 		{2870A75E-A9BB-45E0-97C4-2F8415800FF5} = {F3244B3D-53C5-18F9-F232-08909C1DCBB5}
+		{D880DB3B-AE14-4B21-AA91-3F56DD30334D} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal

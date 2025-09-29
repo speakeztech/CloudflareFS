@@ -1,0 +1,16 @@
+{
+  "name": "cloudflare-tests",
+  "version": "1.0.0",
+  "description": "Tests for CloudflareFS",
+  "scripts": {
+    "test": "dotnet run",
+    "test:watch": "dotnet watch run",
+    "test:fable": "dotnet fable . --outDir dist && mocha dist",
+    "test:fable:watch": "dotnet fable watch . --outDir dist --run mocha dist",
+    "test:coverage": "dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover",
+    "test:filter": "dotnet run -- --filter"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0"
+  }
+}
