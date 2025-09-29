@@ -350,10 +350,23 @@ The complete CloudflareFS toolkit will provide:
 
 ## Documentation
 
-- [Architecture Decisions](docs/ARCHITECTURE_DECISIONS.md) - Current roadmap
-- [Runtime vs Management](docs/RUNTIME_VS_MANAGEMENT.md) - Understanding the dual-layer design
-- [Firetower Concept](docs/FIRETOWER_CONCEPT.md) - Monitoring tool design
-- [Samples](samples/) - Some examples that are being used to prove out the framework as it develops
+### Core Architecture
+- [Architecture Decisions](docs/00_architecture_decisions.md) - Key design choices and roadmap
+- [Generation Strategy](docs/01_generation_strategy.md) - Glutinum vs Hawaii code generation
+- [Dual Layer Architecture](docs/02_dual_layer_architecture.md) - Runtime vs Management APIs
+- [OpenAPI Generation](docs/03_openapi_generation.md) - Hawaii setup and OpenAPI handling
+
+### Implementation Details
+- [Code-First Deployment](docs/04_code_first_deployment.md) - Code-driven deployment strategies
+- [Gap Analysis](docs/05_gap_analysis.md) - Coverage comparison with workers-sdk
+- [Conversion Patterns](docs/08_conversion_patterns.md) - TypeScript to F# patterns
+
+### Tools & Future
+- [Firetower Concept](docs/06_firetower_concept.md) - Monitoring tool design
+- [Pulumi Insights](docs/07_pulumi_insights.md) - Lessons from Pulumi's approach
+
+### Examples
+- [Samples](samples/) - Working examples demonstrating the framework capabilities
 
 ## Contributing
 

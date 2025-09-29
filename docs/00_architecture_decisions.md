@@ -46,10 +46,12 @@ type D1Database =
 **Location**: `src/Management/`
 
 ```fsharp
-// Runs OUTSIDE Workers (CLI tools, deployment scripts)
-type D1ManagementClient(httpClient: HttpClient) =
-    member this.CreateDatabase: accountId: string * name: string -> Async<D1Database>
-    member this.ListDatabases: accountId: string -> Async<D1DatabaseList>
+// Runs OUTSIDE Workers (any platform: browser, native, or .NET)
+type D1ManagementClient =
+    member this.CreateDatabase: accountId: string * name: string ->
+        Async<Result<D1Database, ApiError>>
+    member this.ListDatabases: accountId: string ->
+        Async<Result<D1DatabaseList, ApiError>>
 ```
 
 ## Key Architectural Decisions
@@ -60,11 +62,12 @@ type D1ManagementClient(httpClient: HttpClient) =
 
 | Aspect | Runtime APIs | Management APIs |
 |--------|--------------|-----------------|
-| Execution Context | Inside Worker (V8) | External (any .NET app) |
+| Execution Context | Inside Worker (V8) | External (any platform) |
 | Protocol | JavaScript interop | HTTP/REST |
 | Authentication | Worker bindings | API tokens |
 | Latency | Microseconds | Network RTT |
 | Use Case | Data operations | Infrastructure setup |
+| Compilation | Fable only | Fable, Fidelity, or .NET |
 
 ### Decision 2: Use Hawaii for OpenAPI Generation ✅
 
@@ -96,7 +99,39 @@ CloudflareFS/
 │       └── CloudFlare.Management.Analytics/
 ```
 
-### Decision 4: OpenAPI Segmentation Pipeline ✅
+### Decision 4: Pure F# Portability for Management APIs ✅
+
+**Rationale**: Management APIs must be compilable via multiple F# toolchains for maximum portability.
+
+**Principle**: Use only F#-native constructs to enable:
+- **Fable**: Compile to JavaScript (browser-based management tools)
+- **Fidelity**: Compile to native via MLIR/LLVM (zero runtime dependencies)
+- **.NET**: Traditional compilation as fallback option
+
+**Implementation Requirements**:
+- Use `async { }` computational expressions, NOT `Task<T>`
+- Return `Async<Result<'T, 'Error>>` for all operations
+- No System.Net.Http or other .NET-specific types
+- Pure functional error handling (Result/Option types)
+- Immutable records and discriminated unions only
+
+```fsharp
+// ✅ CORRECT: Pure F# that compiles everywhere
+type D1ManagementClient =
+    member this.CreateDatabase: accountId: string * name: string ->
+        Async<Result<D1Database, ApiError>>
+
+// ❌ WRONG: .NET-specific, won't compile with Fable/Fidelity
+type D1ManagementClient =
+    member this.CreateDatabase: accountId: string * name: string ->
+        Task<CloudFlareResult<D1Database>>  // Uses Task and custom .NET types
+```
+
+**Contrast with Other Libraries**:
+- CloudFlare.Client (C#) uses `Task<T>` - locked to .NET only
+- CloudflareFS uses `async { }` - portable to any target
+
+### Decision 5: OpenAPI Segmentation Pipeline ✅
 
 **Problem**: Cloudflare's OpenAPI spec is 15.5MB, causing tool failures.
 
@@ -133,9 +168,11 @@ hawaii --config generators/hawaii/d1-hawaii.json
 ```fsharp
 // 1. Infrastructure Setup (Management API)
 let provisionInfrastructure (accountId: string) = async {
-    let client = D1ManagementClient(httpClient)
-    let! database = client.CreateDatabase(accountId, "app-db", Some "wnam")
-    return database.uuid
+    let client = D1ManagementClient()
+    let! result = client.CreateDatabase(accountId, "app-db", Some "wnam")
+    match result with
+    | Ok database -> return database.uuid
+    | Error err -> return failwith $"Failed: {err}"
 }
 
 // 2. Configure Bindings (wrangler.toml)
@@ -186,6 +223,8 @@ Desktop/web monitoring application:
 2. **OpenAPI Size**: Large specs need segmentation for tooling compatibility
 3. **Namespace Consistency**: Generated code needs namespace updates to match project structure
 4. **Dual Benefits**: Separation enables both infrastructure-as-code AND runtime operations in F#
+5. **Portability Matters**: Avoiding .NET-specific patterns (Task, HttpClient) enables compilation via Fable and Fidelity
+6. **F# Native Patterns**: Using async workflows and Result types maintains compatibility across all F# toolchains
 
 ## Next Steps
 
