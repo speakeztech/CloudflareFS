@@ -39,6 +39,8 @@ let fetch (request: Request) (env: Env) (ctx: ExecutionContext) =
         code { background: #1a1a1a; color: #f38020; padding: 2px 8px; border-radius: 4px; border: 1px solid #333; font-family: 'Courier New', monospace; }
         .route { background: #1a1a1a; padding: 12px 15px; border-radius: 5px; margin: 8px 0; border: 1px solid #333; display: flex; align-items: center; }
         .route code { margin: 0 8px 0 0; }
+        .route code a { color: #2196F3; }
+        .route code a:hover { color: #42a5f5; }
         .route span { color: #999; }
         ul { margin: 15px 0; padding: 0; list-style: none; }
         li { margin: 0; }
@@ -53,11 +55,11 @@ let fetch (request: Request) (env: Env) (ctx: ExecutionContext) =
 
     <h2>Available Routes</h2>
     <ul>
-        <li><div class="route"><code>GET /</code><span>This page</span></div></li>
-        <li><div class="route"><code>GET /json</code><span>JSON response with timestamp</span></div></li>
-        <li><div class="route"><code>GET /headers</code><span>Custom headers example</span></div></li>
-        <li><div class="route"><code>GET /redirect</code><span>Redirect to GitHub</span></div></li>
-        <li><div class="route"><code>GET /request-info</code><span>Request information</span></div></li>
+        <li><div class="route"><code>GET <a href="/">/</a></code><span>This page</span></div></li>
+        <li><div class="route"><code>GET <a href="/json">/json</a></code><span>JSON response with timestamp</span></div></li>
+        <li><div class="route"><code>GET <a href="/headers">/headers</a></code><span>Custom headers example</span></div></li>
+        <li><div class="route"><code>GET <a href="/redirect">/redirect</a></code><span>Redirect to GitHub</span></div></li>
+        <li><div class="route"><code>GET <a href="/request-info">/request-info</a></code><span>Request information</span></div></li>
     </ul>
 
     <h2>Features</h2>
