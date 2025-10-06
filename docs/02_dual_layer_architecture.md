@@ -29,22 +29,22 @@ CloudflareFS is designed as a layered architecture that can power multiple front
 ┌──────────────────────────────────────────────────────────┐
 │                    Core API Layer                        │
 ├──────────────────────────────────────────────────────────┤
-│  Management APIs           │  Monitoring APIs            │
-│  • Workers                 │  • Analytics                │
-│  • KV/R2/D1               │  • Logs (tail)              │
-│  • DNS                    │  • Metrics                  │
-│  • Zero Trust             │  • Health                   │
-│  (Hawaii-generated)       │  (Hawaii-generated)         │
+│  Management APIs          │   Monitoring APIs            │
+│  • Workers                │   • Analytics                │
+│  • KV/R2/D1               │  • Logs (tail)               │
+│  • DNS                    │  • Metrics                   │
+│  • Zero Trust             │  • Health                    │
+│  (Hawaii-generated)       │  (Hawaii-generated)          │
 └──────────────────────────────────────────────────────────┘
                                │
                                ▼
 ┌──────────────────────────────────────────────────────────┐
 │                   Transport Layer                        │
 ├──────────────────────────────────────────────────────────┤
-│  HTTP Client     │  WebSocket      │  Event Streams     │
-│  • Auth          │  • Log tailing  │  • Real-time       │
-│  • Retry         │  • Live metrics │  • Analytics       │
-│  • Rate limits   │                 │                    │
+│  HTTP Client     │  WebSocket      │  Event Streams      │
+│  • Auth          │  • Log tailing  │  • Real-time        │
+│  • Retry         │  • Live metrics │  • Analytics        │
+│  • Rate limits   │                 │                     │
 └──────────────────────────────────────────────────────────┘
 ```
 

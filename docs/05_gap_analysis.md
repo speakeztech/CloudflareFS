@@ -288,12 +288,14 @@ let services = [
 | Metric | Target | Current | Status |
 |--------|--------|---------|--------|
 | **Code Generation** | 100% services | 80% | 🔄 Good progress |
-| **Zero Manual Edits** | 100% | 0% | ❌ Major gap |
+| **Zero Manual Edits** | 100% | 0% | ❌ Major gap (see `09_tool_improvement_analysis.md`) |
 | **Version Pegging** | All services | 0% | ❌ Not started |
 | **Test Coverage** | 100% | ~5% | ❌ Critical gap |
 | **Production Samples** | All services | 2 services | ⚠️ Behind |
 | **Documentation** | All services | 30% | ⚠️ Behind |
 | **Tool Chain Maturity** | Production | Alpha | 🔄 In progress |
+
+**Note**: The "Zero Manual Edits" gap is addressed by comprehensive tool improvement strategies documented in `09_tool_improvement_analysis.md`, which outlines semantic mapping, smart type selection, and other enhancements to achieve true "fire and forget" code generation.
 
 ## Platform Coverage Analysis
 

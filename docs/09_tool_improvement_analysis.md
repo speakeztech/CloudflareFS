@@ -1,8 +1,120 @@
 # CloudflareFS Code Generation Analysis: Glutinum & Hawaii Improvement Opportunities
 
+**Tool Versions**: This analysis is based on Glutinum CLI v0.12.0 and Hawaii v0.66.0.
+
 ## Executive Summary
 
 After thoroughly exploring the CloudflareFS repository and understanding both Glutinum (TypeScript→F#) and Hawaii (OpenAPI→F#) tools, I've identified specific improvement opportunities that would make them more robust "fire and forget" conversion tools. The repository is in good shape with successful generation of 16 services (9 Runtime, 7 Management), but several recurring patterns require manual intervention.
+
+## Understanding the Compilation Pipeline
+
+Before diving into improvements, it's important to understand the complete transformation pipeline for CloudflareFS bindings:
+
+### Runtime Layer: The TypeScript → JavaScript Round-Trip
+
+```
+┌─────────────┐      ┌──────────┐      ┌───────────┐      ┌────────────┐
+│ TypeScript  │      │    F#    │      │   Fable   │      │ JavaScript │
+│    .d.ts    │ ───> │ Bindings │ ───> │ Compiler  │ ───> │  (Worker)  │
+└─────────────┘      └──────────┘      └───────────┘      └────────────┘
+   Glutinum         Must compile       Must preserve        Runs on
+   generates        with F# compiler   JS semantics         Cloudflare
+```
+
+**Key Insight**: Glutinum-generated code must satisfy THREE compilers:
+1. **F# compiler** - Must be syntactically valid F#
+2. **Fable compiler** - Must use Fable-compatible patterns
+3. **JavaScript runtime** - Must produce correct JS property names
+
+**Example of the round-trip challenge**:
+```typescript
+// Source: TypeScript definition
+interface Storage {
+    namespace: string;  // "namespace" is fine in TypeScript
+}
+```
+
+```fsharp
+// F# binding must handle reserved keyword
+type Storage =
+    // ❌ WRONG: Won't compile (F# reserved word)
+    abstract member namespace: string
+
+    // ⚠️ COMPILES but poor DX: User must use backticks
+    abstract member ``namespace``: string
+
+    // ✅ BEST: Clean F# API, correct JS output
+    [<CompiledName("namespace")>]
+    abstract member Namespace: string
+```
+
+```javascript
+// Fable output must preserve original property name
+storage.namespace  // Must work with actual JavaScript API
+```
+
+This round-trip requirement means Glutinum needs **semantic awareness**, not just syntactic transformation.
+
+### Management Layer: The OpenAPI → HTTP Round-Trip
+
+```
+┌─────────────┐      ┌──────────┐      ┌───────────┐      ┌────────────┐
+│   OpenAPI   │      │    F#    │      │ F# or     │      │    HTTP    │
+│   Schema    │ ───> │  Client  │ ───> │  Fable    │ ───> │  Requests  │
+└─────────────┘      └──────────┘      └───────────┘      └────────────┘
+   Hawaii           Must compile       Portable to          JSON must
+   generates        with F# compiler   multiple targets     match API
+```
+
+**Key Insight**: Hawaii-generated code has a simpler contract:
+1. **F# compiler** - Must be valid F# (same as Glutinum)
+2. **JSON serialization** - Property names must match OpenAPI schema
+3. **Multiple compilation targets** - Must work with Fable, Fidelity, and .NET
+
+**Example of Hawaii's simpler scenario**:
+```yaml
+# OpenAPI Schema
+properties:
+  namespace:
+    type: string
+```
+
+```fsharp
+// Hawaii-generated type
+type IndexConfig = {
+    // ❌ WRONG: F# reserved keyword
+    namespace: string
+
+    // ⚠️ COMPILES but awkward:
+    ``namespace``: string
+
+    // ✅ BEST: Uses JsonProperty for serialization
+    [<JsonPropertyName("namespace")>]
+    Namespace: string
+}
+```
+
+```json
+// HTTP request body (serialized)
+{
+  "namespace": "my-namespace"  // Must match OpenAPI spec
+}
+```
+
+Hawaii's challenge is simpler because JSON serialization attributes handle the name mapping, whereas Glutinum must work with Fable's JavaScript interop semantics.
+
+### Shared Challenge: Reserved Keywords
+
+Both tools face the same F# compilation constraint (reserved keywords), but solve it differently:
+
+| Aspect | Glutinum (Runtime) | Hawaii (Management) |
+|--------|-------------------|---------------------|
+| **Source Truth** | JavaScript property names | JSON property names |
+| **Mapping Attribute** | `[<CompiledName>]` | `[<JsonPropertyName>]` |
+| **Target Compiler** | Fable (JS interop) | Any (JSON serialization) |
+| **Complexity** | High (preserve JS semantics) | Medium (preserve JSON schema) |
+
+**Conclusion**: Both tools need intelligent property renaming, but the implementation details differ based on their compilation targets.
 
 ## Current State Assessment
 
@@ -14,10 +126,11 @@ After thoroughly exploring the CloudflareFS repository and understanding both Gl
 
 ### ⚠️ Pain Points Requiring Manual Intervention
 
-#### 1. **Reserved Keyword Escaping** (Hawaii & Glutinum)
-- **Problem**: F# reserved words like `namespace`, `type`, `end`, `function` used without backtick escaping
-- **Impact**: Immediate compilation errors
-- **Current Workaround**: Manual backtick addition post-generation
+#### 1. **Reserved Keyword Handling** (Hawaii & Glutinum)
+- **Problem**: F# reserved words like `namespace`, `type`, `end`, `function` used without proper escaping or mapping
+- **Impact**: Immediate compilation errors, or poor developer experience with backtick-heavy code
+- **Current Workaround**: Manual backtick addition post-generation (suboptimal for public API surface)
+- **Better Solution Needed**: Semantic property renaming with attribute-based mapping
 
 #### 2. **Pattern Matching with Special Characters** (Hawaii)
 - **Problem**: Discriminated union cases with `@` symbols generate invalid pattern matches
@@ -43,24 +156,69 @@ After thoroughly exploring the CloudflareFS repository and understanding both Gl
 
 ### For Glutinum CLI
 
-#### Priority 1: F# Keyword Detection & Auto-Escaping
-```fsharp
-// Current problematic output:
-abstract member namespace: string option with get, set
+#### Priority 1: Semantic Property Mapping (Not Just Backtick Escaping)
 
-// Desired output:
-abstract member ``namespace``: string option with get, set
+**The Problem with Simple Backticking**:
+```fsharp
+// Current approach: Mechanical backtick insertion
+type Storage =
+    abstract member ``namespace``: string
+
+// User code becomes awkward:
+let ns = storage.``namespace``  // Exhausting for developers!
 ```
 
-**Implementation Approach**:
-1. Maintain comprehensive F# reserved keyword list
-2. Check all identifier names during AST transformation (GlueAST → FsharpAST stage)
-3. Auto-apply backtick escaping when reserved words detected
-4. Include contextual keywords (`module`, `namespace`, `type`, etc.)
-
-**Keywords to Check**:
+**The Better Approach: Semantic Renaming with CompiledName**:
 ```fsharp
-let reservedKeywords = [
+// Intelligent property mapping
+type Storage =
+    [<CompiledName("namespace")>]
+    abstract member Namespace: string
+
+// User code is clean F#:
+let ns = storage.Namespace  // Idiomatic!
+
+// Fable output preserves JavaScript semantics:
+// storage.namespace
+```
+
+**Why This Matters**:
+- **Developer Experience**: Users write clean F# code without backticks
+- **Fable Compatibility**: `CompiledName` tells Fable which JavaScript property name to use
+- **Round-Trip Correctness**: F# property `Namespace` → JS property `namespace`
+- **API Surface Quality**: Public interfaces look professional and idiomatic
+
+**Implementation Strategy**:
+
+```fsharp
+type IdentifierMappingStrategy =
+    | UseCompiledName of fsharpName: string * jsName: string
+    | UseBackticks of originalName: string
+    | UseAsIs of name: string
+
+type ApiSurface =
+    | PublicInterface    // User-facing, needs clean names
+    | InternalImplementation  // Hidden, backticks acceptable
+    | PrivateHelper      // Not exported, backticks acceptable
+
+let mapReservedKeyword (identifier: string) (surface: ApiSurface) : IdentifierMappingStrategy =
+    match identifier, surface with
+    // Public API: Use semantic renaming
+    | reserved, PublicInterface when isReservedKeyword reserved ->
+        let cleanName = toPascalCase reserved  // "namespace" → "Namespace"
+        UseCompiledName(cleanName, reserved)
+
+    // Internal/Private: Backticks acceptable (hidden from users)
+    | reserved, (InternalImplementation | PrivateHelper) when isReservedKeyword reserved ->
+        UseBackticks(reserved)
+
+    // Not reserved: Use as-is
+    | name, _ -> UseAsIs(name)
+```
+
+**Reserved Keywords to Check**:
+```fsharp
+let reservedKeywords = Set.ofList [
     "abstract"; "and"; "as"; "assert"; "base"; "begin"
     "class"; "default"; "delegate"; "do"; "done"; "downcast"
     "downto"; "elif"; "else"; "end"; "exception"; "extern"
@@ -75,24 +233,153 @@ let reservedKeywords = [
 ]
 ```
 
-#### Priority 2: Object Expression Syntax Correction
-**Problem Pattern**:
+**Detection of API Surface**:
 ```fsharp
-// WRONG (current Glutinum output):
-{ new IInterface with
-    member val Property = value with get, set }
+// Glutinum should analyze TypeScript declarations:
+// - export interface → PublicInterface
+// - internal/private → InternalImplementation
+// - Object expression internals → PrivateHelper
+```
 
-// CORRECT (needed):
-let mutable _property = value
-{ new IInterface with
-    member _.Property with get() = _property and set(v) = _property <- v }
+#### Priority 2: Smart Type Selection (Interface vs Record)
+
+**The Journey to This Insight**:
+Initially, we identified "object expression syntax errors" as a problem to fix mechanically. The first instinct was to generate mutable backing fields to make object expressions work. However, deeper analysis revealed this approach was treating the symptom, not the disease.
+
+The real question became: *Why are we forcing F# developers to use object expressions for simple data structures?* TypeScript's `interface` keyword is overloaded - it represents both data shapes and behavioral contracts. F# has distinct constructs for these: **records for data**, **interfaces for behavior**.
+
+**The Deeper Problem**: Glutinum currently generates F# interfaces for *all* TypeScript interfaces, even when they're pure data structures. This forces users into awkward object expression syntax and creates a false choice between compilation errors and unnecessary mutability.
+
+**Understanding the TypeScript Context**:
+```typescript
+// TypeScript: This is just a data structure
+interface WorkerOptions {
+    timeout: number;
+    retries: number;
+}
+
+// TypeScript usage: Simple object literal
+const opts: WorkerOptions = { timeout: 30000, retries: 3 };
+```
+
+**Current Glutinum Output** (Forces Wrong Pattern):
+```fsharp
+// Generates F# interface (wrong for data structures)
+type WorkerOptions =
+    abstract member timeout: int with get, set
+    abstract member retries: int with get, set
+
+// Users forced into object expressions
+{ new WorkerOptions with
+    member val timeout = 30000 with get, set }  // ERROR: FS3168
+```
+
+**The "Mutable Fix" Trap** (Suboptimal):
+```fsharp
+// This compiles but introduces unnecessary mutation
+let mutable _timeout = 30000
+let mutable _retries = 3
+{ new WorkerOptions with
+    member _.timeout with get() = _timeout and set(v) = _timeout <- v
+    member _.retries with get() = _retries and set(v) = _retries <- v }
+
+// ⚠️ Problems:
+// 1. Mutable state where none is needed
+// 2. Verbose and unergonomic
+// 3. Not idiomatic F#
+// 4. JavaScript output is identical to immutable approach
+```
+
+**Better Glutinum Output** (Semantic Type Selection):
+```fsharp
+// For pure data structures: Generate F# record type
+type WorkerOptions = {
+    timeout: int
+    retries: int
+}
+
+// Clean, immutable F# usage
+let opts = { timeout = 30000; retries = 3 }
+
+// Fable compiles to: { timeout: 30000, retries: 3 }
+// Identical JavaScript output, idiomatic F# code!
+```
+
+**When Mutability is Actually Needed**:
+```fsharp
+// TypeScript shows mutation patterns
+interface Counter {
+    count: number;
+    increment(): void;  // Method that mutates
+}
+
+// Glutinum should detect methods → generate interface
+type Counter =
+    abstract member count: int with get, set  // Setter indicates mutation
+    abstract member increment: unit -> unit
+
+// Then provide helper class for users
+type CounterImpl(initialCount: int) =
+    let mutable count = initialCount
+    interface Counter with
+        member _.count with get() = count and set(v) = count <- v
+        member _.increment() = count <- count + 1
 ```
 
 **Implementation Strategy**:
-1. Detect object expression contexts in AST
-2. Transform `member val` patterns to explicit implementations
-3. Generate backing fields when needed
-4. Use proper getter/setter syntax
+
+```fsharp
+type TypeScriptInterfacePattern =
+    | PureDataStructure of properties: Property list
+    | InterfaceWithMethods of properties: Property list * methods: Method list
+    | EventEmitterPattern of events: Event list
+
+let analyzeTypeScriptInterface (tsInterface: TSInterface) =
+    let properties = tsInterface.members |> List.filter isPropertySignature
+    let methods = tsInterface.members |> List.filter isMethodSignature
+
+    match properties, methods with
+    | props, [] when props |> List.forall isReadonly ->
+        // No methods, all readonly → Immutable record
+        PureDataStructure(props)
+    | props, [] ->
+        // No methods, some mutable → Record with mutable fields
+        PureDataStructure(props)
+    | props, methods ->
+        // Has methods → Interface + helper class
+        InterfaceWithMethods(props, methods)
+
+let generateFSharpType = function
+    | PureDataStructure props ->
+        generateRecordType props  // Record, not interface!
+    | InterfaceWithMethods (props, methods) ->
+        generateInterface props methods
+        + generateHelperClass props methods  // Convenience implementation
+```
+
+**Why This Matters for Fable**:
+
+Fable doesn't care whether you use records or interfaces for data - the JavaScript output is identical:
+
+```fsharp
+// F# record (immutable)
+type Opts = { timeout: int }
+let opts = { timeout = 30000 }
+
+// F# interface (with mutable backing)
+let mutable _timeout = 30000
+let opts = { new Opts with member _.timeout with get() = _timeout }
+
+// Both compile to same JavaScript:
+// { timeout: 30000 }
+```
+
+**Therefore, prefer the idiomatic F# approach** (records) unless the TypeScript shows actual behavioral patterns (methods, events) that require interfaces.
+
+**Guideline for Mutability**:
+- **Default to immutable** - F# records without `mutable` keyword
+- **Add mutability only when**: TypeScript shows mutation patterns, event handlers, or callbacks
+- **Never reflexively add mutability** - it's an opt-in feature, not a default
 
 #### Priority 3: Globals Module Wrapping
 **Current Issue**:
@@ -122,34 +409,117 @@ module Globals =
 
 ### For Hawaii
 
-#### Priority 1: Special Character Handling in DU Cases
-**Current Issue** (from Vectorize generation):
-```fsharp
-type vectorizeindex-preset =
-    | [<CompiledName "@cf/baai/bge-small-en-v1.5">] @cfBaaiBgeSmallEnV1Numeric_5
+#### Priority 1: Semantic Property Mapping for JSON Serialization
 
-member this.Format() =
-    match this with
-    | (@cfBaaiBgeSmallEnV1Numeric_5) -> "@cf/baai/bge-small-en-v1.5"  // ERROR
+**Parallel to Glutinum's Challenge, Different Solution**:
+
+Just as Glutinum must preserve JavaScript property names, Hawaii must preserve JSON property names from OpenAPI specs. However, Hawaii's solution is simpler because it uses JSON serialization instead of JavaScript interop.
+
+**The Problem**:
+```fsharp
+// OpenAPI spec has "namespace" property
+type IndexConfig = {
+    namespace: string  // ❌ F# reserved keyword, won't compile
+}
 ```
 
-**Required Fix**:
+**Current Workaround (Backticks)**:
 ```fsharp
-type vectorizeindex-preset =
-    | [<CompiledName "@cf/baai/bge-small-en-v1.5">] ``@cfBaaiBgeSmallEnV1Numeric_5``
+type IndexConfig = {
+    ``namespace``: string  // ⚠️ Compiles but awkward for users
+}
+
+// User code:
+let config = { ``namespace`` = "my-ns" }  // Exhausting!
+```
+
+**Better Solution (JsonPropertyName)**:
+```fsharp
+type IndexConfig = {
+    [<JsonPropertyName("namespace")>]
+    Namespace: string  // ✅ Clean F# API
+}
+
+// User code:
+let config = { Namespace = "my-ns" }  // Idiomatic F#!
+
+// Serialized JSON (automatic):
+// { "namespace": "my-ns" }
+```
+
+**Why This Works for Hawaii**:
+- **Simpler than Glutinum**: No Fable compilation concerns, just JSON serialization
+- **Attribute-Based**: `JsonPropertyName` handles the mapping transparently
+- **Multiple Targets**: Works with Fable, Fidelity, and .NET (all support JSON attributes)
+- **Schema Compliance**: JSON output matches OpenAPI specification exactly
+
+**Implementation Strategy**:
+```fsharp
+type PropertyMappingStrategy =
+    | UseJsonPropertyName of fsharpName: string * jsonName: string
+    | UseBackticks of originalName: string
+    | UseAsIs of name: string
+
+let mapOpenApiProperty (propertyName: string) : PropertyMappingStrategy =
+    match propertyName with
+    // Reserved keyword: Use JSON attribute mapping
+    | reserved when isReservedKeyword reserved ->
+        let cleanName = toPascalCase reserved  // "namespace" → "Namespace"
+        UseJsonPropertyName(cleanName, reserved)
+
+    // Special characters: Sanitize and map
+    | name when hasSpecialChars name ->
+        let cleanName = sanitizeName name
+        UseJsonPropertyName(cleanName, name)
+
+    // Clean name: Use as-is
+    | name -> UseAsIs(name)
+
+// Shared with Glutinum
+let isReservedKeyword = (* same as Glutinum *)
+```
+
+**Key Difference from Glutinum**:
+- **Glutinum**: Must use `CompiledName` (Fable understands this for JS interop)
+- **Hawaii**: Can use `JsonPropertyName` (simpler, standard JSON serialization)
+- **Both**: Solve the same developer experience problem differently
+
+#### Priority 2: Special Character Handling in DU Cases
+
+**Current Issue** (from Vectorize generation):
+```fsharp
+type VectorizePreset =
+    | [<CompiledName "@cf/baai/bge-small-en-v1.5">] @cfBaaiBgeSmallEnV1Numeric_5  // ❌ Invalid identifier
 
 member this.Format() =
     match this with
-    | ``@cfBaaiBgeSmallEnV1Numeric_5`` -> "@cf/baai/bge-small-en-v1.5"  // CORRECT
+    | (@cfBaaiBgeSmallEnV1Numeric_5) -> "@cf/baai/bge-small-en-v1.5"  // ❌ Syntax error
+```
+
+**Better Approach (Semantic Naming)**:
+```fsharp
+type VectorizePreset =
+    | [<CompiledName "@cf/baai/bge-small-en-v1.5">] CfBaaiBgeSmallEnV15  // ✅ Clean identifier
+    | [<CompiledName "openai/text-embedding-ada-002">] OpenAiTextEmbeddingAda002
+
+member this.Format() =
+    match this with
+    | CfBaaiBgeSmallEnV15 -> "@cf/baai/bge-small-en-v1.5"  // ✅ No backticks needed
+    | OpenAiTextEmbeddingAda002 -> "openai/text-embedding-ada-002"
+```
+
+**Fallback for Complex Cases**:
+```fsharp
+// Only when semantic naming isn't possible
+type ComplexEnum =
+    | [<CompiledName "some-weird@value#here">] ``SomeWeirdValueHere``
 ```
 
 **Implementation Rules**:
-- Detect DU case names with special characters (`@`, `-`, `.`, etc.)
-- Apply backtick escaping in both definition AND pattern matching
-- Ensure consistency across all uses
-
-#### Priority 2: Reserved Keyword Escaping in Types
-**Same implementation as Glutinum** - check all property names, type names, parameter names for F# reserved keywords
+1. **First**: Try to generate clean identifier from enum value
+2. **Then**: Use backticks only if necessary
+3. **Always**: Use `CompiledName` to preserve original JSON value
+4. **Consistency**: Same identifier in definition and pattern matching
 
 #### Priority 3: Improved Type Inference for Complex Schemas
 **Current Issue**: Some complex nested OpenAPI schemas cause null reference exceptions (KV, Workers APIs)
@@ -237,33 +607,91 @@ hawaii --config config.json --validate-output
 
 ## Priority Roadmap
 
-### Phase 1: Quick Wins (2-4 weeks)
-1. **Reserved Keyword Escaping** (both tools)
-   - Immediate impact on manual intervention needs
-   - Clear implementation path
-   - Comprehensive test suite possible
+### Phase 1: Semantic Mapping Foundation (2-4 weeks)
 
-2. **Special Character Handling** (Hawaii)
-   - Fixes Vectorize and similar issues
-   - Well-defined problem scope
+**Goal**: Replace mechanical backticking with intelligent property renaming
+
+1. **Glutinum: CompiledName-Based Mapping**
+   - Implement reserved keyword detection
+   - Generate `[<CompiledName>]` attributes for public API surfaces
+   - Preserve backticks only for internal/private implementations
+   - **Impact**: Eliminates 80% of manual fixes, vastly improves DX
+   - **Complexity**: Medium (requires API surface detection)
+   - **Testing**: Validate Fable output produces correct JavaScript
+
+2. **Hawaii: JsonPropertyName-Based Mapping**
+   - Implement same reserved keyword detection (shared logic)
+   - Generate `[<JsonPropertyName>]` attributes for properties
+   - Semantic naming for DU cases (avoid `@` and special characters)
+   - **Impact**: Eliminates manual property renaming, cleaner enums
+   - **Complexity**: Low (simpler than Glutinum, no Fable concerns)
+   - **Testing**: Validate JSON serialization matches OpenAPI schema
+
+**Shared Implementation**:
+```fsharp
+// Common module both tools can reference
+module ReservedKeywords =
+    let keywords = Set.ofList [...]
+    let isReserved (name: string) = keywords.Contains(name.ToLower())
+    let toPascalCase (name: string) = (* capitalization logic *)
+```
 
 ### Phase 2: Quality Improvements (1-2 months)
-3. **Object Expression Syntax** (Glutinum)
-   - More complex transformation
-   - Requires pattern matching on AST
+
+3. **Smart Type Selection** (Glutinum)
+   - Analyze TypeScript interfaces: data structures vs behavioral types
+   - Generate F# records for pure data (no methods)
+   - Generate F# interfaces only when TypeScript has methods/behaviors
+   - Default to immutability, add `mutable` only when TypeScript shows mutation
+   - Include helper classes for interfaces to improve ergonomics
+   - **Impact**: Eliminates FS3168 errors, removes reflexive mutability, produces idiomatic F#
+   - **Complexity**: Medium-High (requires semantic analysis of TypeScript patterns)
+   - **Philosophy**: "JavaScript you can be proud of" means F# you can be proud of too
 
 4. **Type Ordering** (both tools)
-   - Dependency analysis implementation
-   - Topological sort integration
+   - Dependency graph analysis
+   - Topological sort implementation
+   - Handle circular references with `and` keyword
+   - **Impact**: Eliminates forward reference errors
+   - **Complexity**: Medium-High (graph algorithms)
 
 ### Phase 3: Advanced Features (2-3 months)
-5. **Post-Generation Validation**
+
+5. **Post-Generation Validation Pipeline**
    - In-memory F# compilation
    - Automated error detection
+   - Fable output validation (Glutinum only)
+   - JSON schema validation (Hawaii only)
+   - **Impact**: Catch issues before writing files
+   - **Complexity**: High (requires F# compiler API integration)
 
 6. **Version Tracking & Diff Generation**
    - Schema versioning system
    - Change detection and migration guides
+   - Incremental regeneration
+   - **Impact**: Maintainability for long-term projects
+   - **Complexity**: Medium (infrastructure work)
+
+### Success Criteria by Phase
+
+**Phase 1 Success Metrics**:
+- [ ] Public API surfaces have zero backticks in property names
+- [ ] Fable compiles Glutinum output with correct JS property names
+- [ ] JSON serialization works correctly for Hawaii-generated types
+- [ ] Manual intervention required drops from 80% to <20%
+
+**Phase 2 Success Metrics**:
+- [ ] Zero FS3168 object expression errors
+- [ ] TypeScript data structures generate F# records (not interfaces)
+- [ ] Immutability is the default; mutation is opt-in based on TypeScript patterns
+- [ ] Zero forward reference compilation errors
+- [ ] Generated code is idiomatic F# ("JavaScript you can be proud of" principle)
+- [ ] Manual intervention required drops to <5%
+
+**Phase 3 Success Metrics**:
+- [ ] Generated code compiles without edits 95%+ of the time
+- [ ] Validation catches issues before file write
+- [ ] Version tracking enables safe schema updates
 
 ## Immediate Action Items for CloudflareFS
 
@@ -297,14 +725,18 @@ let validateService (spec: JObject) (service: ServiceConfig) =
 
 ### Long-Term (Tool Enhancement Contributions)
 1. **Contribute to Glutinum**:
-   - Submit PR for reserved keyword detection
-   - Add object expression syntax fixes
-   - Improve documentation with F#-specific edge cases
+   - Submit PR for reserved keyword detection with `CompiledName` attribute generation
+   - Add smart type selection (record vs interface based on TypeScript patterns)
+   - Implement pattern detection for data structures vs behavioral types
+   - Default to immutability, opt-in to mutation only when TypeScript shows mutation patterns
+   - Improve documentation with F#-specific edge cases and Fable considerations
 
 2. **Contribute to Hawaii**:
-   - Submit PR for special character escaping
-   - Add deprecated operation warnings
+   - Submit PR for reserved keyword detection with `JsonPropertyName` attribute generation
+   - Add semantic naming for discriminated union cases with special characters
+   - Add deprecated operation warnings with actionable guidance
    - Improve error messages for complex schemas
+   - Implement validation for round-trip JSON serialization
 
 ## Testing & Validation Strategy
 
@@ -498,23 +930,63 @@ Suggestion: Check for V2 API endpoints or updated schema.
 2. Auto-generates: `abstract member ``namespace``: string`
 3. Compiles immediately, no manual intervention
 
-### Example 3: Object Expression in Workers Context
-**Scenario**: Glutinum generates worker options interfaces
+### Example 3: Type Selection for Data Structures
+**Scenario**: Glutinum generates interfaces for TypeScript data structures
 
-**Current Output**:
+**TypeScript Source**:
+```typescript
+interface WorkerOptions {
+    timeout: number;
+    retries: number;
+}
+```
+
+**Current Glutinum Output** (Wrong Pattern):
 ```fsharp
+type WorkerOptions =
+    abstract member timeout: int with get, set
+    abstract member retries: int with get, set
+
+// User forced into object expressions
 { new WorkerOptions with
     member val timeout = 30000 with get, set }  // ERROR: FS3168
 ```
 
-**Manual Fix Required**:
+**Current Manual Fix** (Introduces Unnecessary Mutation):
 ```fsharp
 let mutable _timeout = 30000
+let mutable _retries = 3
 { new WorkerOptions with
-    member _.timeout with get() = _timeout and set(v) = _timeout <- v }
+    member _.timeout with get() = _timeout and set(v) = _timeout <- v
+    member _.retries with get() = _retries and set(v) = _retries <- v }
+
+// ⚠️ This works but violates "JavaScript you can be proud of"
+// - Adds mutable state where none is needed
+// - Not idiomatic F#
+// - JavaScript output is identical to immutable approach
 ```
 
-**With Improvement**: Glutinum generates correct pattern automatically
+**With Improvement** (Smart Type Selection):
+```fsharp
+// Glutinum detects: no methods, pure data structure
+// Generates F# record instead of interface
+type WorkerOptions = {
+    timeout: int
+    retries: int
+}
+
+// Clean, immutable usage
+let opts = { timeout = 30000; retries = 3 }
+
+// Fable output: { timeout: 30000, retries: 3 }
+// ✅ Idiomatic F#, clean JavaScript, no mutation needed
+```
+
+**Outcome**:
+- Eliminates object expression errors
+- Removes reflexive use of mutability
+- Produces cleaner, more maintainable code
+- JavaScript output remains identical
 
 ## Community Contribution Strategy
 
@@ -549,17 +1021,157 @@ let mutable _timeout = 30000
 - Need comprehensive test suite across different spec styles
 - CloudflareFS provides excellent validation corpus (10+ services)
 
+## Harmonized Approach: Shared Concerns, Different Solutions
+
+### The Common Challenge
+
+Both Glutinum and Hawaii face the same fundamental problem: **F# reserved keywords in source schemas**. However, the solution differs based on their compilation targets:
+
+| Concern | Glutinum Solution | Hawaii Solution | Shared Logic |
+|---------|------------------|-----------------|--------------|
+| **Reserved Keywords** | `[<CompiledName("namespace")>]` | `[<JsonPropertyName("namespace")>]` | Keyword detection |
+| **Special Characters** | Sanitize for JS identifiers | Sanitize for JSON properties | Name sanitization |
+| **API Surface** | Detect public vs internal | All types are public | N/A (different contexts) |
+| **Round-Trip** | F# → Fable → JavaScript | F# → Any compiler → JSON | Different validation |
+
+### Shared Implementation Opportunities
+
+Both tools can benefit from a **common reserved keyword library**:
+
+```fsharp
+// Shared NuGet package: FSharp.BindingGen.Common
+namespace FSharp.BindingGen.Common
+
+module ReservedKeywords =
+    /// Complete F# reserved keyword set
+    let keywords = Set.ofList [
+        "abstract"; "and"; "as"; "assert"; (* ... full list ... *)
+    ]
+
+    /// Check if identifier is reserved
+    let isReserved (name: string) =
+        keywords.Contains(name.ToLower())
+
+    /// Convert to PascalCase (namespace → Namespace)
+    let toPascalCase (name: string) =
+        if String.IsNullOrEmpty(name) then name
+        else name.[0].ToString().ToUpper() + name.Substring(1)
+
+    /// Sanitize special characters for identifiers
+    let sanitizeIdentifier (name: string) =
+        name
+        |> String.filter (fun c -> Char.IsLetterOrDigit(c) || c = '_')
+        |> toPascalCase
+
+module Attributes =
+    /// Generate CompiledName attribute (for Glutinum/Fable)
+    let compiledName (originalName: string) (cleanName: string) =
+        sprintf "[<CompiledName(\"%s\")>]\n    abstract member %s" originalName cleanName
+
+    /// Generate JsonPropertyName attribute (for Hawaii/JSON)
+    let jsonPropertyName (originalName: string) (cleanName: string) =
+        sprintf "[<JsonPropertyName(\"%s\")>]\n    %s" originalName cleanName
+```
+
+### Divergent Concerns
+
+**Glutinum-Specific**:
+- Must understand TypeScript semantics deeply
+- Must preserve JavaScript interop correctness
+- Must detect API surface visibility (export vs internal)
+- Fable compilation validation required
+
+**Hawaii-Specific**:
+- Simpler: JSON serialization is well-defined
+- No JavaScript runtime concerns
+- All types assumed public API
+- Works across multiple F# compilers (Fable, Fidelity, .NET)
+
+### The Developer Experience Philosophy
+
+Both tools must prioritize the same goal: **Clean, idiomatic F# code for users**.
+
+**Bad (Current State)**:
+```fsharp
+// User writes ugly code with backticks everywhere
+storage.``namespace`` <- "my-ns"
+index.``type`` <- "vector"
+```
+
+**Good (Target State)**:
+```fsharp
+// User writes clean, natural F# code
+storage.Namespace <- "my-ns"
+index.Type <- "vector"
+
+// Tools handle the mapping transparently
+// Glutinum: via CompiledName for JavaScript
+// Hawaii: via JsonPropertyName for JSON
+```
+
 ## Conclusion
 
-CloudflareFS has demonstrated that both Glutinum and Hawaii are capable tools, successfully generating bindings for 80% of Cloudflare's services. However, to achieve true "fire and forget" generation, focused improvements in five key areas are needed:
+CloudflareFS has demonstrated that both Glutinum and Hawaii are capable tools, successfully generating bindings for 80% of Cloudflare's services. However, to achieve true "fire and forget" generation, focused improvements are needed.
 
-1. **Reserved Keyword Escaping** - Highest impact, clearest path
-2. **Special Character Handling** - Critical for DU patterns
-3. **Object Expression Syntax** - F#-specific correctness
-4. **Type Dependency Ordering** - Compilation guarantee
-5. **Validation Pipeline** - Quality assurance
+### The Evolution of Understanding
 
-By addressing these systematically, CloudflareFS can evolve from a "generation + manual cleanup" workflow to a fully automated binding compiler for the Cloudflare platform. The tools (Glutinum & Hawaii) can benefit the broader F# community with these enhancements, making TypeScript and OpenAPI binding generation robust across all use cases.
+This analysis began with mechanical observations: "F# keywords cause compilation errors, so add backticks." However, questioning these initial assumptions led to deeper insights:
+
+**Initial Approach** (Symptom Treatment):
+- Reserved keywords → Add backticks
+- Object expression errors → Add mutable backing fields
+- Special characters in DU cases → Escape with backticks
+
+**Refined Approach** (Root Cause Analysis):
+- Reserved keywords → **Why are users seeing these?** Because public API surfaces expose them
+  - **Solution**: Attribute-based mapping (`CompiledName`/`JsonPropertyName`)
+- Object expression errors → **Why are we using object expressions?** Because interfaces are generated for data
+  - **Solution**: Smart type selection (records for data, interfaces for behavior)
+- Reflexive mutability → **Why add mutability by default?** Because it seemed like the easy fix
+  - **Solution**: Immutability first, mutation only when TypeScript shows mutation patterns
+
+**Key Insights from This Journey**:
+
+1. **Semantic Understanding** - Not just syntax transformation
+   - *Learning*: Tools must understand what TypeScript constructs *mean*, not just how they look
+   - *Example*: `interface WorkerOptions` is a data shape, not a behavioral contract
+
+2. **API Surface Awareness** - Public interfaces need clean names
+   - *Learning*: Backticks are acceptable in generated internals, unacceptable in user-facing APIs
+   - *Example*: `storage.Namespace` beats `storage.``namespace``` every time
+
+3. **Compilation Target Awareness** - Different attributes for Fable vs JSON
+   - *Learning*: Glutinum (Fable) and Hawaii (JSON) face the same problem but need different solutions
+   - *Example*: `CompiledName` for JavaScript interop, `JsonPropertyName` for JSON serialization
+
+4. **Round-Trip Validation** - Ensure correct output (JS or JSON)
+   - *Learning*: It's not enough for F# to compile; must verify the target language is correct
+   - *Example*: F# property `Namespace` must compile to JS property `namespace`
+
+5. **Developer Experience First** - Generated code should look hand-written
+   - *Learning*: "JavaScript you can be proud of" implies "F# you can be proud of"
+   - *Example*: Idiomatic F# patterns (records, immutability) over mechanical fixes (object expressions, mutables)
+
+### The "Why" Behind the "What"
+
+For readers (especially those from .NET-only backgrounds), understanding *why* these recommendations matter is crucial:
+
+- **Why not just backtick everything?** Because users would have to use backticks in their code constantly
+- **Why not just add mutability?** Because Fable produces identical JavaScript for immutable records
+- **Why records vs interfaces?** Because F# has semantic constructs that map better to TypeScript's intent
+- **Why different solutions for Glutinum vs Hawaii?** Because Fable compilation and JSON serialization are fundamentally different
+
+The common thread: **Let the tools handle complexity so users write clean, idiomatic F#.**
+
+**The Path Forward**:
+
+Both tools need **semantic property mapping**, not mechanical escaping:
+- **Glutinum**: Use `CompiledName` for JavaScript interop
+- **Hawaii**: Use `JsonPropertyName` for JSON serialization
+- **Both**: Share reserved keyword detection logic
+- **Both**: Prioritize clean F# API surfaces
+
+By addressing these systematically with a harmonized approach, CloudflareFS can evolve from a "generation + manual cleanup" workflow to a fully automated binding compiler. The improvements benefit not just CloudflareFS, but the entire F# community working with TypeScript or OpenAPI bindings.
 
 ### Immediate Next Steps
 

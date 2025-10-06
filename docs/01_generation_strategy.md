@@ -30,7 +30,7 @@ CloudflareFS uses a dual-generation approach: **Glutinum** for TypeScript-based 
 │   ├── openapi.json (15.5MB - full spec)                     │
 │   ├── openapi.yaml                                          │
 │   └── common.yaml                                           │
-│                                                              │
+│                                                             │
 │ node_modules/ (via npm)                                     │
 │   ├── @cloudflare/workers-types/                            │
 │   └── @cloudflare/ai/                                       │
@@ -38,15 +38,15 @@ CloudflareFS uses a dual-generation approach: **Glutinum** for TypeScript-based 
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    GENERATION PIPELINE                       │
+│                    GENERATION PIPELINE                      │
 ├─────────────────────────────────────────────────────────────┤
-│ generators/                                                  │
+│ generators/                                                 │
 │   ├── update-and-generate.ps1  (Master Script)              │
-│   │                                                          │
+│   │                                                         │
 │   ├── glutinum/                (TypeScript → F#)            │
 │   │   ├── glutinum.json        (Configuration)              │
 │   │   └── generate-runtime.ps1                              │
-│   │                                                          │
+│   │                                                         │
 │   └── hawaii/                  (OpenAPI → F#)               │
 │       ├── extract-services.fsx (Splits 15.5MB spec)         │
 │       ├── *-hawaii.json        (Service configs)            │
@@ -55,16 +55,16 @@ CloudflareFS uses a dual-generation approach: **Glutinum** for TypeScript-based 
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    GENERATED OUTPUT                          │
+│                    GENERATED OUTPUT                         │
 ├─────────────────────────────────────────────────────────────┤
-│ src/                                                         │
+│ src/                                                        │
 │   ├── Runtime/     (Glutinum-generated, Fable-compatible)   │
 │   │   ├── CloudFlare.Worker.Context/                        │
 │   │   ├── CloudFlare.KV/                                    │
 │   │   ├── CloudFlare.R2/                                    │
 │   │   ├── CloudFlare.D1/                                    │
 │   │   └── CloudFlare.AI/                                    │
-│   │                                                          │
+│   │                                                         │
 │   └── Management/  (Hawaii-generated, multi-target)         │
 │       ├── CloudFlare.Management.KV/                         │
 │       ├── CloudFlare.Management.R2/                         │
@@ -143,13 +143,22 @@ hawaii --config generators/hawaii/d1-hawaii.json
 
 ## Common Issues and Solutions
 
-### Issue: Glutinum Object Expression Errors
-**Problem**: F# doesn't allow `member val` in object expressions
-**Solution**: Use explicit backing fields or convert to proper type definitions
+### Issue: Type Selection for Data Structures (Glutinum)
+**Problem**: Glutinum generates F# interfaces for TypeScript data structures, forcing object expression syntax
+**Current Workaround**: Manual conversion to proper type definitions or object expressions
+**Long-Term Solution**: Glutinum should analyze TypeScript patterns and generate F# records for pure data structures
+**Reference**: See `09_tool_improvement_analysis.md` for comprehensive strategy
+
+### Issue: Reserved Keyword Handling (Both Tools)
+**Problem**: F# reserved keywords used without proper mapping, requiring backtick escaping
+**Current Workaround**: Manual backtick addition post-generation
+**Long-Term Solution**: Attribute-based semantic mapping (`CompiledName` for Glutinum, `JsonPropertyName` for Hawaii)
+**Reference**: See `08_conversion_patterns.md` and `09_tool_improvement_analysis.md`
 
 ### Issue: Hawaii Null Reference Exceptions
-**Problem**: Complex nested schemas cause Hawaii crashes
-**Solution**: Simplify schemas during extraction, remove circular references
+**Problem**: Complex nested schemas cause Hawaii crashes (KV, Workers APIs)
+**Current Status**: Under investigation
+**Workaround**: May require manual implementation or Hawaii enhancements for complex schemas
 
 ### Issue: Duplicate Type Definitions
 **Problem**: Same types defined in multiple services
@@ -157,7 +166,8 @@ hawaii --config generators/hawaii/d1-hawaii.json
 
 ### Issue: API Deprecation
 **Problem**: OpenAPI contains deprecated endpoints (e.g., Vectorize V1)
-**Solution**: Check API versions, extract only current endpoints
+**Solution**: Always verify API version status; Hawaii correctly skips deprecated operations
+**Example**: Vectorize V2 migration (August 2024) - updated extraction patterns from `/vectorize/indexes` to `/vectorize/v2/indexes`
 
 ## Validation Checklist
 

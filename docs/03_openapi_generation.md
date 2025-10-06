@@ -254,17 +254,25 @@ Remove-Item "./temp" -Recurse -Force
 
 ### Pattern Matching with Special Characters
 
-**Problem**: F# compilation errors with `@` symbols in model names
+**Current Issue**: Hawaii generates discriminated union cases with special characters (`@`, `-`, `.`) that require backtick escaping
 
 ```fsharp
-// Error FS0010: Unexpected symbol '@' in pattern
-| (@cfBaaiBgeSmallEnV1Numeric_5) -> "@cf/baai/bge-small-en-v1.5"
-```
-
-**Solution**: Use backtick escaping
-```fsharp
+// Current generated code requires manual fix:
 | ``@cfBaaiBgeSmallEnV1Numeric_5`` -> "@cf/baai/bge-small-en-v1.5"
 ```
+
+**Recommended Hawaii Enhancement**: Generate semantic names with `CompiledName` attributes
+```fsharp
+// Desired output:
+type VectorizePreset =
+    | [<CompiledName "@cf/baai/bge-small-en-v1.5">] CfBaaiBgeSmallEnV15
+
+// Enables clean pattern matching:
+match preset with
+| CfBaaiBgeSmallEnV15 -> "@cf/baai/bge-small-en-v1.5"
+```
+
+**Why This Matters**: This produces idiomatic F# code while preserving correct JSON serialization. See `09_tool_improvement_analysis.md` for comprehensive tool improvement strategies.
 
 ## Unified Client Interface
 

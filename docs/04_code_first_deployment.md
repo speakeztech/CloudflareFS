@@ -375,15 +375,15 @@ The wrangler source reveals all binding types that can be specified in metadata:
 The `assets` binding discovered in wrangler source provides a simpler approach:
 
 ```fsharp
-// Old Workers Sites approach (complex, KV-based)
+// Workers Sites approach (KV-based)
 type WorkersSitesConfig = {
     bucket: string
     include: string list
     exclude: string list
-    // Required separate @cloudflare/kv-asset-handler package
+    // Requires separate @cloudflare/kv-asset-handler package
 }
 
-// Assets binding approach (simple, native)
+// Assets binding approach (platform-native)
 type AssetsBinding = {
     type: "assets"
     name: string  // e.g., "ASSETS"

@@ -662,6 +662,173 @@ cfs refresh
 - Drift detection
 - Policy enforcement
 
+## Reserved Keyword Handling: Lessons from Pulumi's F# Approach
+
+### Scope: Management APIs Only
+
+**Important Context**: Pulumi's Cloudflare provider deals exclusively with **Management APIs** (OpenAPI/Swagger-based). It doesn't handle Runtime APIs (in-Worker JavaScript interop) because Pulumi's purpose is infrastructure provisioning, not Worker code execution.
+
+This means Pulumi's approach is most relevant to CloudflareFS's **Hawaii-generated Management layer**, not the **Glutinum-generated Runtime layer**.
+
+### What We Discovered
+
+After examining Pulumi's .NET SDK code generation and Pulumi.FSharp wrapper library, we found their approach to reserved keywords:
+
+#### C# Code Generation Strategy
+Pulumi's C# code generator uses identifier escaping:
+```go
+func csharpIdentifier(s string) string {
+    switch s {
+    case "abstract", "as", "base", "namespace", "type", /* ... */:
+        return "@" + s  // C# @ prefix escaping
+    default:
+        return s
+    }
+}
+```
+
+This generates C# properties like `@namespace`, `@type` which work correctly in C# but translate to F# as backticked identifiers.
+
+#### F# Wrapper Library Strategy
+The Pulumi.FSharp library (`Library.fs`) provides functional wrappers:
+- Input/Output type helpers (`input<'a>`, `io<'a>`)
+- Collection utilities (`inputList`, `inputMap`)
+- Union type constructors
+
+**Key Observation**: Pulumi.FSharp does NOT attempt to hide or rename properties with reserved keywords. Instead, it wraps the type system and operational patterns while leaving property access unchanged.
+
+### Two Valid Approaches for CloudflareFS
+
+#### Approach 1: Direct Generation with Attributes (Analyzed in 09)
+- Generate clean F# property names with `CompiledName`/`JsonPropertyName` attributes
+- Example: `[<CompiledName("namespace")>] Namespace`
+- **Advantage**: No backticks in user code
+- **Challenge**: Requires tool enhancement (Glutinum/Hawaii modification)
+
+#### Approach 2: Wrapper Functions (Pulumi Pattern)
+- Generate code with backticks at the binding level
+- Provide idiomatic F# wrapper functions for common patterns
+- **Advantage**: Preserves compilation pipeline integrity, works with existing tools
+- **Use Case**: CloudflareFS generates JavaScript, not .NET assemblies
+
+### Context: CloudflareFS Has Two Different Scenarios
+
+CloudflareFS's dual-layer architecture means we have different contexts for the reserved keyword problem:
+
+#### Management APIs (Hawaii) - Similar to Pulumi
+- **Source**: OpenAPI/Swagger specifications (same as Pulumi)
+- **Target**: .NET/Fable/Fidelity HTTP clients
+- **Use Case**: Infrastructure provisioning and configuration
+- **Pulumi's relevance**: High - same problem domain
+
+**Cloudflare's OpenAPI Surface Area**: The management APIs may have **limited exposure** to reserved keyword conflicts because:
+- API designs typically avoid reserved words
+- Property names follow REST conventions (camelCase, not keywords)
+- Schema authors are aware of cross-language concerns
+
+#### Runtime APIs (Glutinum) - Unique to CloudflareFS
+- **Source**: TypeScript definitions from `@cloudflare/workers-types`
+- **Target**: Fable → JavaScript for in-Worker execution
+- **Use Case**: Worker code that runs on Cloudflare's edge
+- **Pulumi's relevance**: None - Pulumi doesn't handle runtime bindings
+
+**Different Compilation Pipeline**:
+- Pulumi: F# → .NET assemblies (property access in .NET runtime)
+- CloudflareFS Runtime: F# → Fable → JavaScript (binding layer is temporary)
+
+**Implication for Runtime Layer**: The backtick "cost" is paid only at development time. The final JavaScript doesn't care about F# syntax. Wrapper functions could provide clean design-time experience while preserving the Glutinum → Fable → JavaScript pipeline.
+
+### Example: Wrapper Function Pattern for CloudflareFS
+
+```fsharp
+// Generated binding (with backticks - hidden from user)
+type DurableObjectStorage =
+    abstract member ``namespace``: string with get, set
+    abstract member get: key: string -> Promise<string option>
+
+// User-facing wrapper module (clean F# API)
+module DurableObjectStorage =
+    let getNamespace (storage: DurableObjectStorage) =
+        storage.``namespace``
+
+    let setNamespace (storage: DurableObjectStorage) (value: string) =
+        storage.``namespace`` <- value
+        storage
+
+    let get key (storage: DurableObjectStorage) =
+        storage.get(key)
+
+// User experience (idiomatic F# with computation expressions)
+let fetchValue storage = async {
+    let ns = storage |> DurableObjectStorage.getNamespace
+    let! value = storage |> DurableObjectStorage.get "key" |> Async.AwaitPromise
+    return value
+}
+```
+
+### Design Considerations
+
+**When Wrapper Functions Work Well**:
+1. Binding layer is internal/generated (users don't see backticks)
+2. Compilation target is JavaScript (or direct API calls)
+3. Wrapper provides additional value (async patterns, composition, error handling)
+4. Development-time IDE experience can be guided through documentation
+
+**When Direct Attribute Mapping Works Better**:
+1. Bindings are directly consumed by user code
+2. Property access is frequent and scattered
+3. Tool enhancement is feasible
+4. Generated code is the primary API surface
+
+### CloudflareFS Decision Criteria by Layer
+
+The choice between approaches should consider the different needs of each layer:
+
+#### Management APIs (Hawaii-Generated)
+**Pulumi's Lesson Applies Here**: Since both use OpenAPI/Swagger, Pulumi's experience is directly relevant.
+
+**Key Questions**:
+1. How often do Cloudflare's OpenAPI specs actually have reserved keyword conflicts?
+2. Is the surface area limited enough that manual fixes are acceptable?
+3. Would `JsonPropertyName` attribute enhancement in Hawaii provide sufficient value?
+
+**Likely Reality**: The reserved keyword problem may be **less severe** in Management APIs because:
+- REST APIs typically avoid language keywords in property names
+- Cloudflare's API design is cross-language aware
+- Manual fixes for a handful of properties might be acceptable
+
+#### Runtime APIs (Glutinum-Generated)
+**Pulumi Has No Insights Here**: This is unique to CloudflareFS's in-Worker execution model.
+
+**Key Questions**:
+1. Does the TypeScript → F# → Fable → JavaScript pipeline benefit from wrapper functions?
+2. Can wrapper modules provide additional value beyond keyword hiding (async patterns, computation expressions)?
+3. Is the development-time experience with backticks acceptable if wrappers provide the primary API?
+
+**Unique Consideration**: Since the final artifact is JavaScript, the binding layer's syntax matters less than the wrapper API's ergonomics.
+
+### Recommended Strategy
+
+**Phase 1: Ship with Current Tools (Pragmatic)**
+- **Management APIs**: Use Hawaii as-is; manually fix reserved keywords if they appear (likely rare)
+- **Runtime APIs**: Use Glutinum as-is; provide wrapper modules for common patterns
+- **Rationale**: Avoid tool modification complexity until we know the actual pain points
+
+**Phase 2: Selective Enhancement (Data-Driven)**
+- **If** reserved keywords appear frequently in Management APIs → Contribute `JsonPropertyName` enhancement to Hawaii
+- **If** Runtime API wrappers become extensive → Consider `CompiledName` enhancement to Glutinum
+- **If** wrapper pattern works well → Expand and document as the idiomatic approach
+
+**Phase 3: Tool Contribution (Long-Term)**
+- Share learnings with Glutinum and Hawaii communities
+- Contribute enhancements that benefit the broader F# ecosystem
+
+This approach recognizes that:
+1. **Pulumi's scope is limited** - Only relevant to Management layer
+2. **Problem size may be small** - Reserved keywords might be rare in practice
+3. **CloudflareFS is unique** - Runtime layer needs different solutions than Pulumi
+4. **Ship and learn** - Better to deploy and discover real issues than solve theoretical ones
+
 ## Conclusion
 
 This analysis of Pulumi .NET provides useful context for certain implementation patterns, but CloudflareFS is fundamentally its own framework with distinct goals:
