@@ -76,7 +76,8 @@ let main argv =
         match result with
         | Ok () -> 0
         | Error err ->
-            AnsiConsole.MarkupLine($"[red]Error:[/] {err}")
+            let escaped = Markup.Escape(err)
+            AnsiConsole.MarkupLine($"[red]Error:[/] {escaped}")
             1
 
     with

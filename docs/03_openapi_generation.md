@@ -228,6 +228,22 @@ foreach ($service in $services) {
 Remove-Item "./temp" -Recurse -Force
 ```
 
+### Step 4: Post-Processing (When Needed)
+
+Some APIs require post-processing to handle Hawaii limitations:
+
+**Workers Management API** requires post-processors for:
+1. **Discriminated unions** - OpenAPI discriminator schemas
+2. **JObject multipart** - Multipart form data with JObject
+
+Use the automated generation script:
+```powershell
+cd generators/hawaii
+.\generate-workers.ps1  # Runs Hawaii + post-processors
+```
+
+See `generators/hawaii/POST-PROCESSORS.md` for details on post-processing scripts.
+
 ## Lessons Learned
 
 ### Critical: API Version Deprecation

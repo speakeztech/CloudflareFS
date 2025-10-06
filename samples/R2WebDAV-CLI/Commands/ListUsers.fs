@@ -12,7 +12,8 @@ let execute (config: CloudflareConfig) : Async<Result<unit, string>> =
 
         match result with
         | Error err ->
-            AnsiConsole.MarkupLine($"[red]Error listing buckets:[/] {err}")
+            let escaped = Markup.Escape(err)
+            AnsiConsole.MarkupLine($"[red]Error listing buckets:[/] {escaped}")
             return Error err
 
         | Ok buckets ->

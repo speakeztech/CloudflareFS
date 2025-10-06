@@ -4,12 +4,17 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>R2WebDAV_CLI</RootNamespace>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>r2webdav</ToolCommandName>
+    <PackageId>R2WebDAV.CLI</PackageId>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="Core\Config.fs" />
     <Compile Include="Core\Naming.fs" />
     <Compile Include="Core\R2Client.fs" />
+    <Compile Include="Core\WorkersClient.fs" />
     <Compile Include="Commands\AddUser.fs" />
     <Compile Include="Commands\ListUsers.fs" />
     <Compile Include="Commands\Status.fs" />
@@ -18,12 +23,14 @@
 
   <ItemGroup>
     <PackageReference Include="Argu" Version="6.2.5" />
+    <PackageReference Include="FSharp.Data" Version="6.4.0" />
     <PackageReference Include="FsSpectre" Version="0.5.2" />
     <PackageReference Include="Spectre.Console" Version="0.51.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Management\CloudFlare.Management.R2\CloudFlare.Management.R2.fsproj" />
+    <ProjectReference Include="..\..\src\Management\CloudFlare.Management.Workers\CloudFlare.Management.Workers.fsproj" />
   </ItemGroup>
 
 </Project>
