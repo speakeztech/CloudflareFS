@@ -15,6 +15,13 @@ type AddUserArgs =
             | Username _ -> "WebDAV username"
             | Password _ -> "WebDAV password"
 
+type RemoveUserArgs =
+    | [<Mandatory; Unique>] Username of string
+    interface IArgParserTemplate with
+        member this.Usage =
+            match this with
+            | Username _ -> "WebDAV username to remove"
+
 type ListUsersArgs =
     | [<Hidden>] Dummy
     interface IArgParserTemplate with
@@ -27,12 +34,14 @@ type StatusArgs =
 
 type CliCommand =
     | [<CliPrefix(CliPrefix.None)>] Add_User of ParseResults<AddUserArgs>
+    | [<CliPrefix(CliPrefix.None)>] Remove_User of ParseResults<RemoveUserArgs>
     | [<CliPrefix(CliPrefix.None)>] List_Users of ParseResults<ListUsersArgs>
     | [<CliPrefix(CliPrefix.None)>] Status of ParseResults<StatusArgs>
     interface IArgParserTemplate with
         member this.Usage =
             match this with
             | Add_User _ -> "Add a new WebDAV user"
+            | Remove_User _ -> "Remove a WebDAV user and all associated resources"
             | List_Users _ -> "List all configured WebDAV users"
             | Status _ -> "Show deployment status"
 
@@ -63,6 +72,11 @@ let main argv =
                 let username = args.GetResult AddUserArgs.Username
                 let password = args.GetResult AddUserArgs.Password
                 AddUser.execute config username password
+                |> Async.RunSynchronously
+
+            | Remove_User args ->
+                let username = args.GetResult RemoveUserArgs.Username
+                RemoveUser.execute config username
                 |> Async.RunSynchronously
 
             | List_Users _ ->

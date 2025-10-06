@@ -121,7 +121,7 @@ type WorkersClient(httpClient: HttpClient) =
         (
             accountId: string,
             scriptName: string,
-            metadata: Newtonsoft.Json.Linq.JObject,
+            metadata: System.Text.Json.JsonElement,
             ?cFWORKERBODYPART: string,
             ?cFWORKERMAINMODULEPART: string,
             ?cancellationToken: CancellationToken,
@@ -131,7 +131,7 @@ type WorkersClient(httpClient: HttpClient) =
             let requestParts =
                 [ RequestPart.path ("account_id", accountId)
                   RequestPart.path ("script_name", scriptName)
-                  RequestPart.multipartFormData ("metadata", metadata.ToString(Newtonsoft.Json.Formatting.None))
+                  RequestPart.multipartFormData ("metadata", metadata)
                   if cFWORKERBODYPART.IsSome then
                       RequestPart.header ("CF-WORKER-BODY-PART", cFWORKERBODYPART.Value)
                   if cFWORKERMAINMODULEPART.IsSome then
@@ -221,12 +221,11 @@ type WorkersClient(httpClient: HttpClient) =
     ///<summary>
     ///Add a secret to a script.
     ///</summary>
-    member this.WorkerPutScriptSecret(accountId: string, scriptName: string, body: Types.workersbindingkindsecrettext, ?cancellationToken: CancellationToken) =
+    member this.WorkerPutScriptSecret(accountId: string, scriptName: string, ?cancellationToken: CancellationToken) =
         async {
             let requestParts =
                 [ RequestPart.path ("account_id", accountId)
-                  RequestPart.path ("script_name", scriptName)
-                  RequestPart.jsonContent body ]
+                  RequestPart.path ("script_name", scriptName) ]
 
             let! (status, content) =
                 OpenApiHttp.putAsync

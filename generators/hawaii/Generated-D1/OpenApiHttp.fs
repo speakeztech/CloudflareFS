@@ -1,4 +1,4 @@
-namespace CloudFlare.Management.Vectorize.Http
+namespace CloudFlare.Api.Storage.D1.Http
 
 open System
 open System.Net.Http

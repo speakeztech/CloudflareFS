@@ -16,6 +16,7 @@
     <Compile Include="Core\R2Client.fs" />
     <Compile Include="Core\WorkersClient.fs" />
     <Compile Include="Commands\AddUser.fs" />
+    <Compile Include="Commands\RemoveUser.fs" />
     <Compile Include="Commands\ListUsers.fs" />
     <Compile Include="Commands\Status.fs" />
     <Compile Include="Program.fs" />
@@ -23,7 +24,6 @@
 
   <ItemGroup>
     <PackageReference Include="Argu" Version="6.2.5" />
-    <PackageReference Include="FSharp.Data" Version="6.4.0" />
     <PackageReference Include="FsSpectre" Version="0.5.2" />
     <PackageReference Include="Spectre.Console" Version="0.51.1" />
   </ItemGroup>

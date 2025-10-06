@@ -33,25 +33,22 @@ type R2Operations(config: CloudflareConfig) =
                 let! response = httpClient.PostAsync(url, content) |> Async.AwaitTask
                 let! responseContent = response.Content.ReadAsStringAsync() |> Async.AwaitTask
 
-                use jsonDoc = JsonDocument.Parse(responseContent)
-                let json = jsonDoc.RootElement
+                let json = JsonValue.Parse(responseContent)
 
-                let mutable successProp = Unchecked.defaultof<JsonElement>
-                if json.TryGetProperty("success", &successProp) && successProp.GetBoolean() then
+                match json.TryGetProperty("success") with
+                | Some success when success.AsBoolean() ->
                     return Ok ()
-                else
+                | _ ->
                     // Check if error is about bucket already existing
-                    let mutable errorsProp = Unchecked.defaultof<JsonElement>
-                    if json.TryGetProperty("errors", &errorsProp) && errorsProp.ValueKind = JsonValueKind.Array then
+                    match json.TryGetProperty("errors") with
+                    | Some (JsonValue.Array errors) when errors.Length > 0 ->
                         let errorMessages =
-                            errorsProp.EnumerateArray()
-                            |> Seq.choose (fun e ->
-                                let mutable msgProp = Unchecked.defaultof<JsonElement>
-                                if e.TryGetProperty("message", &msgProp) then
-                                    Some (msgProp.GetString())
-                                else
-                                    None)
-                            |> Seq.toList
+                            errors
+                            |> Array.choose (fun e ->
+                                match e.TryGetProperty("message") with
+                                | Some msg -> Some (msg.AsString())
+                                | None -> None)
+                            |> Array.toList
 
                         // Check if it's an "already exists" error - treat as success
                         let alreadyExists =
@@ -64,8 +61,8 @@ type R2Operations(config: CloudflareConfig) =
                             return Ok () // Treat as success for idempotency
                         else
                             return Error (String.concat "; " errorMessages)
-                    else
-                        return Error responseContent
+                    | _ ->
+                        return Error content
             with ex ->
                 return Error $"Exception creating bucket: {ex.Message}"
         }
@@ -77,51 +74,38 @@ type R2Operations(config: CloudflareConfig) =
                 let requestParts = [ Http.RequestPart.path("account_id", config.AccountId) ]
                 let! (status, content) = Http.OpenApiHttp.getAsync httpClient "/accounts/{account_id}/r2/buckets" requestParts None
 
-                use jsonDoc = JsonDocument.Parse(content)
-                let json = jsonDoc.RootElement
+                let json = JsonValue.Parse(content)
 
-                let mutable successProp = Unchecked.defaultof<JsonElement>
-                if json.TryGetProperty("success", &successProp) && successProp.GetBoolean() then
-                    let mutable resultProp = Unchecked.defaultof<JsonElement>
-                    if json.TryGetProperty("result", &resultProp) then
-                        let mutable bucketsProp = Unchecked.defaultof<JsonElement>
-                        if resultProp.TryGetProperty("buckets", &bucketsProp) && bucketsProp.ValueKind = JsonValueKind.Array then
+                match json.TryGetProperty("success") with
+                | Some success when success.AsBoolean() ->
+                    match json.TryGetProperty("result") with
+                    | Some result ->
+                        match result.TryGetProperty("buckets") with
+                        | Some (JsonValue.Array buckets) ->
                             let bucketList =
-                                bucketsProp.EnumerateArray()
-                                |> Seq.map (fun bucket ->
-                                    let mutable nameProp = Unchecked.defaultof<JsonElement>
-                                    let mutable dateProp = Unchecked.defaultof<JsonElement>
-                                    { Name =
-                                        if bucket.TryGetProperty("name", &nameProp) then
-                                            nameProp.GetString()
-                                        else
-                                            ""
-                                      CreationDate =
-                                        if bucket.TryGetProperty("creation_date", &dateProp) then
-                                            DateTimeOffset.Parse(dateProp.GetString())
-                                        else
-                                            DateTimeOffset.MinValue })
-                                |> Seq.toList
+                                buckets
+                                |> Array.map (fun bucket ->
+                                    { Name = bucket.["name"].AsString()
+                                      CreationDate = DateTimeOffset.Parse(bucket.["creation_date"].AsString()) })
+                                |> Array.toList
                             return Ok bucketList
-                        else
+                        | _ ->
                             return Ok []
-                    else
+                    | None ->
                         return Ok []
-                else
+                | _ ->
                     // Extract error messages
-                    let mutable errorsProp = Unchecked.defaultof<JsonElement>
-                    if json.TryGetProperty("errors", &errorsProp) && errorsProp.ValueKind = JsonValueKind.Array then
+                    match json.TryGetProperty("errors") with
+                    | Some (JsonValue.Array errors) when errors.Length > 0 ->
                         let errorMessages =
-                            errorsProp.EnumerateArray()
-                            |> Seq.choose (fun e ->
-                                let mutable msgProp = Unchecked.defaultof<JsonElement>
-                                if e.TryGetProperty("message", &msgProp) then
-                                    Some (msgProp.GetString())
-                                else
-                                    None)
+                            errors
+                            |> Array.choose (fun e ->
+                                match e.TryGetProperty("message") with
+                                | Some msg -> Some (msg.AsString())
+                                | None -> None)
                             |> String.concat "; "
                         return Error errorMessages
-                    else
+                    | _ ->
                         return Error content
             with ex ->
                 return Error $"Exception listing buckets: {ex.Message}"

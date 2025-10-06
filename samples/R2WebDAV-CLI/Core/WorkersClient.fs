@@ -2,7 +2,7 @@ module R2WebDAV.CLI.WorkersClient
 
 open System
 open System.Net.Http
-open FSharp.Data
+open System.Text.Json
 open CloudFlare.Api.Compute.Workers
 open R2WebDAV.CLI.Config
 
@@ -48,22 +48,25 @@ type WorkersOperations(config: CloudflareConfig) =
                         None
 
                 // Parse response
-                let json = JsonValue.Parse(patchContent)
-                match json.TryGetProperty("success") with
-                | Some success when success.AsBoolean() ->
+                use jsonDoc = JsonDocument.Parse(patchContent)
+                let json = jsonDoc.RootElement
+                let mutable successProp = Unchecked.defaultof<JsonElement>
+                if json.TryGetProperty("success", &successProp) && successProp.GetBoolean() then
                     return Ok ()
-                | _ ->
-                    match json.TryGetProperty("errors") with
-                    | Some (JsonValue.Array errors) when errors.Length > 0 ->
+                else
+                    let mutable errorsProp = Unchecked.defaultof<JsonElement>
+                    if json.TryGetProperty("errors", &errorsProp) && errorsProp.ValueKind = JsonValueKind.Array then
                         let errorMessages =
-                            errors
-                            |> Array.choose (fun e ->
-                                match e.TryGetProperty("message") with
-                                | Some msg -> Some (msg.AsString())
-                                | None -> None)
+                            errorsProp.EnumerateArray()
+                            |> Seq.choose (fun e ->
+                                let mutable msgProp = Unchecked.defaultof<JsonElement>
+                                if e.TryGetProperty("message", &msgProp) then
+                                    Some (msgProp.GetString())
+                                else
+                                    None)
                             |> String.concat "; "
                         return Error errorMessages
-                    | _ ->
+                    else
                         return Error patchContent
             with ex ->
                 return Error $"Exception updating worker bindings: {ex.Message}"
@@ -94,26 +97,146 @@ type WorkersOperations(config: CloudflareConfig) =
                         requestParts
                         None
 
-                // Parse the JSON response using FSharp.Data
-                let json = JsonValue.Parse(content)
+                // Parse the JSON response using System.Text.Json
+                use jsonDoc = JsonDocument.Parse(content)
+                let json = jsonDoc.RootElement
 
-                match json.TryGetProperty("success") with
-                | Some success when success.AsBoolean() ->
+                let mutable successProp = Unchecked.defaultof<JsonElement>
+                if json.TryGetProperty("success", &successProp) && successProp.GetBoolean() then
                     return Ok ()
-                | _ ->
+                else
                     // Extract error messages if present
-                    match json.TryGetProperty("errors") with
-                    | Some (JsonValue.Array errors) when errors.Length > 0 ->
+                    let mutable errorsProp = Unchecked.defaultof<JsonElement>
+                    if json.TryGetProperty("errors", &errorsProp) && errorsProp.ValueKind = JsonValueKind.Array then
                         let errorMessages =
-                            errors
-                            |> Array.choose (fun e ->
-                                match e.TryGetProperty("message") with
-                                | Some msg -> Some (msg.AsString())
-                                | None -> None)
+                            errorsProp.EnumerateArray()
+                            |> Seq.choose (fun e ->
+                                let mutable msgProp = Unchecked.defaultof<JsonElement>
+                                if e.TryGetProperty("message", &msgProp) then
+                                    Some (msgProp.GetString())
+                                else
+                                    None)
                             |> String.concat "; "
                         return Error errorMessages
-                    | _ ->
+                    else
                         return Error content
             with ex ->
                 return Error $"Exception setting secret: {ex.Message}"
+        }
+
+    member this.DeleteSecret(scriptName: string, secretName: string) : Async<Result<unit, string>> =
+        async {
+            try
+                let requestParts = [
+                    Http.RequestPart.path("account_id", config.AccountId)
+                    Http.RequestPart.path("script_name", scriptName)
+                    Http.RequestPart.path("secret_name", secretName)
+                ]
+
+                let! (status, content) =
+                    Http.OpenApiHttp.deleteAsync
+                        httpClient
+                        "/accounts/{account_id}/workers/scripts/{script_name}/secrets/{secret_name}"
+                        requestParts
+                        None
+
+                use jsonDoc = JsonDocument.Parse(content)
+                let json = jsonDoc.RootElement
+
+                let mutable successProp = Unchecked.defaultof<JsonElement>
+                if json.TryGetProperty("success", &successProp) && successProp.GetBoolean() then
+                    return Ok ()
+                else
+                    let mutable errorsProp = Unchecked.defaultof<JsonElement>
+                    if json.TryGetProperty("errors", &errorsProp) && errorsProp.ValueKind = JsonValueKind.Array then
+                        let errorMessages =
+                            errorsProp.EnumerateArray()
+                            |> Seq.choose (fun e ->
+                                let mutable msgProp = Unchecked.defaultof<JsonElement>
+                                if e.TryGetProperty("message", &msgProp) then
+                                    Some (msgProp.GetString())
+                                else
+                                    None)
+                            |> String.concat "; "
+                        return Error errorMessages
+                    else
+                        return Error content
+            with ex ->
+                return Error $"Exception deleting secret: {ex.Message}"
+        }
+
+    member this.RemoveBinding(scriptName: string, bindingName: string) : Async<Result<unit, string>> =
+        async {
+            try
+                // Get current settings to find existing bindings
+                let! settingsResult =
+                    Http.OpenApiHttp.getAsync
+                        httpClient
+                        "/accounts/{account_id}/workers/scripts/{script_name}/settings"
+                        [Http.RequestPart.path("account_id", config.AccountId)
+                         Http.RequestPart.path("script_name", scriptName)]
+                        None
+
+                let (_, settingsContent) = settingsResult
+                use settingsJsonDoc = JsonDocument.Parse(settingsContent)
+                let settingsJson = settingsJsonDoc.RootElement
+
+                // Extract current bindings and filter out the one to remove
+                let filteredBindingsJson =
+                    let mutable resultProp = Unchecked.defaultof<JsonElement>
+                    if settingsJson.TryGetProperty("result", &resultProp) then
+                        let mutable bindingsProp = Unchecked.defaultof<JsonElement>
+                        if resultProp.TryGetProperty("bindings", &bindingsProp) && bindingsProp.ValueKind = JsonValueKind.Array then
+                            bindingsProp.EnumerateArray()
+                            |> Seq.filter (fun binding ->
+                                let mutable nameProp = Unchecked.defaultof<JsonElement>
+                                if binding.TryGetProperty("name", &nameProp) then
+                                    nameProp.GetString() <> bindingName
+                                else
+                                    true)
+                            |> Seq.map (fun b -> b.GetRawText())
+                            |> String.concat ","
+                        else
+                            ""
+                    else
+                        ""
+
+                // PATCH settings with filtered bindings
+                let settingsBody = sprintf """{"bindings":[%s]}""" filteredBindingsJson
+
+                let requestParts = [
+                    Http.RequestPart.path("account_id", config.AccountId)
+                    Http.RequestPart.path("script_name", scriptName)
+                    Http.RequestPart.multipartFormData("settings", settingsBody)
+                ]
+
+                let! (patchStatus, patchContent) =
+                    Http.OpenApiHttp.patchAsync
+                        httpClient
+                        "/accounts/{account_id}/workers/scripts/{script_name}/settings"
+                        requestParts
+                        None
+
+                use jsonDoc = JsonDocument.Parse(patchContent)
+                let json = jsonDoc.RootElement
+                let mutable successProp = Unchecked.defaultof<JsonElement>
+                if json.TryGetProperty("success", &successProp) && successProp.GetBoolean() then
+                    return Ok ()
+                else
+                    let mutable errorsProp = Unchecked.defaultof<JsonElement>
+                    if json.TryGetProperty("errors", &errorsProp) && errorsProp.ValueKind = JsonValueKind.Array then
+                        let errorMessages =
+                            errorsProp.EnumerateArray()
+                            |> Seq.choose (fun e ->
+                                let mutable msgProp = Unchecked.defaultof<JsonElement>
+                                if e.TryGetProperty("message", &msgProp) then
+                                    Some (msgProp.GetString())
+                                else
+                                    None)
+                            |> String.concat "; "
+                        return Error errorMessages
+                    else
+                        return Error patchContent
+            with ex ->
+                return Error $"Exception removing binding: {ex.Message}"
         }

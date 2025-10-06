@@ -1,4 +1,4 @@
-namespace CloudFlare.Management.Vectorize.Http
+namespace CloudFlare.Management.Hyperdrive.Http
 
 open System
 open System.Net.Http

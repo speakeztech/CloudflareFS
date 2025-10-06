@@ -10,7 +10,6 @@
     <Compile Include="Client.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Fable.Remoting.Json" Version="2.18.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="FSharp.SystemTextJson" Version="1.3.13" />
   </ItemGroup>
 </Project>
