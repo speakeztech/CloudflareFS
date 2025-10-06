@@ -19,7 +19,7 @@ let fetch (request: Request) (env: Env) (ctx: ExecutionContext) =
         match method, path with
         | "GET", "/" ->
             // Simple response using helper
-            ok "Hello from CloudflareFS! The wrapper functions hide the backticked bindings."
+            ok "Hello from CloudflareFS!"
 
         | "GET", "/json" ->
             // JSON response using helper
