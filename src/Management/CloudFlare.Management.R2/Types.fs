@@ -1,7 +1,7 @@
 namespace rec CloudFlare.Management.R2.Types
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
-type ``r2-slurperJobStatus`` =
+type r2slurperJobStatus =
     | [<CompiledName "running">] Running
     | [<CompiledName "paused">] Paused
     | [<CompiledName "aborted">] Aborted
@@ -14,7 +14,7 @@ type ``r2-slurperJobStatus`` =
         | Completed -> "completed"
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
-type ``r2-slurperJurisdiction`` =
+type r2slurperJurisdiction =
     | [<CompiledName "default">] Default
     | [<CompiledName "eu">] Eu
     | [<CompiledName "fedramp">] Fedramp
@@ -24,15 +24,14 @@ type ``r2-slurperJurisdiction`` =
         | Eu -> "eu"
         | Fedramp -> "fedramp"
 
-type ``r2-slurperapi-v4-errorArrayItem`` =
+type r2slurperapiv4errorArrayItem =
     { code: int
       message: string }
-    ///Creates an instance of r2-slurperapi-v4-errorArrayItem with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (code: int, message: string): ``r2-slurperapi-v4-errorArrayItem`` =
-        { code = code; message = message }
+    ///Creates an instance of r2slurperapiv4errorArrayItem with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (code: int, message: string): r2slurperapiv4errorArrayItem = { code = code; message = message }
 
-type ``r2-slurperapi-v4-error`` = list<``r2-slurperapi-v4-errorArrayItem``>
-type ``r2-slurperapi-v4-message`` = list<string>
+type r2slurperapiv4error = list<r2slurperapiv4errorArrayItem>
+type r2slurperapiv4message = list<string>
 ///Account ID.
 type r2accountidentifier = string
 
@@ -84,7 +83,7 @@ type r2messages = list<string>
 type r2queueidentifier = string
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
-type ``r2r2-action`` =
+type r2r2action =
     | [<CompiledName "PutObject">] PutObject
     | [<CompiledName "CopyObject">] CopyObject
     | [<CompiledName "DeleteObject">] DeleteObject
@@ -117,26 +116,26 @@ type ConnectivityStatus =
         | Success -> "success"
         | Error -> "error"
 
-type ``r2-slurperConnectivityResponse`` =
+type r2slurperConnectivityResponse =
     { connectivityStatus: Option<ConnectivityStatus> }
-    ///Creates an instance of r2-slurperConnectivityResponse with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2-slurperConnectivityResponse`` = { connectivityStatus = None }
+    ///Creates an instance of r2slurperConnectivityResponse with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2slurperConnectivityResponse = { connectivityStatus = None }
 
-type ``r2-slurperCreateJobRequest`` =
+type r2slurperCreateJobRequest =
     { overwrite: Option<bool>
-      source: Option<Newtonsoft.Json.Linq.JObject>
-      target: Option<``r2-slurperR2TargetSchema``> }
-    ///Creates an instance of r2-slurperCreateJobRequest with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2-slurperCreateJobRequest`` =
+      source: Option<System.Text.Json.JsonElement>
+      target: Option<r2slurperR2TargetSchema> }
+    ///Creates an instance of r2slurperCreateJobRequest with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2slurperCreateJobRequest =
         { overwrite = None
           source = None
           target = None }
 
-type ``r2-slurperGCSLikeCredsSchema`` =
+type r2slurperGCSLikeCredsSchema =
     { clientEmail: Option<string>
       privateKey: Option<string> }
-    ///Creates an instance of r2-slurperGCSLikeCredsSchema with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2-slurperGCSLikeCredsSchema`` =
+    ///Creates an instance of r2slurperGCSLikeCredsSchema with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2slurperGCSLikeCredsSchema =
         { clientEmail = None
           privateKey = None }
 
@@ -147,12 +146,12 @@ type Vendor =
         match this with
         | Gcs -> "gcs"
 
-type ``r2-slurperGCSSourceSchema`` =
+type r2slurperGCSSourceSchema =
     { bucket: Option<string>
-      secret: Option<``r2-slurperGCSLikeCredsSchema``>
+      secret: Option<r2slurperGCSLikeCredsSchema>
       vendor: Option<Vendor> }
-    ///Creates an instance of r2-slurperGCSSourceSchema with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2-slurperGCSSourceSchema`` =
+    ///Creates an instance of r2slurperGCSSourceSchema with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2slurperGCSSourceSchema =
         { bucket = None
           secret = None
           vendor = None }
@@ -192,30 +191,30 @@ type LogType =
         | ImportSkippedInvalidMedia -> "importSkippedInvalidMedia"
         | ImportSkippedRequiresRetrieval -> "importSkippedRequiresRetrieval"
 
-type ``r2-slurperJobLogResponse`` =
+type r2slurperJobLogResponse =
     { createdAt: Option<string>
       job: Option<string>
       logType: Option<LogType>
       message: Option<string>
       objectKey: Option<string> }
-    ///Creates an instance of r2-slurperJobLogResponse with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2-slurperJobLogResponse`` =
+    ///Creates an instance of r2slurperJobLogResponse with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2slurperJobLogResponse =
         { createdAt = None
           job = None
           logType = None
           message = None
           objectKey = None }
 
-type ``r2-slurperJobProgressResponse`` =
+type r2slurperJobProgressResponse =
     { createdAt: Option<string>
       failedObjects: Option<int>
       id: Option<string>
       objects: Option<int>
       skippedObjects: Option<int>
-      status: Option<``r2-slurperJobStatus``>
+      status: Option<r2slurperJobStatus>
       transferredObjects: Option<int> }
-    ///Creates an instance of r2-slurperJobProgressResponse with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2-slurperJobProgressResponse`` =
+    ///Creates an instance of r2slurperJobProgressResponse with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2slurperJobProgressResponse =
         { createdAt = None
           failedObjects = None
           id = None
@@ -233,7 +232,7 @@ type TargetVendor =
 
 type Target =
     { bucket: Option<string>
-      jurisdiction: Option<``r2-slurperJurisdiction``>
+      jurisdiction: Option<r2slurperJurisdiction>
       vendor: Option<TargetVendor> }
     ///Creates an instance of Target with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (): Target =
@@ -241,16 +240,16 @@ type Target =
           jurisdiction = None
           vendor = None }
 
-type ``r2-slurperJobResponse`` =
+type r2slurperJobResponse =
     { createdAt: Option<string>
       finishedAt: Option<string>
       id: Option<string>
       overwrite: Option<bool>
-      source: Option<Newtonsoft.Json.Linq.JToken>
-      status: Option<``r2-slurperJobStatus``>
+      source: Option<System.Text.Json.JsonElement>
+      status: Option<r2slurperJobStatus>
       target: Option<Target> }
-    ///Creates an instance of r2-slurperJobResponse with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2-slurperJobResponse`` =
+    ///Creates an instance of r2slurperJobResponse with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2slurperJobResponse =
         { createdAt = None
           finishedAt = None
           id = None
@@ -260,65 +259,65 @@ type ``r2-slurperJobResponse`` =
           target = None }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
-type ``r2-slurperR2SourceSchemaVendor`` =
+type r2slurperR2SourceSchemaVendor =
     | [<CompiledName "r2">] R2
     member this.Format() =
         match this with
         | R2 -> "r2"
 
-type ``r2-slurperR2SourceSchema`` =
+type r2slurperR2SourceSchema =
     { bucket: Option<string>
-      jurisdiction: Option<``r2-slurperJurisdiction``>
-      secret: Option<``r2-slurperS3LikeCredsSchema``>
-      vendor: Option<``r2-slurperR2SourceSchemaVendor``> }
-    ///Creates an instance of r2-slurperR2SourceSchema with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2-slurperR2SourceSchema`` =
+      jurisdiction: Option<r2slurperJurisdiction>
+      secret: Option<r2slurperS3LikeCredsSchema>
+      vendor: Option<r2slurperR2SourceSchemaVendor> }
+    ///Creates an instance of r2slurperR2SourceSchema with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2slurperR2SourceSchema =
         { bucket = None
           jurisdiction = None
           secret = None
           vendor = None }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
-type ``r2-slurperR2TargetSchemaVendor`` =
+type r2slurperR2TargetSchemaVendor =
     | [<CompiledName "r2">] R2
     member this.Format() =
         match this with
         | R2 -> "r2"
 
-type ``r2-slurperR2TargetSchema`` =
+type r2slurperR2TargetSchema =
     { bucket: Option<string>
-      jurisdiction: Option<``r2-slurperJurisdiction``>
-      secret: Option<``r2-slurperS3LikeCredsSchema``>
-      vendor: Option<``r2-slurperR2TargetSchemaVendor``> }
-    ///Creates an instance of r2-slurperR2TargetSchema with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2-slurperR2TargetSchema`` =
+      jurisdiction: Option<r2slurperJurisdiction>
+      secret: Option<r2slurperS3LikeCredsSchema>
+      vendor: Option<r2slurperR2TargetSchemaVendor> }
+    ///Creates an instance of r2slurperR2TargetSchema with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2slurperR2TargetSchema =
         { bucket = None
           jurisdiction = None
           secret = None
           vendor = None }
 
-type ``r2-slurperS3LikeCredsSchema`` =
+type r2slurperS3LikeCredsSchema =
     { accessKeyId: Option<string>
       secretAccessKey: Option<string> }
-    ///Creates an instance of r2-slurperS3LikeCredsSchema with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2-slurperS3LikeCredsSchema`` =
+    ///Creates an instance of r2slurperS3LikeCredsSchema with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2slurperS3LikeCredsSchema =
         { accessKeyId = None
           secretAccessKey = None }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
-type ``r2-slurperS3SourceSchemaVendor`` =
+type r2slurperS3SourceSchemaVendor =
     | [<CompiledName "s3">] S3
     member this.Format() =
         match this with
         | S3 -> "s3"
 
-type ``r2-slurperS3SourceSchema`` =
+type r2slurperS3SourceSchema =
     { bucket: Option<string>
       endpoint: Option<string>
-      secret: Option<``r2-slurperS3LikeCredsSchema``>
-      vendor: Option<``r2-slurperS3SourceSchemaVendor``> }
-    ///Creates an instance of r2-slurperS3SourceSchema with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2-slurperS3SourceSchema`` =
+      secret: Option<r2slurperS3LikeCredsSchema>
+      vendor: Option<r2slurperS3SourceSchemaVendor> }
+    ///Creates an instance of r2slurperS3SourceSchema with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2slurperS3SourceSchema =
         { bucket = None
           endpoint = None
           secret = None
@@ -330,31 +329,30 @@ type Errors =
     ///Creates an instance of Errors with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (code: int, message: string): Errors = { code = code; message = message }
 
-type ``r2-slurperapi-v4-failure`` =
+type r2slurperapiv4failure =
     { errors: Option<list<Errors>>
-      messages: Option<``r2-slurperapi-v4-message``>
+      messages: Option<r2slurperapiv4message>
       ///Indicates if the API call was successful or not.
       success: Option<bool> }
-    ///Creates an instance of r2-slurperapi-v4-failure with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2-slurperapi-v4-failure`` =
+    ///Creates an instance of r2slurperapiv4failure with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2slurperapiv4failure =
         { errors = None
           messages = None
           success = None }
 
-type ``r2-slurperapi-v4-successErrors`` =
+type r2slurperapiv4successErrors =
     { code: int
       message: string }
-    ///Creates an instance of r2-slurperapi-v4-successErrors with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (code: int, message: string): ``r2-slurperapi-v4-successErrors`` =
-        { code = code; message = message }
+    ///Creates an instance of r2slurperapiv4successErrors with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (code: int, message: string): r2slurperapiv4successErrors = { code = code; message = message }
 
-type ``r2-slurperapi-v4-success`` =
-    { errors: Option<list<``r2-slurperapi-v4-successErrors``>>
-      messages: Option<``r2-slurperapi-v4-message``>
+type r2slurperapiv4success =
+    { errors: Option<list<r2slurperapiv4successErrors>>
+      messages: Option<r2slurperapiv4message>
       ///Indicates if the API call was successful or not.
       success: Option<bool> }
-    ///Creates an instance of r2-slurperapi-v4-success with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2-slurperapi-v4-success`` =
+    ///Creates an instance of r2slurperapiv4success with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2slurperapiv4success =
         { errors = None
           messages = None
           success = None }
@@ -451,33 +449,33 @@ type r2bucket =
           name = None
           storage_class = None }
 
-type ``r2bucket-config`` =
+type r2bucketconfig =
     { ///Name of the bucket.
       bucketName: Option<string>
       ///List of queues associated with the bucket.
-      queues: Option<list<``r2queues-config``>> }
-    ///Creates an instance of r2bucket-config with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2bucket-config`` = { bucketName = None; queues = None }
+      queues: Option<list<r2queuesconfig>> }
+    ///Creates an instance of r2bucketconfig with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2bucketconfig = { bucketName = None; queues = None }
 
-type ``r2bucket-lock-rule`` =
-    { condition: Newtonsoft.Json.Linq.JToken
+type r2bucketlockrule =
+    { condition: System.Text.Json.JsonElement
       ///Whether or not this rule is in effect.
       enabled: bool
       ///Unique identifier for this rule.
       id: string
       ///Rule will only apply to objects/uploads in the bucket that start with the given prefix, an empty prefix can be provided to scope rule to all objects/uploads.
       prefix: Option<string> }
-    ///Creates an instance of r2bucket-lock-rule with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (condition: Newtonsoft.Json.Linq.JToken, enabled: bool, id: string): ``r2bucket-lock-rule`` =
+    ///Creates an instance of r2bucketlockrule with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (condition: System.Text.Json.JsonElement, enabled: bool, id: string): r2bucketlockrule =
         { condition = condition
           enabled = enabled
           id = id
           prefix = None }
 
-type ``r2bucket-lock-rule-config`` =
+type r2bucketlockruleconfig =
     { rules: Option<list<string>> }
-    ///Creates an instance of r2bucket-lock-rule-config with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2bucket-lock-rule-config`` = { rules = None }
+    ///Creates an instance of r2bucketlockruleconfig with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2bucketlockruleconfig = { rules = None }
 
 ///Metrics based on what state they are in(uploaded or published).
 type r2classbasedmetrics =
@@ -517,7 +515,7 @@ type Allowed =
           methods = methods
           origins = origins }
 
-type ``r2cors-rule`` =
+type r2corsrule =
     { ///Object specifying allowed origins, methods and headers for this CORS rule.
       allowed: Allowed
       ///Specifies the headers that can be exposed back, and accessed by, the JavaScript making the cross-origin request. If you need to access headers beyond the safelisted response headers, such as Content-Encoding or cf-cache-status, you must specify it here.
@@ -526,8 +524,8 @@ type ``r2cors-rule`` =
       id: Option<string>
       ///Specifies the amount of time (in seconds) browsers are allowed to cache CORS preflight responses. Browsers may limit this to 2 hours or less, even if the maximum value (86400) is specified.
       maxAgeSeconds: Option<float> }
-    ///Creates an instance of r2cors-rule with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (allowed: Allowed): ``r2cors-rule`` =
+    ///Creates an instance of r2corsrule with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (allowed: Allowed): r2corsrule =
         { allowed = allowed
           exposeHeaders = None
           id = None
@@ -802,36 +800,35 @@ type Type =
         | Age -> "Age"
 
 ///Condition for lifecycle transitions to apply after an object reaches an age in seconds.
-type ``r2lifecycle-age-condition`` =
+type r2lifecycleagecondition =
     { maxAge: int
       ``type``: Type }
-    ///Creates an instance of r2lifecycle-age-condition with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (maxAge: int, ``type``: Type): ``r2lifecycle-age-condition`` =
-        { maxAge = maxAge; ``type`` = ``type`` }
+    ///Creates an instance of r2lifecycleagecondition with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (maxAge: int, _type: Type): r2lifecycleagecondition = { maxAge = maxAge; ``type`` = _type }
 
-type ``r2lifecycle-config`` =
+type r2lifecycleconfig =
     { rules: Option<list<string>> }
-    ///Creates an instance of r2lifecycle-config with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2lifecycle-config`` = { rules = None }
+    ///Creates an instance of r2lifecycleconfig with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2lifecycleconfig = { rules = None }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
-type ``r2lifecycle-date-conditionType`` =
+type r2lifecycledateconditionType =
     | [<CompiledName "Date">] Date
     member this.Format() =
         match this with
         | Date -> "Date"
 
 ///Condition for lifecycle transitions to apply on a specific date.
-type ``r2lifecycle-date-condition`` =
+type r2lifecycledatecondition =
     { date: string
-      ``type``: ``r2lifecycle-date-conditionType`` }
-    ///Creates an instance of r2lifecycle-date-condition with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (date: string, ``type``: ``r2lifecycle-date-conditionType``): ``r2lifecycle-date-condition`` =
-        { date = date; ``type`` = ``type`` }
+      ``type``: r2lifecycledateconditionType }
+    ///Creates an instance of r2lifecycledatecondition with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (date: string, _type: r2lifecycledateconditionType): r2lifecycledatecondition =
+        { date = date; ``type`` = _type }
 
 ///Transition to abort ongoing multipart uploads.
 type AbortMultipartUploadsTransition =
-    { condition: Option<Newtonsoft.Json.Linq.JToken> }
+    { condition: Option<System.Text.Json.JsonElement> }
     ///Creates an instance of AbortMultipartUploadsTransition with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (): AbortMultipartUploadsTransition = { condition = None }
 
@@ -844,11 +841,11 @@ type Conditions =
 
 ///Transition to delete objects.
 type DeleteObjectsTransition =
-    { condition: Option<Newtonsoft.Json.Linq.JToken> }
+    { condition: Option<System.Text.Json.JsonElement> }
     ///Creates an instance of DeleteObjectsTransition with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (): DeleteObjectsTransition = { condition = None }
 
-type ``r2lifecycle-rule`` =
+type r2lifecyclerule =
     { ///Transition to abort ongoing multipart uploads.
       abortMultipartUploadsTransition: Option<AbortMultipartUploadsTransition>
       ///Conditions that apply to all transitions of this rule.
@@ -861,8 +858,8 @@ type ``r2lifecycle-rule`` =
       id: string
       ///Transitions to change the storage class of objects.
       storageClassTransitions: Option<list<string>> }
-    ///Creates an instance of r2lifecycle-rule with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (conditions: Conditions, enabled: bool, id: string): ``r2lifecycle-rule`` =
+    ///Creates an instance of r2lifecyclerule with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (conditions: Conditions, enabled: bool, id: string): r2lifecyclerule =
         { abortMultipartUploadsTransition = None
           conditions = conditions
           deleteObjectsTransition = None
@@ -877,11 +874,11 @@ type StorageClass =
         match this with
         | InfrequentAccess -> "InfrequentAccess"
 
-type ``r2lifecycle-storage-transition`` =
-    { condition: Newtonsoft.Json.Linq.JToken
+type r2lifecyclestoragetransition =
+    { condition: System.Text.Json.JsonElement
       storageClass: StorageClass }
-    ///Creates an instance of r2lifecycle-storage-transition with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (condition: Newtonsoft.Json.Linq.JToken, storageClass: StorageClass): ``r2lifecycle-storage-transition`` =
+    ///Creates an instance of r2lifecyclestoragetransition with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (condition: System.Text.Json.JsonElement, storageClass: StorageClass): r2lifecyclestoragetransition =
         { condition = condition
           storageClass = storageClass }
 
@@ -971,49 +968,49 @@ type r2listcustomdomainsresponse =
     static member Create (domains: list<Domains>): r2listcustomdomainsresponse = { domains = domains }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
-type ``r2lock-rule-age-conditionType`` =
+type r2lockruleageconditionType =
     | [<CompiledName "Age">] Age
     member this.Format() =
         match this with
         | Age -> "Age"
 
 ///Condition to apply a lock rule to an object for how long in seconds.
-type ``r2lock-rule-age-condition`` =
+type r2lockruleagecondition =
     { maxAgeSeconds: int
-      ``type``: ``r2lock-rule-age-conditionType`` }
-    ///Creates an instance of r2lock-rule-age-condition with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (maxAgeSeconds: int, ``type``: ``r2lock-rule-age-conditionType``): ``r2lock-rule-age-condition`` =
+      ``type``: r2lockruleageconditionType }
+    ///Creates an instance of r2lockruleagecondition with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (maxAgeSeconds: int, _type: r2lockruleageconditionType): r2lockruleagecondition =
         { maxAgeSeconds = maxAgeSeconds
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
-type ``r2lock-rule-date-conditionType`` =
+type r2lockruledateconditionType =
     | [<CompiledName "Date">] Date
     member this.Format() =
         match this with
         | Date -> "Date"
 
 ///Condition to apply a lock rule to an object until a specific date.
-type ``r2lock-rule-date-condition`` =
+type r2lockruledatecondition =
     { date: string
-      ``type``: ``r2lock-rule-date-conditionType`` }
-    ///Creates an instance of r2lock-rule-date-condition with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (date: string, ``type``: ``r2lock-rule-date-conditionType``): ``r2lock-rule-date-condition`` =
-        { date = date; ``type`` = ``type`` }
+      ``type``: r2lockruledateconditionType }
+    ///Creates an instance of r2lockruledatecondition with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (date: string, _type: r2lockruledateconditionType): r2lockruledatecondition =
+        { date = date; ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
-type ``r2lock-rule-indefinite-conditionType`` =
+type r2lockruleindefiniteconditionType =
     | [<CompiledName "Indefinite">] Indefinite
     member this.Format() =
         match this with
         | Indefinite -> "Indefinite"
 
 ///Condition to apply a lock rule indefinitely.
-type ``r2lock-rule-indefinite-condition`` =
-    { ``type``: ``r2lock-rule-indefinite-conditionType`` }
-    ///Creates an instance of r2lock-rule-indefinite-condition with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (``type``: ``r2lock-rule-indefinite-conditionType``): ``r2lock-rule-indefinite-condition`` =
-        { ``type`` = ``type`` }
+type r2lockruleindefinitecondition =
+    { ``type``: r2lockruleindefiniteconditionType }
+    ///Creates an instance of r2lockruleindefinitecondition with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (_type: r2lockruleindefiniteconditionType): r2lockruleindefinitecondition =
+        { ``type`` = _type }
 
 type r2manageddomainresponse =
     { ///Bucket ID.
@@ -1042,14 +1039,14 @@ type r2objectsizemetrics =
           objects = None
           payloadSize = None }
 
-type ``r2queues-config`` =
+type r2queuesconfig =
     { ///Queue ID.
       queueId: Option<string>
       ///Name of the queue.
       queueName: Option<string>
       rules: Option<list<string>> }
-    ///Creates an instance of r2queues-config with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (): ``r2queues-config`` =
+    ///Creates an instance of r2queuesconfig with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (): r2queuesconfig =
         { queueId = None
           queueName = None
           rules = None }
@@ -1070,7 +1067,7 @@ type r2resultinfo =
 
 type r2rule =
     { ///Array of R2 object actions that will trigger notifications.
-      actions: list<``r2r2-action``>
+      actions: list<r2r2action>
       ///A description that can be used to identify the event notification rule after creation.
       description: Option<string>
       ///Notifications will be sent only for objects with this prefix.
@@ -1078,7 +1075,7 @@ type r2rule =
       ///Notifications will be sent only for objects with this suffix.
       suffix: Option<string> }
     ///Creates an instance of r2rule with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (actions: list<``r2r2-action``>): r2rule =
+    static member Create (actions: list<r2r2action>): r2rule =
         { actions = actions
           description = None
           prefix = None
@@ -1199,13 +1196,13 @@ type r2v4responseErrors =
 type r2v4response =
     { errors: list<r2v4responseErrors>
       messages: r2messages
-      result: Newtonsoft.Json.Linq.JObject
+      result: System.Text.Json.JsonElement
       ///Whether the API call was successful.
       success: bool }
     ///Creates an instance of r2v4response with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (errors: list<r2v4responseErrors>,
                           messages: r2messages,
-                          result: Newtonsoft.Json.Linq.JObject,
+                          result: System.Text.Json.JsonElement,
                           success: bool): r2v4response =
         { errors = errors
           messages = messages
@@ -1221,13 +1218,13 @@ type r2v4responsefailureErrors =
 type r2v4responsefailure =
     { errors: list<r2v4responsefailureErrors>
       messages: r2messages
-      result: Newtonsoft.Json.Linq.JObject
+      result: System.Text.Json.JsonElement
       ///Whether the API call was successful.
       success: bool }
     ///Creates an instance of r2v4responsefailure with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (errors: list<r2v4responsefailureErrors>,
                           messages: r2messages,
-                          result: Newtonsoft.Json.Linq.JObject,
+                          result: System.Text.Json.JsonElement,
                           success: bool): r2v4responsefailure =
         { errors = errors
           messages = messages
@@ -1243,7 +1240,7 @@ type r2v4responselistErrors =
 type r2v4responselist =
     { errors: Option<list<r2v4responselistErrors>>
       messages: Option<r2messages>
-      result: Option<Newtonsoft.Json.Linq.JObject>
+      result: Option<System.Text.Json.JsonElement>
       ///Whether the API call was successful.
       success: Option<bool>
       result_info: Option<r2resultinfo> }

@@ -1,10 +1,10 @@
 {
   "schema": "./temp/R2-openapi.json",
-  "project": "CloudFlare.Api.Storage.R2",
-  "output": "./Generated",
-  "namespace": "CloudFlare.Api.Storage.R2",
+  "project": "CloudFlare.Management.R2",
+  "output": "../../src/Management/CloudFlare.Management.R2",
+  "namespace": "CloudFlare.Management.R2",
   "synchronous": false,
   "target": "fsharp",
   "generateClient": true,
-  "clientName": "R2ManagementClient"
+  "clientName": "R2Client"
 }

@@ -22,50 +22,46 @@ type R2Operations(config: CloudflareConfig) =
     member this.CreateBucket(bucketName: string) : Async<Result<unit, string>> =
         async {
             try
-                // Manually construct JSON to avoid Newtonsoft.Json in Hawaii-generated helpers
-                // Use StringContent with proper content type instead of jsonContent
-                let jsonPayload = sprintf """{"name":"%s"}""" bucketName
-                let content = new System.Net.Http.StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json")
+                // Use the Hawaii-generated R2 client with proper FSharp.SystemTextJson serialization
+                let payload = Types.R2CreateBucketPayload.Create(bucketName)
+                let! result = r2Client.R2CreateBucket(config.AccountId, payload)
 
-                // Build URL manually since we're bypassing OpenApiHttp helpers
-                let url = $"https://api.cloudflare.com/client/v4/accounts/{config.AccountId}/r2/buckets"
+                match result with
+                | Types.R2CreateBucket.OK response ->
+                    // Parse the JSON response to check success
+                    use jsonDoc = JsonDocument.Parse(response)
+                    let json = jsonDoc.RootElement
 
-                let! response = httpClient.PostAsync(url, content) |> Async.AwaitTask
-                let! responseContent = response.Content.ReadAsStringAsync() |> Async.AwaitTask
-
-                use jsonDoc = JsonDocument.Parse(responseContent)
-                let json = jsonDoc.RootElement
-
-                let mutable successProp = Unchecked.defaultof<JsonElement>
-                if json.TryGetProperty("success", &successProp) && successProp.GetBoolean() then
-                    return Ok ()
-                else
-                    // Check if error is about bucket already existing
-                    let mutable errorsProp = Unchecked.defaultof<JsonElement>
-                    if json.TryGetProperty("errors", &errorsProp) && errorsProp.ValueKind = JsonValueKind.Array then
-                        let errorMessages =
-                            errorsProp.EnumerateArray()
-                            |> Seq.choose (fun e ->
-                                let mutable msgProp = Unchecked.defaultof<JsonElement>
-                                if e.TryGetProperty("message", &msgProp) then
-                                    Some (msgProp.GetString())
-                                else
-                                    None)
-                            |> Seq.toList
-
-                        // Check if it's an "already exists" error - treat as success
-                        let alreadyExists =
-                            errorMessages
-                            |> List.exists (fun msg ->
-                                msg.Contains("already exists", StringComparison.OrdinalIgnoreCase) ||
-                                msg.Contains("bucket with that name already exists", StringComparison.OrdinalIgnoreCase))
-
-                        if alreadyExists then
-                            return Ok () // Treat as success for idempotency
-                        else
-                            return Error (String.concat "; " errorMessages)
+                    let mutable successProp = Unchecked.defaultof<JsonElement>
+                    if json.TryGetProperty("success", &successProp) && successProp.GetBoolean() then
+                        return Ok ()
                     else
-                        return Error responseContent
+                        // Check if error is about bucket already existing
+                        let mutable errorsProp = Unchecked.defaultof<JsonElement>
+                        if json.TryGetProperty("errors", &errorsProp) && errorsProp.ValueKind = JsonValueKind.Array then
+                            let errorMessages =
+                                errorsProp.EnumerateArray()
+                                |> Seq.choose (fun e ->
+                                    let mutable msgProp = Unchecked.defaultof<JsonElement>
+                                    if e.TryGetProperty("message", &msgProp) then
+                                        Some (msgProp.GetString())
+                                    else
+                                        None)
+                                |> Seq.toList
+
+                            // Check if it's an "already exists" error - treat as success
+                            let alreadyExists =
+                                errorMessages
+                                |> List.exists (fun msg ->
+                                    msg.Contains("already exists", StringComparison.OrdinalIgnoreCase) ||
+                                    msg.Contains("bucket with that name already exists", StringComparison.OrdinalIgnoreCase))
+
+                            if alreadyExists then
+                                return Ok () // Treat as success for idempotency
+                            else
+                                return Error (String.concat "; " errorMessages)
+                        else
+                            return Error response
             with ex ->
                 return Error $"Exception creating bucket: {ex.Message}"
         }
