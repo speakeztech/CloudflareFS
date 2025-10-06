@@ -517,10 +517,10 @@ type Filters =
       ``type``: Type
       value: Option<Newtonsoft.Json.Linq.JToken> }
     ///Creates an instance of Filters with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (key: string, operation: Operation, ``type``: Type): Filters =
+    static member Create (key: string, operation: Operation, _type: Type): Filters =
         { key = key
           operation = operation
-          ``type`` = ``type``
+          ``type`` = _type
           value = None }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
@@ -538,7 +538,7 @@ type GroupBys =
     { ``type``: GroupBysType
       value: string }
     ///Creates an instance of GroupBys with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (``type``: GroupBysType, value: string): GroupBys = { ``type`` = ``type``; value = value }
+    static member Create (_type: GroupBysType, value: string): GroupBys = { ``type`` = _type; value = value }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type HavingsOperation =
@@ -805,7 +805,7 @@ type Fields =
     { key: string
       ``type``: string }
     ///Creates an instance of Fields with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (key: string, ``type``: string): Fields = { key = key; ``type`` = ``type`` }
+    static member Create (key: string, _type: string): Fields = { key = key; ``type`` = _type }
 
 type EventsSeriesDataAggregates = Map<string, Newtonsoft.Json.Linq.JToken>
 
@@ -931,7 +931,7 @@ type Timeframe =
       ///Set the end time for your query using UNIX time in milliseconds.
       ``to``: float }
     ///Creates an instance of Timeframe with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (from: float, ``to``: float): Timeframe = { from = from; ``to`` = ``to`` }
+    static member Create (from: float, _to: float): Timeframe = { from = from; ``to`` = _to }
 
 ///A Workers Observability Query Object
 type workersobservabilityqueryrun =
@@ -1039,6 +1039,13 @@ type workersobservabilitytelemetryevent =
       dataset: string
       source: Newtonsoft.Json.Linq.JToken
       timestamp: int }
+    ///Creates an instance of workersobservabilitytelemetryevent with all optional fields initialized to None. The required fields are parameters of this function
+    static member Create (metadata: ``$metadata``, dataset: string, source: Newtonsoft.Json.Linq.JToken, timestamp: int): workersobservabilitytelemetryevent =
+        { ``$metadata`` = metadata
+          ``$workers`` = None
+          dataset = dataset
+          source = source
+          timestamp = timestamp }
 
 ///Metadata about the version.
 type Annotations =
@@ -1560,8 +1567,8 @@ type workersbindingkindai =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindaiType }
     ///Creates an instance of workersbindingkindai with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname, ``type``: workersbindingkindaiType): workersbindingkindai =
-        { name = name; ``type`` = ``type`` }
+    static member Create (name: workersbindingname, _type: workersbindingkindaiType): workersbindingkindai =
+        { name = name; ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindanalyticsengineType =
@@ -1578,10 +1585,10 @@ type workersbindingkindanalyticsengine =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindanalyticsengineType }
     ///Creates an instance of workersbindingkindanalyticsengine with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (dataset: string, name: workersbindingname, ``type``: workersbindingkindanalyticsengineType): workersbindingkindanalyticsengine =
+    static member Create (dataset: string, name: workersbindingname, _type: workersbindingkindanalyticsengineType): workersbindingkindanalyticsengine =
         { dataset = dataset
           name = name
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindassetsType =
@@ -1596,8 +1603,8 @@ type workersbindingkindassets =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindassetsType }
     ///Creates an instance of workersbindingkindassets with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname, ``type``: workersbindingkindassetsType): workersbindingkindassets =
-        { name = name; ``type`` = ``type`` }
+    static member Create (name: workersbindingname, _type: workersbindingkindassetsType): workersbindingkindassets =
+        { name = name; ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindbrowserType =
@@ -1612,8 +1619,8 @@ type workersbindingkindbrowser =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindbrowserType }
     ///Creates an instance of workersbindingkindbrowser with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname, ``type``: workersbindingkindbrowserType): workersbindingkindbrowser =
-        { name = name; ``type`` = ``type`` }
+    static member Create (name: workersbindingname, _type: workersbindingkindbrowserType): workersbindingkindbrowser =
+        { name = name; ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindd1Type =
@@ -1630,10 +1637,10 @@ type workersbindingkindd1 =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindd1Type }
     ///Creates an instance of workersbindingkindd1 with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (id: string, name: workersbindingname, ``type``: workersbindingkindd1Type): workersbindingkindd1 =
+    static member Create (id: string, name: workersbindingname, _type: workersbindingkindd1Type): workersbindingkindd1 =
         { id = id
           name = name
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 type workersbindingkinddatablob =
     { ///A JavaScript variable name for the binding.
@@ -1679,13 +1686,11 @@ type workersbindingkinddispatchnamespace =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkinddispatchnamespaceType }
     ///Creates an instance of workersbindingkinddispatchnamespace with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname,
-                          ``namespace``: string,
-                          ``type``: workersbindingkinddispatchnamespaceType): workersbindingkinddispatchnamespace =
+    static member Create (name: workersbindingname, _namespace: string, _type: workersbindingkinddispatchnamespaceType): workersbindingkinddispatchnamespace =
         { name = name
-          ``namespace`` = ``namespace``
+          ``namespace`` = _namespace
           outbound = None
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkinddurableobjectnamespaceType =
@@ -1707,13 +1712,13 @@ type workersbindingkinddurableobjectnamespace =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkinddurableobjectnamespaceType }
     ///Creates an instance of workersbindingkinddurableobjectnamespace with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname, ``type``: workersbindingkinddurableobjectnamespaceType): workersbindingkinddurableobjectnamespace =
+    static member Create (name: workersbindingname, _type: workersbindingkinddurableobjectnamespaceType): workersbindingkinddurableobjectnamespace =
         { class_name = None
           environment = None
           name = name
           namespace_id = None
           script_name = None
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindhyperdriveType =
@@ -1730,10 +1735,10 @@ type workersbindingkindhyperdrive =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindhyperdriveType }
     ///Creates an instance of workersbindingkindhyperdrive with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (id: string, name: workersbindingname, ``type``: workersbindingkindhyperdriveType): workersbindingkindhyperdrive =
+    static member Create (id: string, name: workersbindingname, _type: workersbindingkindhyperdriveType): workersbindingkindhyperdrive =
         { id = id
           name = name
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindimagesType =
@@ -1748,8 +1753,8 @@ type workersbindingkindimages =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindimagesType }
     ///Creates an instance of workersbindingkindimages with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname, ``type``: workersbindingkindimagesType): workersbindingkindimages =
-        { name = name; ``type`` = ``type`` }
+    static member Create (name: workersbindingname, _type: workersbindingkindimagesType): workersbindingkindimages =
+        { name = name; ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindinheritType =
@@ -1768,10 +1773,10 @@ type workersbindingkindinherit =
       ///Identifier for the version to inherit the binding from, which can be the version ID or the literal "latest" to inherit from the latest version. Defaults to inheriting the binding from the latest version.
       version_id: Option<string> }
     ///Creates an instance of workersbindingkindinherit with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: string, ``type``: workersbindingkindinheritType): workersbindingkindinherit =
+    static member Create (name: string, _type: workersbindingkindinheritType): workersbindingkindinherit =
         { name = name
           old_name = None
-          ``type`` = ``type``
+          ``type`` = _type
           version_id = None }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
@@ -1789,10 +1794,10 @@ type workersbindingkindjson =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindjsonType }
     ///Creates an instance of workersbindingkindjson with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (json: string, name: workersbindingname, ``type``: workersbindingkindjsonType): workersbindingkindjson =
+    static member Create (json: string, name: workersbindingname, _type: workersbindingkindjsonType): workersbindingkindjson =
         { json = json
           name = name
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindkvnamespaceType =
@@ -1811,10 +1816,10 @@ type workersbindingkindkvnamespace =
     ///Creates an instance of workersbindingkindkvnamespace with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (name: workersbindingname,
                           namespace_id: workersnamespaceidentifier,
-                          ``type``: workersbindingkindkvnamespaceType): workersbindingkindkvnamespace =
+                          _type: workersbindingkindkvnamespaceType): workersbindingkindkvnamespace =
         { name = name
           namespace_id = namespace_id
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindmtlscertificateType =
@@ -1831,12 +1836,10 @@ type workersbindingkindmtlscertificate =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindmtlscertificateType }
     ///Creates an instance of workersbindingkindmtlscertificate with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (certificate_id: string,
-                          name: workersbindingname,
-                          ``type``: workersbindingkindmtlscertificateType): workersbindingkindmtlscertificate =
+    static member Create (certificate_id: string, name: workersbindingname, _type: workersbindingkindmtlscertificateType): workersbindingkindmtlscertificate =
         { certificate_id = certificate_id
           name = name
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindpipelinesType =
@@ -1853,10 +1856,10 @@ type workersbindingkindpipelines =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindpipelinesType }
     ///Creates an instance of workersbindingkindpipelines with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname, pipeline: string, ``type``: workersbindingkindpipelinesType): workersbindingkindpipelines =
+    static member Create (name: workersbindingname, pipeline: string, _type: workersbindingkindpipelinesType): workersbindingkindpipelines =
         { name = name
           pipeline = pipeline
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindplaintextType =
@@ -1873,10 +1876,10 @@ type workersbindingkindplaintext =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindplaintextType }
     ///Creates an instance of workersbindingkindplaintext with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname, text: string, ``type``: workersbindingkindplaintextType): workersbindingkindplaintext =
+    static member Create (name: workersbindingname, text: string, _type: workersbindingkindplaintextType): workersbindingkindplaintext =
         { name = name
           text = text
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindqueueType =
@@ -1893,10 +1896,10 @@ type workersbindingkindqueue =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindqueueType }
     ///Creates an instance of workersbindingkindqueue with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname, queue_name: string, ``type``: workersbindingkindqueueType): workersbindingkindqueue =
+    static member Create (name: workersbindingname, queue_name: string, _type: workersbindingkindqueueType): workersbindingkindqueue =
         { name = name
           queue_name = queue_name
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type Jurisdiction =
@@ -1924,11 +1927,11 @@ type workersbindingkindr2bucket =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindr2bucketType }
     ///Creates an instance of workersbindingkindr2bucket with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (bucket_name: string, name: workersbindingname, ``type``: workersbindingkindr2bucketType): workersbindingkindr2bucket =
+    static member Create (bucket_name: string, name: workersbindingname, _type: workersbindingkindr2bucketType): workersbindingkindr2bucket =
         { bucket_name = bucket_name
           jurisdiction = None
           name = name
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type Format =
@@ -1990,14 +1993,14 @@ type workersbindingkindsecretkey =
     static member Create (algorithm: Newtonsoft.Json.Linq.JObject,
                           format: Format,
                           name: workersbindingname,
-                          ``type``: workersbindingkindsecretkeyType,
+                          _type: workersbindingkindsecretkeyType,
                           usages: list<Usages>): workersbindingkindsecretkey =
         { algorithm = algorithm
           format = format
           key_base64 = None
           key_jwk = None
           name = name
-          ``type`` = ``type``
+          ``type`` = _type
           usages = usages }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
@@ -2015,10 +2018,10 @@ type workersbindingkindsecrettext =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindsecrettextType }
     ///Creates an instance of workersbindingkindsecrettext with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname, text: string, ``type``: workersbindingkindsecrettextType): workersbindingkindsecrettext =
+    static member Create (name: workersbindingname, text: string, _type: workersbindingkindsecrettextType): workersbindingkindsecrettext =
         { name = name
           text = text
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindsecretsstoresecretType =
@@ -2040,11 +2043,11 @@ type workersbindingkindsecretsstoresecret =
     static member Create (name: workersbindingname,
                           secret_name: string,
                           store_id: string,
-                          ``type``: workersbindingkindsecretsstoresecretType): workersbindingkindsecretsstoresecret =
+                          _type: workersbindingkindsecretsstoresecretType): workersbindingkindsecretsstoresecret =
         { name = name
           secret_name = secret_name
           store_id = store_id
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindsendemailType =
@@ -2065,12 +2068,12 @@ type workersbindingkindsendemail =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindsendemailType }
     ///Creates an instance of workersbindingkindsendemail with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname, ``type``: workersbindingkindsendemailType): workersbindingkindsendemail =
+    static member Create (name: workersbindingname, _type: workersbindingkindsendemailType): workersbindingkindsendemail =
         { allowed_destination_addresses = None
           allowed_sender_addresses = None
           destination_address = None
           name = name
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindserviceType =
@@ -2089,11 +2092,11 @@ type workersbindingkindservice =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindserviceType }
     ///Creates an instance of workersbindingkindservice with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname, service: string, ``type``: workersbindingkindserviceType): workersbindingkindservice =
+    static member Create (name: workersbindingname, service: string, _type: workersbindingkindserviceType): workersbindingkindservice =
         { environment = None
           name = name
           service = service
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindtailconsumerType =
@@ -2110,10 +2113,10 @@ type workersbindingkindtailconsumer =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindtailconsumerType }
     ///Creates an instance of workersbindingkindtailconsumer with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname, service: string, ``type``: workersbindingkindtailconsumerType): workersbindingkindtailconsumer =
+    static member Create (name: workersbindingname, service: string, _type: workersbindingkindtailconsumerType): workersbindingkindtailconsumer =
         { name = name
           service = service
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 type workersbindingkindtextblob =
     { ///A JavaScript variable name for the binding.
@@ -2139,10 +2142,10 @@ type workersbindingkindvectorize =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindvectorizeType }
     ///Creates an instance of workersbindingkindvectorize with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (index_name: string, name: workersbindingname, ``type``: workersbindingkindvectorizeType): workersbindingkindvectorize =
+    static member Create (index_name: string, name: workersbindingname, _type: workersbindingkindvectorizeType): workersbindingkindvectorize =
         { index_name = index_name
           name = name
-          ``type`` = ``type`` }
+          ``type`` = _type }
 
 [<Fable.Core.StringEnum; RequireQualifiedAccess>]
 type workersbindingkindversionmetadataType =
@@ -2157,8 +2160,8 @@ type workersbindingkindversionmetadata =
       ///The kind of resource that the binding provides.
       ``type``: workersbindingkindversionmetadataType }
     ///Creates an instance of workersbindingkindversionmetadata with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname, ``type``: workersbindingkindversionmetadataType): workersbindingkindversionmetadata =
-        { name = name; ``type`` = ``type`` }
+    static member Create (name: workersbindingname, _type: workersbindingkindversionmetadataType): workersbindingkindversionmetadata =
+        { name = name; ``type`` = _type }
 
 type workersbindingkindwasmmodule =
     { ///A JavaScript variable name for the binding.
@@ -2188,11 +2191,11 @@ type workersbindingkindworkflow =
       ///Name of the Workflow to bind to.
       workflow_name: string }
     ///Creates an instance of workersbindingkindworkflow with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (name: workersbindingname, ``type``: workersbindingkindworkflowType, workflow_name: string): workersbindingkindworkflow =
+    static member Create (name: workersbindingname, _type: workersbindingkindworkflowType, workflow_name: string): workersbindingkindworkflow =
         { class_name = None
           name = name
           script_name = None
-          ``type`` = ``type``
+          ``type`` = _type
           workflow_name = workflow_name }
 
 type workerscompleteduploadassetsresponseErrorsSource =

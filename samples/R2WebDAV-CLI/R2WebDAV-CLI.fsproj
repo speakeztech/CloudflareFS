@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Core\Config.fs" />
+    <Compile Include="Core\Naming.fs" />
+    <Compile Include="Core\R2Client.fs" />
+    <Compile Include="Commands\AddUser.fs" />
+    <Compile Include="Commands\ListUsers.fs" />
+    <Compile Include="Commands\Status.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

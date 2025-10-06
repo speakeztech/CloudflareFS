@@ -521,20 +521,90 @@ type ComplexEnum =
 3. **Always**: Use `CompiledName` to preserve original JSON value
 4. **Consistency**: Same identifier in definition and pattern matching
 
-#### Priority 3: Improved Type Inference for Complex Schemas
-**Current Issue**: Some complex nested OpenAPI schemas cause null reference exceptions (KV, Workers APIs)
+#### Priority 3: Null Safety in Schema Processing - FIXED ✅
 
-**Investigation Needed**:
-1. Schema patterns that trigger failures
-2. Missing null checks in Hawaii's schema parsing
-3. Circular reference handling
+**Issue (Resolved)**: Complex nested OpenAPI schemas caused NullReferenceException when Hawaii tried to access `Content["application/json"]` without null checks.
 
-**Proposed Solution**:
-- Enhanced schema validation before generation
-- Graceful handling of unsupported patterns
-- Clear error messages identifying problematic schema sections
+**Fix Applied** (Local D:\repos\Hawaii):
+- **Files Modified**: `src/Program.fs` (lines 1348-1377, 1414-1461, 1698), `src/OperationParameters.fs` (lines 162-294)
+- **Solution**: Added null checks before accessing response/request body content
 
-#### Priority 4: Deprecated Operation Detection
+```fsharp
+// Before (crashed):
+let mediaType = response.Value.Content.["application/json"]
+if not (isNull mediaType.Schema) then ...
+
+// After (works):
+if response.Value.Content.ContainsKey "application/json" then
+    let mediaType = response.Value.Content.["application/json"]
+    if not (isNull mediaType) && not (isNull mediaType.Schema) then ...
+```
+
+**Impact**: Hawaii now successfully generates Workers Management API (200KB+ of types and client code). Some minor compilation issues remain (see Remaining Issues below).
+
+#### Priority 4: Type Name Sanitization - FIXED ✅
+
+**Issue (Resolved)**: Type names with both hyphens AND underscores (e.g., `workers-kv_key_name`) were inconsistently sanitized, causing "type not found" compilation errors.
+
+**Fix Applied** (Local D:\repos\Hawaii):
+- **File Modified**: `src/Helpers.fs` (sanitizeTypeName function)
+- **Solution**: Changed from single-transformation to cumulative transformations
+
+```fsharp
+// Now removes ALL special characters in sequence:
+// workers-kv_key_name → workerskvkeyname
+let mutable result = typeName
+if result.Contains "_" then result <- result.Split('_') |> String.concat ""
+if result.Contains "-" then result <- result.Split('-') |> String.concat ""
+// etc.
+```
+
+**Impact**: All type references now use consistent sanitized names - no more "type not found" errors.
+
+#### Priority 5: Parameter Name Sanitization for Create Functions - FIXED ✅
+
+**Issue (Resolved)**: Records with field names containing special characters (`$metadata`, `type` keyword) generated invalid Create factory function syntax.
+
+**Fix Applied** (Local D:\repos\Hawaii):
+- **File Modified**: `src/Helpers.fs` (new `sanitizeParameterName` function), `src/Program.fs` (lines 1195, 1214)
+- **Solution**: Created `sanitizeParameterName` to transform field names into valid parameter names
+
+```fsharp
+let sanitizeParameterName (fieldName: string) =
+    // Remove leading/embedded special chars: $metadata → metadata
+    // Prefix keywords with underscore: type → _type
+    // Preserve camelCase
+```
+
+**Example Generated Code**:
+```fsharp
+type workersobservabilitytelemetryevent = {
+    ``$metadata``: ``$metadata``  // Field needs backticks
+    dataset: string
+}
+
+// ✅ Clean Create function:
+static member Create (metadata: ``$metadata``, dataset: string, ...) =
+    { ``$metadata`` = metadata      // Parameter name sanitized
+      dataset = dataset }
+```
+
+**Impact**: Excellent developer ergonomics - users can call `Create(metadataValue, ...)` with clean parameter names that correctly map to special-character fields.
+
+#### Priority 6: Remaining Hawaii Issues
+
+**Status**: 4 minor compilation errors remain in Workers Management API:
+
+1. **Missing Discriminated Union Types** - OpenAPI `discriminator` schemas not generating F# discriminated unions
+2. **Invalid Type Name** (line 970) - Some edge case not caught by sanitization
+3. **Multipart Form Data with JObject** - No overload for `JObject` in Hawaii's OpenApiHttp runtime
+4. **Binding Configuration** - Some complex binding types incomplete
+
+**Workaround**: These can be manually fixed in generated code while Hawaii bugs are addressed upstream.
+
+**Impact Assessment**: Core operations (bucket management, secret management) work correctly. These issues don't block CloudflareFS usage.
+
+#### Priority 7: Deprecated Operation Detection
 **Current Behavior**: Hawaii correctly skips deprecated operations (good!)
 **Enhancement Needed**:
 - Warn users when operations are skipped

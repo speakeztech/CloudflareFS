@@ -199,6 +199,9 @@ After conversion, always:
 - Sometimes places globals in wrong scope
 
 ### Hawaii
-- Similar issues with reserved keywords
-- May generate incorrect pattern matching syntax
-- Type ordering issues in complex hierarchies
+- **Fixed (local)**: NullReferenceException on complex schemas
+- **Fixed (local)**: Type name sanitization inconsistencies
+- **Fixed (local)**: Parameter name sanitization for Create functions with special characters
+- Remaining: Discriminated union generation from OpenAPI discriminator schemas
+- Remaining: Some edge cases in type name sanitization
+- Remaining: JObject multipart form data support
