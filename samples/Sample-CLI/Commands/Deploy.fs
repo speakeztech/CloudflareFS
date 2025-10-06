@@ -1,21 +1,21 @@
-module R2WebDAV.CLI.Commands.Deploy
+module Sample.CLI.Commands.Deploy
 
 open System
 open System.IO
 open System.Diagnostics
 open System.Net.Http
 open System.Text.Json
-open R2WebDAV.CLI.Config
+open Sample.CLI.Config
 open Spectre.Console
 
-let execute (config: CloudflareConfig) (workerPath: string option) : Async<Result<unit, string>> =
+let execute (config: CloudflareConfig) (workerPath: string option) (force: bool) : Async<Result<unit, string>> =
     async {
         // Default to the R2WebDAV sample if no path provided
         let workerDir =
             match workerPath with
             | Some path -> path
             | None ->
-                // Assume CLI is in samples/R2WebDAV-CLI, worker is in samples/R2WebDAV
+                // Assume CLI is in samples/Sample-CLI, worker is in samples/R2WebDAV
                 let cliDir = Directory.GetCurrentDirectory()
                 Path.Combine(cliDir, "..", "R2WebDAV")
 
@@ -25,8 +25,41 @@ let execute (config: CloudflareConfig) (workerPath: string option) : Async<Resul
             return Error $"Worker directory not found: {workerDirFull}"
         else
 
-        AnsiConsole.MarkupLine($"[blue]Deploying:[/] {config.WorkerName}")
+        // Detect the main F# file to determine the entry point
+        let fsprojFiles = Directory.GetFiles(workerDirFull, "*.fsproj")
+        if fsprojFiles.Length = 0 then
+            return Error $"No .fsproj file found in {workerDirFull}"
+        else
+
+        let fsprojPath = fsprojFiles.[0]
+        let projectName = Path.GetFileNameWithoutExtension(fsprojPath)
+
+        // Parse fsproj to find the last Compile Include file (which is the entry point)
+        let fsprojContent = File.ReadAllText(fsprojPath)
+        let compileIncludes =
+            System.Text.RegularExpressions.Regex.Matches(fsprojContent, "<Compile Include=\"([^\"]+)\" />")
+            |> Seq.cast<System.Text.RegularExpressions.Match>
+            |> Seq.map (fun m -> m.Groups.[1].Value)
+            |> Seq.toList
+
+        if compileIncludes.IsEmpty then
+            return Error $"No Compile Include entries found in {fsprojPath}"
+        else
+
+        let entryPointFile = compileIncludes |> List.last
+        let entryPointName = Path.GetFileNameWithoutExtension(entryPointFile)
+        let mainFsFile = Path.Combine(workerDirFull, entryPointFile)
+
+        if not (File.Exists(mainFsFile)) then
+            return Error $"Entry point file not found: {mainFsFile}"
+        else
+
+        // Use project name as worker name (convert to lowercase with hyphens)
+        let workerName = projectName.ToLowerInvariant()
+
+        AnsiConsole.MarkupLine($"[blue]Deploying:[/] {workerName}")
         AnsiConsole.MarkupLine($"[dim]Source:[/] {workerDirFull}")
+        AnsiConsole.MarkupLine($"[dim]Entry point:[/] {entryPointName}.js")
 
         // Step 1: Install npm dependencies if needed
         let packageJsonPath = Path.Combine(workerDirFull, "package.json")
@@ -91,9 +124,11 @@ let execute (config: CloudflareConfig) (workerPath: string option) : Async<Resul
 
         let currentHash = computeSourceHash()
 
-        // Check if we can skip deployment
+        // Check if we can skip deployment (unless force is specified)
         let shouldDeploy =
-            if File.Exists(stateFilePath) then
+            if force then
+                true
+            elif File.Exists(stateFilePath) then
                 let lastState = File.ReadAllText(stateFilePath)
                 let lastHash =
                     if lastState.Contains("|") then lastState.Split('|').[0]
@@ -104,8 +139,13 @@ let execute (config: CloudflareConfig) (workerPath: string option) : Async<Resul
 
         if not shouldDeploy then
             AnsiConsole.MarkupLine("[yellow]⊘[/] No changes detected since last deployment. Skipping.")
+            AnsiConsole.MarkupLine("[dim]Use --force to deploy anyway[/]")
             return Ok ()
         else
+
+        if force then
+            AnsiConsole.MarkupLine("[yellow]⚡[/] Force deployment requested")
+            AnsiConsole.WriteLine()
 
         // Step 3: Incremental build with Fable (no clean - let Fable handle it)
 
@@ -142,7 +182,7 @@ let execute (config: CloudflareConfig) (workerPath: string option) : Async<Resul
 
         // Step 2: Find all compiled JavaScript files
         let distPath = Path.Combine(workerDirFull, "dist")
-        let mainJsPath = Path.Combine(distPath, "Main.js")
+        let mainJsPath = Path.Combine(distPath, $"{entryPointName}.js")
 
         if not (File.Exists(mainJsPath)) then
             return Error $"Compiled worker not found: {mainJsPath}"
@@ -164,7 +204,7 @@ let execute (config: CloudflareConfig) (workerPath: string option) : Async<Resul
                             httpClient
                             "/accounts/{account_id}/workers/scripts/{script_name}/settings"
                             [CloudFlare.Api.Compute.Workers.Http.RequestPart.path("account_id", config.AccountId)
-                             CloudFlare.Api.Compute.Workers.Http.RequestPart.path("script_name", config.WorkerName)]
+                             CloudFlare.Api.Compute.Workers.Http.RequestPart.path("script_name", workerName)]
                             None
 
                     let (_, settingsContent) = settingsResult
@@ -190,7 +230,7 @@ let execute (config: CloudflareConfig) (workerPath: string option) : Async<Resul
         let metadata =
             JsonSerializer.Serialize(
                 {|
-                    main_module = "Main.js"
+                    main_module = $"{entryPointName}.js"
                     compatibility_date = "2024-01-01"
                     compatibility_flags = [| "nodejs_compat" |]
                     bindings = JsonSerializer.Deserialize<JsonElement>(existingBindings)
@@ -210,7 +250,7 @@ let execute (config: CloudflareConfig) (workerPath: string option) : Async<Resul
             scriptContent.Headers.ContentType <- Headers.MediaTypeHeaderValue("application/javascript+module")
             formData.Add(scriptContent, relativePath, relativePath)
 
-        let absoluteUrl = $"https://api.cloudflare.com/client/v4/accounts/{config.AccountId}/workers/scripts/{config.WorkerName}"
+        let absoluteUrl = $"https://api.cloudflare.com/client/v4/accounts/{config.AccountId}/workers/scripts/{workerName}"
 
         let! (response, content) =
             AnsiConsole.Status()
@@ -255,7 +295,53 @@ let execute (config: CloudflareConfig) (workerPath: string option) : Async<Resul
             // Save deployment state for idempotency
             File.WriteAllText(stateFilePath, $"{currentHash}|{DateTime.UtcNow:O}")
             AnsiConsole.MarkupLine("[green]✓[/] Deployed successfully!")
-            return Ok ()
+
+            // Get account subdomain and enable worker on workers.dev
+            let! subdomainResult =
+                async {
+                    try
+                        // Get the account subdomain
+                        let getSubdomainUrl = $"https://api.cloudflare.com/client/v4/accounts/{config.AccountId}/workers/subdomain"
+                        let! subdomainResponse = httpClient.GetAsync(getSubdomainUrl) |> Async.AwaitTask
+                        let! subdomainContent = subdomainResponse.Content.ReadAsStringAsync() |> Async.AwaitTask
+
+                        use jsonDoc = JsonDocument.Parse(subdomainContent)
+                        let json = jsonDoc.RootElement
+                        let mutable resultProp = Unchecked.defaultof<JsonElement>
+                        let mutable subdomainProp = Unchecked.defaultof<JsonElement>
+
+                        if json.TryGetProperty("result", &resultProp) &&
+                           resultProp.TryGetProperty("subdomain", &subdomainProp) then
+                            let subdomain = subdomainProp.GetString()
+
+                            // Enable the worker on workers.dev by updating settings
+                            let enableUrl = $"https://api.cloudflare.com/client/v4/accounts/{config.AccountId}/workers/scripts/{workerName}/subdomain"
+                            let enableBody = """{"enabled":true}"""
+                            use enableContent = new StringContent(enableBody, Text.Encoding.UTF8, "application/json")
+                            let! enableResponse = httpClient.PostAsync(enableUrl, enableContent) |> Async.AwaitTask
+                            let! enableResponseBody = enableResponse.Content.ReadAsStringAsync() |> Async.AwaitTask
+
+                            return Ok subdomain
+                        else
+                            return Error "Could not get account subdomain"
+                    with ex ->
+                        return Error $"Error enabling workers.dev: {ex.Message}"
+                }
+
+            match subdomainResult with
+            | Ok subdomain ->
+                let workerUrl = $"https://{workerName}.{subdomain}.workers.dev"
+                AnsiConsole.WriteLine()
+                AnsiConsole.MarkupLine($"[cyan]Worker URL:[/] {workerUrl}")
+                AnsiConsole.MarkupLine($"[dim]Click the URL above to open in browser[/]")
+                return Ok ()
+            | Error err ->
+                // Still show a URL even if we couldn't enable it
+                AnsiConsole.WriteLine()
+                AnsiConsole.MarkupLine($"[yellow]⚠[/] Could not enable workers.dev subdomain: {err}")
+                let workerUrl = $"https://{workerName}.{config.AccountId}.workers.dev"
+                AnsiConsole.MarkupLine($"[dim]Worker URL (may not be active):[/] {workerUrl}")
+                return Ok ()
         | Error err ->
             return Error err
     }

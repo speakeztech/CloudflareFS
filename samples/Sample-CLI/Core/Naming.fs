@@ -1,4 +1,4 @@
-module R2WebDAV.CLI.Naming
+module Sample.CLI.Naming
 
 /// Deterministic naming conventions for R2WebDAV resources
 /// Matches the naming scheme used in the original PowerShell scripts

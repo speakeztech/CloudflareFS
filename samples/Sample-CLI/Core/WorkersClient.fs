@@ -1,10 +1,10 @@
-module R2WebDAV.CLI.WorkersClient
+module Sample.CLI.WorkersClient
 
 open System
 open System.Net.Http
 open System.Text.Json
 open CloudFlare.Api.Compute.Workers
-open R2WebDAV.CLI.Config
+open Sample.CLI.Config
 
 type WorkersOperations(config: CloudflareConfig) =
     let httpClient = new HttpClient()

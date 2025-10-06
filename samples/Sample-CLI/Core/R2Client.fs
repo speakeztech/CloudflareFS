@@ -1,10 +1,10 @@
-module R2WebDAV.CLI.R2Client
+module Sample.CLI.R2Client
 
 open System
 open System.Net.Http
 open System.Text.Json
 open CloudFlare.Management.R2
-open R2WebDAV.CLI.Config
+open Sample.CLI.Config
 
 type BucketInfo = {
     Name: string

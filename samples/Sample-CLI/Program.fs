@@ -1,10 +1,10 @@
-﻿module R2WebDAV.CLI.Program
+﻿module Sample.CLI.Program
 
 open System
 open Argu
 open Spectre.Console
-open R2WebDAV.CLI.Config
-open R2WebDAV.CLI.Commands
+open Sample.CLI.Config
+open Sample.CLI.Commands
 
 type AddUserArgs =
     | [<Mandatory; Unique>] Username of string
@@ -34,10 +34,12 @@ type StatusArgs =
 
 type DeployArgs =
     | [<AltCommandLine("-p")>] Worker_Path of string
+    | [<AltCommandLine("-f")>] Force
     interface IArgParserTemplate with
         member this.Usage =
             match this with
             | Worker_Path _ -> "Path to worker project directory (defaults to ../R2WebDAV)"
+            | Force -> "Force redeployment even if source hasn't changed"
 
 type CliCommand =
     | [<CliPrefix(CliPrefix.None)>] Add_User of ParseResults<AddUserArgs>
@@ -98,7 +100,8 @@ let main argv =
 
             | Deploy args ->
                 let workerPath = args.TryGetResult DeployArgs.Worker_Path
-                Deploy.execute config workerPath
+                let force = args.Contains DeployArgs.Force
+                Deploy.execute config workerPath force
                 |> Async.RunSynchronously
 
         match result with

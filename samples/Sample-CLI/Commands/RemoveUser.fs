@@ -1,10 +1,10 @@
-module R2WebDAV.CLI.Commands.RemoveUser
+module Sample.CLI.Commands.RemoveUser
 
 open System
-open R2WebDAV.CLI.Config
-open R2WebDAV.CLI.Naming
-open R2WebDAV.CLI.R2Client
-open R2WebDAV.CLI.WorkersClient
+open Sample.CLI.Config
+open Sample.CLI.Naming
+open Sample.CLI.R2Client
+open Sample.CLI.WorkersClient
 open Spectre.Console
 
 let execute (config: CloudflareConfig) (username: string) : Async<Result<unit, string>> =

@@ -1,4 +1,4 @@
-module R2WebDAV.CLI.Config
+module Sample.CLI.Config
 
 open System
 

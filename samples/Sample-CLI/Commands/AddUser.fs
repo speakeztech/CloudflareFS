@@ -1,12 +1,12 @@
-module R2WebDAV.CLI.Commands.AddUser
+module Sample.CLI.Commands.AddUser
 
 open System
 open System.Net.Http
 open System.Text.Json
-open R2WebDAV.CLI.Config
-open R2WebDAV.CLI.Naming
-open R2WebDAV.CLI.R2Client
-open R2WebDAV.CLI.WorkersClient
+open Sample.CLI.Config
+open Sample.CLI.Naming
+open Sample.CLI.R2Client
+open Sample.CLI.WorkersClient
 open Spectre.Console
 
 let execute (config: CloudflareConfig) (username: string) (password: string) : Async<Result<unit, string>> =
