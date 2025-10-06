@@ -1,0 +1,17 @@
+name = "r2-webdav-fsharp"
+main = "dist/Main.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# R2 bucket bindings for users
+# Binding name must match: {username}_webdav_sync
+[[r2_buckets]]
+binding = "testuser_webdav_sync"
+bucket_name = "testuser-webdav-bucket"
+
+# Secrets (set via wrangler secret put)
+# USER_TESTUSER_PASSWORD - Password for testuser
+
+[observability]
+enabled = true
+head_sampling_rate = 1

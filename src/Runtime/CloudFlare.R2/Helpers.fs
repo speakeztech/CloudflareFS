@@ -8,7 +8,9 @@ open Fable.Core.JsInterop
 let getText (bucket: R2Bucket) (key: string) = promise {
     let! obj = bucket.get(key)
     match obj with
-    | Some body -> return! body.text()
+    | Some body ->
+        let! text = body.text()
+        return Some text
     | None -> return None
 }
 

@@ -3,28 +3,14 @@ module HelloWorker
 
 open Fable.Core
 open Fable.Core.JsInterop
-open CloudFlare.Worker.Context.Generated
+open CloudFlare.Worker.Context
+open CloudFlare.Worker.Context.Globals
 open CloudFlare.Worker.Context.Helpers
 open CloudFlare.Worker.Context.Helpers.ResponseBuilder
 
-// Example KV operations
-let handleKV (kv: KVNamespace) (key: string) = async {
-    // Get value from KV
-    let! value = KV.get key kv
-
-    match value with
-    | Some v ->
-        return ok $"Found value: {v}"
-    | None ->
-        // Store a new value
-        let newValue = $"Created at {System.DateTime.Now}"
-        do! KV.putWithTtl key newValue 3600 kv
-        return ok $"Stored new value: {newValue}"
-}
-
 // Main fetch handler
 let fetch (request: Request) (env: Env) (ctx: ExecutionContext) =
-    // Parse the request
+    // Parse the request using wrapper functions
     let path = Request.getPath request
     let method = Request.getMethod request
 
@@ -32,46 +18,57 @@ let fetch (request: Request) (env: Env) (ctx: ExecutionContext) =
     let response =
         match method, path with
         | "GET", "/" ->
-            // Simple response
-            ok "Hello from CloudflareFS!"
+            // Simple response using helper
+            ok "Hello from CloudflareFS! The wrapper functions hide the backticked bindings."
 
         | "GET", "/json" ->
-            // JSON response
-            json {| message = "Hello"; timestamp = System.DateTime.Now |} 200
+            // JSON response using helper
+            json {|
+                message = "Hello from F# + Fable + Cloudflare Workers"
+                timestamp = System.DateTime.Now
+                path = path
+            |} 200
 
         | "GET", "/headers" ->
-            // Custom headers
+            // Custom headers using computation expression
             let hdrs =
                 headers {
-                    contentType "text/plain"
+                    contentType "application/json"
                     cors
-                    set "X-Custom-Header" "CloudflareFS"
+                    set "X-Powered-By" "CloudflareFS"
+                    set "X-Custom-Header" "F# Wrapper Functions"
                 }
-            Response.Create(U2.Case1 "Headers example", jsOptions(fun o ->
+            Response.Create(U2.Case1 """{"message": "Headers example"}""", jsOptions(fun o ->
                 o.headers <- Some (U2.Case2 hdrs)
                 o.status <- Some 200.0
             ))
 
-        | "GET", path when path.StartsWith("/kv/") ->
-            // KV example (if MY_KV binding exists)
-            match env?MY_KV with
-            | null -> serverError "KV namespace not configured"
-            | kv ->
-                let key = path.Substring(4)
-                let promise = handleKV (kv :?> KVNamespace) key |> Async.StartAsPromise
-                ctx.waitUntil(promise |> unbox)
-                promise |> unbox
-
         | "GET", "/redirect" ->
             // Redirect example
-            redirect "https://github.com/speakeztech/CloudflareFS"
+            redirect "https://github.com/speakez/CloudflareFS"
+
+        | "GET", "/request-info" ->
+            // Show request information
+            let url = Request.getUrl request
+            let info = {|
+                method = method
+                url = url
+                path = path
+                headers = request.headers?get("User-Agent") |> Option.ofObj
+            |}
+            json info 200
 
         | _ ->
             // 404 for unknown routes
-            notFound()
+            let notFoundInfo = {|
+                error = "Not Found"
+                path = path
+                availableRoutes = ["/"; "/json"; "/headers"; "/redirect"; "/request-info"]
+            |}
+            json notFoundInfo 404
 
     response
 
-// Export the handler
-[<Export("default")>]
-let handler = {| fetch = fetch |}
+// Export the handler using ExportDefault attribute
+[<ExportDefault>]
+let handler: obj = {| fetch = fetch |} :> obj

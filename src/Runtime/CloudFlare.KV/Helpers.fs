@@ -55,7 +55,8 @@ let rec listAll (kv: KVNamespace) (cursor: string option) = promise {
         return result.keys
     else
         let! nextKeys = listAll kv result.cursor
-        return ResizeArray.append result.keys nextKeys
+        result.keys.AddRange(nextKeys)
+        return result.keys
 }
 
 /// Delete if exists

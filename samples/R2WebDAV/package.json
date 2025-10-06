@@ -1,0 +1,16 @@
+{
+  "name": "r2-webdav-fsharp",
+  "version": "1.0.0",
+  "description": "WebDAV server over Cloudflare R2 written in F#",
+  "scripts": {
+    "build": "dotnet fable . --outDir dist",
+    "dev": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "@fable-org/fable-library-js": "^1.11.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
