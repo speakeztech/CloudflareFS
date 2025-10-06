@@ -11,7 +11,7 @@ type workerskvbulkwriteArrayItem =
       expiration_ttl: Option<workerskvexpirationttl>
       ///A key's name. The name may be at most 512 bytes. All printable, non-whitespace characters are valid.
       key: workerskvkeynamebulk
-      metadata: Option<Newtonsoft.Json.Linq.JToken>
+      metadata: Option<System.Text.Json.JsonElement>
       ///A UTF-8 encoded string to be stored, up to 25 MiB in length.
       value: string }
     ///Creates an instance of workerskvbulkwriteArrayItem with all optional fields initialized to None. The required fields are parameters of this function
@@ -245,15 +245,15 @@ type workerskvapiresponsecommon =
           success = success }
 
 type workerskvapiresponsecommonfailure =
-    { errors: Newtonsoft.Json.Linq.JToken
-      messages: Newtonsoft.Json.Linq.JToken
-      result: Newtonsoft.Json.Linq.JObject
+    { errors: System.Text.Json.JsonElement
+      messages: System.Text.Json.JsonElement
+      result: System.Text.Json.JsonElement
       ///Whether the API call was successful.
       success: bool }
     ///Creates an instance of workerskvapiresponsecommonfailure with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (errors: Newtonsoft.Json.Linq.JToken,
-                          messages: Newtonsoft.Json.Linq.JToken,
-                          result: Newtonsoft.Json.Linq.JObject,
+    static member Create (errors: System.Text.Json.JsonElement,
+                          messages: System.Text.Json.JsonElement,
+                          result: System.Text.Json.JsonElement,
                           success: bool): workerskvapiresponsecommonfailure =
         { errors = errors
           messages = messages
@@ -279,7 +279,7 @@ type workerskvapiresponsecommonnoresult =
       messages: Option<list<workerskvapiresponsecommonnoresultMessages>>
       ///Whether the API call was successful.
       success: Option<bool>
-      result: Option<Newtonsoft.Json.Linq.JObject> }
+      result: Option<System.Text.Json.JsonElement> }
     ///Creates an instance of workerskvapiresponsecommonnoresult with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (): workerskvapiresponsecommonnoresult =
         { errors = None
@@ -319,7 +319,7 @@ type workerskvcreaterenamenamespacebody =
 type workerskvkey =
     { ///The time, measured in number of seconds since the UNIX epoch, at which the key will expire. This property is omitted for keys that will not expire.
       expiration: Option<float>
-      metadata: Option<Newtonsoft.Json.Linq.JToken>
+      metadata: Option<System.Text.Json.JsonElement>
       ///A key's name. The name may be at most 512 bytes. All printable, non-whitespace characters are valid. Use percent-encoding to define key names as part of a URL.
       name: workerskvkeyname }
     ///Creates an instance of workerskvkey with all optional fields initialized to None. The required fields are parameters of this function
@@ -328,8 +328,8 @@ type workerskvkey =
           metadata = None
           name = name }
 
-type workerskvlistmetadata = Map<string, Newtonsoft.Json.Linq.JToken>
-type workerskvmetadata = Map<string, Newtonsoft.Json.Linq.JToken>
+type workerskvlistmetadata = Map<string, System.Text.Json.JsonElement>
+type workerskvmetadata = Map<string, System.Text.Json.JsonElement>
 
 type workerskvnamespace =
     { ///Namespace identifier tag.
@@ -547,7 +547,7 @@ type Filters =
     { key: string
       operation: Operation
       ``type``: Type
-      value: Option<Newtonsoft.Json.Linq.JToken> }
+      value: Option<System.Text.Json.JsonElement> }
     ///Creates an instance of Filters with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (key: string, operation: Operation, _type: Type): Filters =
         { key = key
@@ -603,9 +603,9 @@ type Havings =
 type Needle =
     { isRegex: Option<bool>
       matchCase: Option<bool>
-      value: Newtonsoft.Json.Linq.JToken }
+      value: System.Text.Json.JsonElement }
     ///Creates an instance of Needle with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (value: Newtonsoft.Json.Linq.JToken): Needle =
+    static member Create (value: System.Text.Json.JsonElement): Needle =
         { isRegex = None
           matchCase = None
           value = value }
@@ -699,9 +699,9 @@ type workersobservabilityquery =
 
 type Groups =
     { key: string
-      value: Newtonsoft.Json.Linq.JToken }
+      value: System.Text.Json.JsonElement }
     ///Creates an instance of Groups with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (key: string, value: Newtonsoft.Json.Linq.JToken): Groups = { key = key; value = value }
+    static member Create (key: string, value: System.Text.Json.JsonElement): Groups = { key = key; value = value }
 
 type Aggregates =
     { count: float
@@ -719,9 +719,9 @@ type Aggregates =
 
 type DataGroups =
     { key: string
-      value: Newtonsoft.Json.Linq.JToken }
+      value: System.Text.Json.JsonElement }
     ///Creates an instance of DataGroups with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (key: string, value: Newtonsoft.Json.Linq.JToken): DataGroups = { key = key; value = value }
+    static member Create (key: string, value: System.Text.Json.JsonElement): DataGroups = { key = key; value = value }
 
 type Data =
     { count: float
@@ -766,9 +766,9 @@ type workersobservabilityqueryresultsCalculations =
 
 type CompareAggregatesGroups =
     { key: string
-      value: Newtonsoft.Json.Linq.JToken }
+      value: System.Text.Json.JsonElement }
     ///Creates an instance of CompareAggregatesGroups with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (key: string, value: Newtonsoft.Json.Linq.JToken): CompareAggregatesGroups =
+    static member Create (key: string, value: System.Text.Json.JsonElement): CompareAggregatesGroups =
         { key = key; value = value }
 
 type CompareAggregates =
@@ -787,9 +787,9 @@ type CompareAggregates =
 
 type CompareSeriesDataGroups =
     { key: string
-      value: Newtonsoft.Json.Linq.JToken }
+      value: System.Text.Json.JsonElement }
     ///Creates an instance of CompareSeriesDataGroups with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (key: string, value: Newtonsoft.Json.Linq.JToken): CompareSeriesDataGroups =
+    static member Create (key: string, value: System.Text.Json.JsonElement): CompareSeriesDataGroups =
         { key = key; value = value }
 
 type CompareSeriesData =
@@ -839,7 +839,7 @@ type Fields =
     ///Creates an instance of Fields with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (key: string, _type: string): Fields = { key = key; ``type`` = _type }
 
-type EventsSeriesDataAggregates = Map<string, Newtonsoft.Json.Linq.JToken>
+type EventsSeriesDataAggregates = Map<string, System.Text.Json.JsonElement>
 
 type EventsSeriesData =
     { aggregates: EventsSeriesDataAggregates
@@ -878,9 +878,9 @@ type Events =
 
 type PatternsSeriesDataGroups =
     { key: string
-      value: Newtonsoft.Json.Linq.JToken }
+      value: System.Text.Json.JsonElement }
     ///Creates an instance of PatternsSeriesDataGroups with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (key: string, value: Newtonsoft.Json.Linq.JToken): PatternsSeriesDataGroups =
+    static member Create (key: string, value: System.Text.Json.JsonElement): PatternsSeriesDataGroups =
         { key = key; value = value }
 
 type PatternsSeriesData =
@@ -1067,12 +1067,12 @@ type Metadata =
 type workersobservabilitytelemetryevent =
     { ``$metadata``: Metadata
       ///Cloudflare Workers event information enriches your logs so you can easily identify and debug issues.
-      ``$workers``: Option<Newtonsoft.Json.Linq.JToken>
+      ``$workers``: Option<System.Text.Json.JsonElement>
       dataset: string
-      source: Newtonsoft.Json.Linq.JToken
+      source: System.Text.Json.JsonElement
       timestamp: int }
     ///Creates an instance of workersobservabilitytelemetryevent with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (metadata: Metadata, dataset: string, source: Newtonsoft.Json.Linq.JToken, timestamp: int): workersobservabilitytelemetryevent =
+    static member Create (metadata: Metadata, dataset: string, source: System.Text.Json.JsonElement, timestamp: int): workersobservabilitytelemetryevent =
         { ``$metadata`` = metadata
           ``$workers`` = None
           dataset = dataset
@@ -1118,7 +1118,7 @@ type Config =
       html_handling: Option<Htmlhandling>
       ///Determines the response when a request does not match a static asset, and there is no Worker script.
       not_found_handling: Option<Notfoundhandling>
-      run_worker_first: Option<Newtonsoft.Json.Linq.JToken> }
+      run_worker_first: Option<System.Text.Json.JsonElement> }
     ///Creates an instance of Config with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (): Config =
         { html_handling = None
@@ -1194,7 +1194,7 @@ type workersVersion =
       ///The name of the main module in the `modules` array (e.g. the name of the module that exports a `fetch` handler).
       main_module: Option<string>
       ///Migrations for Durable Objects associated with the version. Migrations are applied when the version is deployed.
-      migrations: Option<Newtonsoft.Json.Linq.JToken>
+      migrations: Option<System.Text.Json.JsonElement>
       ///Code, sourcemaps, and other content used at runtime.
       ///This includes [`_headers`](https://developers.cloudflare.com/workers/static-assets/headers/#custom-headers) and
       ///[`_redirects`](https://developers.cloudflare.com/workers/static-assets/redirects/) files used to configure
@@ -1427,15 +1427,15 @@ type workersapiresponsecommon =
           success = success }
 
 type workersapiresponsecommonfailure =
-    { errors: Newtonsoft.Json.Linq.JToken
-      messages: Newtonsoft.Json.Linq.JToken
-      result: Newtonsoft.Json.Linq.JObject
+    { errors: System.Text.Json.JsonElement
+      messages: System.Text.Json.JsonElement
+      result: System.Text.Json.JsonElement
       ///Whether the API call was successful.
       success: bool }
     ///Creates an instance of workersapiresponsecommonfailure with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (errors: Newtonsoft.Json.Linq.JToken,
-                          messages: Newtonsoft.Json.Linq.JToken,
-                          result: Newtonsoft.Json.Linq.JObject,
+    static member Create (errors: System.Text.Json.JsonElement,
+                          messages: System.Text.Json.JsonElement,
+                          result: System.Text.Json.JsonElement,
                           success: bool): workersapiresponsecommonfailure =
         { errors = errors
           messages = messages
@@ -1481,7 +1481,7 @@ type workersapiresponsenullresult =
       messages: Option<list<workersapiresponsenullresultMessages>>
       ///Whether the API call was successful.
       success: Option<bool>
-      result: Option<Newtonsoft.Json.Linq.JObject> }
+      result: Option<System.Text.Json.JsonElement> }
     ///Creates an instance of workersapiresponsenullresult with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (): workersapiresponsenullresult =
         { errors = None
@@ -1568,7 +1568,7 @@ type workersassetsConfig =
       html_handling: Option<workersassetsConfigHtmlhandling>
       ///Determines the response when a request does not match a static asset, and there is no Worker script.
       not_found_handling: Option<workersassetsConfigNotfoundhandling>
-      run_worker_first: Option<Newtonsoft.Json.Linq.JToken> }
+      run_worker_first: Option<System.Text.Json.JsonElement> }
     ///Creates an instance of workersassetsConfig with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (): workersassetsConfig =
         { _headers = None
@@ -1738,7 +1738,7 @@ type workersbindingkinddurableobjectnamespace =
       environment: Option<string>
       ///A JavaScript variable name for the binding.
       name: workersbindingname
-      namespace_id: Option<Newtonsoft.Json.Linq.JToken>
+      namespace_id: Option<System.Text.Json.JsonElement>
       ///The script where the Durable Object is defined, if it is external to this Worker.
       script_name: Option<string>
       ///The kind of resource that the binding provides.
@@ -2008,13 +2008,13 @@ type Usages =
 
 type workersbindingkindsecretkey =
     { ///Algorithm-specific key parameters. [Learn more](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey#algorithm).
-      algorithm: Newtonsoft.Json.Linq.JObject
+      algorithm: System.Text.Json.JsonElement
       ///Data format of the key. [Learn more](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey#format).
       format: Format
       ///Base64-encoded key data. Required if `format` is "raw", "pkcs8", or "spki".
       key_base64: Option<string>
       ///Key data in [JSON Web Key](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey#json_web_key) format. Required if `format` is "jwk".
-      key_jwk: Option<Newtonsoft.Json.Linq.JObject>
+      key_jwk: Option<System.Text.Json.JsonElement>
       ///A JavaScript variable name for the binding.
       name: workersbindingname
       ///The kind of resource that the binding provides.
@@ -2022,7 +2022,7 @@ type workersbindingkindsecretkey =
       ///Allowed operations with the key. [Learn more](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey#keyUsages).
       usages: list<Usages> }
     ///Creates an instance of workersbindingkindsecretkey with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (algorithm: Newtonsoft.Json.Linq.JObject,
+    static member Create (algorithm: System.Text.Json.JsonElement,
                           format: Format,
                           name: workersbindingname,
                           _type: workersbindingkindsecretkeyType,
@@ -2585,7 +2585,7 @@ type workersmultipartscriptMetadata =
       ///Name of the uploaded file that contains the main module (e.g. the file exporting a `fetch` handler). Indicates a `module syntax` Worker.
       main_module: Option<string>
       ///Migrations to apply for Durable Objects associated with this Worker.
-      migrations: Option<Newtonsoft.Json.Linq.JToken>
+      migrations: Option<System.Text.Json.JsonElement>
       ///Observability settings for the Worker.
       observability: Option<workersobservability>
       ///Configuration for [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).
@@ -2751,7 +2751,7 @@ type workersnamespacescriptresponse =
       dispatch_namespace: Option<workersdispatchnamespacename>
       ///When the script was last modified.
       modified_on: Option<workersmodifiedon>
-      script: Option<Newtonsoft.Json.Linq.JToken> }
+      script: Option<System.Text.Json.JsonElement> }
     ///Creates an instance of workersnamespacescriptresponse with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (): workersnamespacescriptresponse =
         { created_on = None
@@ -2918,13 +2918,13 @@ type workersplacementinfonostatus =
     static member Create (): workersplacementinfonostatus = { mode = None }
 
 type workersroute =
-    { id: Newtonsoft.Json.Linq.JToken
+    { id: System.Text.Json.JsonElement
       ///Pattern to match incoming requests against. [Learn more](https://developers.cloudflare.com/workers/configuration/routing/routes/#matching-behavior).
       pattern: string
       ///Name of the script to run if the route matches.
       script: Option<string> }
     ///Creates an instance of workersroute with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (id: Newtonsoft.Json.Linq.JToken, pattern: string): workersroute =
+    static member Create (id: System.Text.Json.JsonElement, pattern: string): workersroute =
         { id = id
           pattern = pattern
           script = None }
@@ -2945,20 +2945,20 @@ type workersschemassubdomain =
     static member Create (subdomain: string): workersschemassubdomain = { subdomain = subdomain }
 
 type workersscriptandversionsettingsitem =
-    { bindings: Option<Newtonsoft.Json.Linq.JToken>
-      compatibility_date: Option<Newtonsoft.Json.Linq.JToken>
-      compatibility_flags: Option<Newtonsoft.Json.Linq.JToken>
+    { bindings: Option<System.Text.Json.JsonElement>
+      compatibility_date: Option<System.Text.Json.JsonElement>
+      compatibility_flags: Option<System.Text.Json.JsonElement>
       ///Limits to apply for this Worker.
       limits: Option<workerslimits>
       ///Whether Logpush is turned on for the Worker.
       logpush: Option<workerslogpush>
       ///Migrations to apply for Durable Objects associated with this Worker.
-      migrations: Option<Newtonsoft.Json.Linq.JToken>
+      migrations: Option<System.Text.Json.JsonElement>
       ///Observability settings for the Worker.
       observability: Option<workersobservability>
-      placement: Option<Newtonsoft.Json.Linq.JToken>
-      tags: Option<Newtonsoft.Json.Linq.JToken>
-      tail_consumers: Option<Newtonsoft.Json.Linq.JToken>
+      placement: Option<System.Text.Json.JsonElement>
+      tags: Option<System.Text.Json.JsonElement>
+      tail_consumers: Option<System.Text.Json.JsonElement>
       ///Usage model for the Worker invocations.
       usage_model: Option<workersusagemodel> }
     ///Creates an instance of workersscriptandversionsettingsitem with all optional fields initialized to None. The required fields are parameters of this function
@@ -3059,8 +3059,8 @@ type workersscriptresponse =
       named_handlers: Option<list<Namedhandlers>>
       ///Configuration for [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).
       placement: Option<workersplacementinfo>
-      placement_mode: Option<Newtonsoft.Json.Linq.JToken>
-      placement_status: Option<Newtonsoft.Json.Linq.JToken>
+      placement_mode: Option<System.Text.Json.JsonElement>
+      placement_status: Option<System.Text.Json.JsonElement>
       ///List of Workers that will consume logs from the attached Worker.
       tail_consumers: Option<workerstailconsumers>
       ///Usage model for the Worker invocations.
@@ -3172,7 +3172,7 @@ type workersscriptresponsesingle =
       messages: Option<list<workersscriptresponsesingleMessages>>
       ///Whether the API call was successful.
       success: Option<bool>
-      result: Option<Newtonsoft.Json.Linq.JToken> }
+      result: Option<System.Text.Json.JsonElement> }
     ///Creates an instance of workersscriptresponsesingle with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (): workersscriptresponsesingle =
         { errors = None
@@ -3217,8 +3217,8 @@ type workersscriptresponseupload =
       named_handlers: Option<list<workersscriptresponseuploadNamedhandlers>>
       ///Configuration for [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).
       placement: Option<workersplacementinfo>
-      placement_mode: Option<Newtonsoft.Json.Linq.JToken>
-      placement_status: Option<Newtonsoft.Json.Linq.JToken>
+      placement_mode: Option<System.Text.Json.JsonElement>
+      placement_status: Option<System.Text.Json.JsonElement>
       ///List of Workers that will consume logs from the attached Worker.
       tail_consumers: Option<workerstailconsumers>
       ///Usage model for the Worker invocations.
@@ -3285,7 +3285,7 @@ type workersscriptresponseuploadsingle =
       messages: Option<list<workersscriptresponseuploadsingleMessages>>
       ///Whether the API call was successful.
       success: Option<bool>
-      result: Option<Newtonsoft.Json.Linq.JToken> }
+      result: Option<System.Text.Json.JsonElement> }
     ///Creates an instance of workersscriptresponseuploadsingle with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (): workersscriptresponseuploadsingle =
         { errors = None
@@ -3296,8 +3296,8 @@ type workersscriptresponseuploadsingle =
 type workersscriptsettingsitem =
     { ///Whether Logpush is turned on for the Worker.
       logpush: Option<workerslogpush>
-      observability: Option<Newtonsoft.Json.Linq.JToken>
-      tags: Option<Newtonsoft.Json.Linq.JToken>
+      observability: Option<System.Text.Json.JsonElement>
+      tags: Option<System.Text.Json.JsonElement>
       ///List of Workers that will consume logs from the attached Worker.
       tail_consumers: Option<list<workerstailconsumersscript>> }
     ///Creates an instance of workersscriptsettingsitem with all optional fields initialized to None. The required fields are parameters of this function
@@ -3408,10 +3408,10 @@ type workerssubdomain =
 
 type workerstail =
     { expires_at: string
-      id: Newtonsoft.Json.Linq.JToken
+      id: System.Text.Json.JsonElement
       url: string }
     ///Creates an instance of workerstail with all optional fields initialized to None. The required fields are parameters of this function
-    static member Create (expires_at: string, id: Newtonsoft.Json.Linq.JToken, url: string): workerstail =
+    static member Create (expires_at: string, id: System.Text.Json.JsonElement, url: string): workerstail =
         { expires_at = expires_at
           id = id
           url = url }
@@ -3469,7 +3469,7 @@ type workersuploadassetsresponse =
       messages: Option<list<workersuploadassetsresponseMessages>>
       ///Whether the API call was successful.
       success: Option<bool>
-      result: Option<Newtonsoft.Json.Linq.JObject> }
+      result: Option<System.Text.Json.JsonElement> }
     ///Creates an instance of workersuploadassetsresponse with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (): workersuploadassetsresponse =
         { errors = None
@@ -3631,7 +3631,7 @@ type Scriptruntime =
           usage_model = None }
 
 type Resources =
-    { bindings: Option<Newtonsoft.Json.Linq.JToken>
+    { bindings: Option<System.Text.Json.JsonElement>
       script: Option<Script>
       script_runtime: Option<Scriptruntime> }
     ///Creates an instance of Resources with all optional fields initialized to None. The required fields are parameters of this function
@@ -3793,7 +3793,7 @@ type workersversionitemuploadedResourcesScriptruntime =
           usage_model = None }
 
 type workersversionitemuploadedResources =
-    { bindings: Option<Newtonsoft.Json.Linq.JToken>
+    { bindings: Option<System.Text.Json.JsonElement>
       script: Option<workersversionitemuploadedResourcesScript>
       script_runtime: Option<workersversionitemuploadedResourcesScriptruntime> }
     ///Creates an instance of workersversionitemuploadedResources with all optional fields initialized to None. The required fields are parameters of this function
@@ -3907,7 +3907,7 @@ type workersversionssingleresponse =
       messages: Option<list<workersversionssingleresponseMessages>>
       ///Whether the API call was successful.
       success: Option<bool>
-      result: Option<Newtonsoft.Json.Linq.JToken> }
+      result: Option<System.Text.Json.JsonElement> }
     ///Creates an instance of workersversionssingleresponse with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (): workersversionssingleresponse =
         { errors = None
@@ -3954,7 +3954,7 @@ type workersversionsuploadresponse =
       messages: Option<list<workersversionsuploadresponseMessages>>
       ///Whether the API call was successful.
       success: Option<bool>
-      result: Option<Newtonsoft.Json.Linq.JToken> }
+      result: Option<System.Text.Json.JsonElement> }
     ///Creates an instance of workersversionsuploadresponse with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (): workersversionsuploadresponse =
         { errors = None
@@ -4048,6 +4048,21 @@ type WorkerScriptUpdateUsageModelPayload =
 type WorkerScriptUpdateUsageModel =
     ///Update Usage Model response.
     | OK of payload: workersusagemodelresponse
+
+[<RequireQualifiedAccess>]
+type WorkerVersionsListVersions =
+    ///List Versions response.
+    | OK of payload: workersversionslistresponse
+
+[<RequireQualifiedAccess>]
+type WorkerVersionsUploadVersion =
+    ///Upload Version response.
+    | OK of payload: workersversionsuploadresponse
+
+[<RequireQualifiedAccess>]
+type WorkerVersionsGetVersionDetail =
+    ///Get Version Detail response.
+    | OK of payload: workersversionssingleresponse
 
 [<RequireQualifiedAccess>]
 type WorkerSubdomainDeleteSubdomain =

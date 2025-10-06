@@ -24,27 +24,23 @@ let execute (config: CloudflareConfig) : Async<Result<unit, string>> =
         httpClient.BaseAddress <- Uri("https://api.cloudflare.com/client/v4")
         httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {config.ApiToken}")
 
-        let workersClient = CloudFlare.Api.Compute.Workers.WorkersClient(httpClient)
+        // Check if worker exists by trying to get its settings
+        try
+            let! settingsCheckResult =
+                CloudFlare.Api.Compute.Workers.Http.OpenApiHttp.getAsync
+                    httpClient
+                    "/accounts/{account_id}/workers/scripts/{script_name}/settings"
+                    [CloudFlare.Api.Compute.Workers.Http.RequestPart.path("account_id", config.AccountId)
+                     CloudFlare.Api.Compute.Workers.Http.RequestPart.path("script_name", config.WorkerName)]
+                    None
 
-        let! workerListResult = workersClient.WorkerScriptListWorkers(config.AccountId)
-
-        match workerListResult with
-        | CloudFlare.Api.Compute.Workers.Types.WorkerScriptListWorkers.OK response ->
-            match response.result with
-            | Some scripts ->
-                let workerScript = scripts |> List.tryFind (fun s -> s.id = Some config.WorkerName)
-                match workerScript with
-                | Some script ->
-                    AnsiConsole.MarkupLine($"  Status: [green]✓ Deployed[/]")
-                    match script.modified_on with
-                    | Some modifiedOn -> AnsiConsole.MarkupLine($"  Last Modified: [dim]{modifiedOn}[/]")
-                    | None -> ()
-                | None ->
-                    AnsiConsole.MarkupLine($"  Status: [yellow]⚠ Not found - worker may not be deployed[/]")
-            | None ->
-                AnsiConsole.MarkupLine($"  Status: [yellow]⚠ Unable to retrieve worker list[/]")
-        | _ ->
-            AnsiConsole.MarkupLine($"  Status: [red]✗ Error retrieving worker status[/]")
+            let (statusCode, _) = settingsCheckResult
+            if statusCode = System.Net.HttpStatusCode.OK then
+                AnsiConsole.MarkupLine($"  Status: [green]✓ Deployed[/]")
+            else
+                AnsiConsole.MarkupLine($"  Status: [yellow]⚠ Not found[/]")
+        with ex ->
+            AnsiConsole.MarkupLine($"  Status: [yellow]⚠ Unable to check status[/]")
 
         AnsiConsole.WriteLine()
 

@@ -32,11 +32,19 @@ type StatusArgs =
     interface IArgParserTemplate with
         member this.Usage = ""
 
+type DeployArgs =
+    | [<AltCommandLine("-p")>] Worker_Path of string
+    interface IArgParserTemplate with
+        member this.Usage =
+            match this with
+            | Worker_Path _ -> "Path to worker project directory (defaults to ../R2WebDAV)"
+
 type CliCommand =
     | [<CliPrefix(CliPrefix.None)>] Add_User of ParseResults<AddUserArgs>
     | [<CliPrefix(CliPrefix.None)>] Remove_User of ParseResults<RemoveUserArgs>
     | [<CliPrefix(CliPrefix.None)>] List_Users of ParseResults<ListUsersArgs>
     | [<CliPrefix(CliPrefix.None)>] Status of ParseResults<StatusArgs>
+    | [<CliPrefix(CliPrefix.None)>] Deploy of ParseResults<DeployArgs>
     interface IArgParserTemplate with
         member this.Usage =
             match this with
@@ -44,6 +52,7 @@ type CliCommand =
             | Remove_User _ -> "Remove a WebDAV user and all associated resources"
             | List_Users _ -> "List all configured WebDAV users"
             | Status _ -> "Show deployment status"
+            | Deploy _ -> "Build and deploy the worker using Fable and Management API"
 
 [<EntryPoint>]
 let main argv =
@@ -85,6 +94,11 @@ let main argv =
 
             | Status _ ->
                 Status.execute config
+                |> Async.RunSynchronously
+
+            | Deploy args ->
+                let workerPath = args.TryGetResult DeployArgs.Worker_Path
+                Deploy.execute config workerPath
                 |> Async.RunSynchronously
 
         match result with

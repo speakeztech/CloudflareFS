@@ -19,6 +19,7 @@
     <Compile Include="Commands\RemoveUser.fs" />
     <Compile Include="Commands\ListUsers.fs" />
     <Compile Include="Commands\Status.fs" />
+    <Compile Include="Commands\Deploy.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

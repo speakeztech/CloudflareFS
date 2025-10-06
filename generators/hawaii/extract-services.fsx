@@ -60,6 +60,8 @@ let services = [
           "/accounts/{account_id}/workers/scripts/{script_name}/secrets"
           "/accounts/{account_id}/workers/scripts/{script_name}/tails"
           "/accounts/{account_id}/workers/scripts/{script_name}/usage-model"
+          "/accounts/{account_id}/workers/scripts/{script_name}/versions"
+          "/accounts/{account_id}/workers/scripts/{script_name}/versions/{version_id}"
           "/accounts/{account_id}/workers/services"
           "/accounts/{account_id}/workers/subdomain"
       ]

@@ -331,6 +331,95 @@ type WorkersClient(httpClient: HttpClient) =
         }
 
     ///<summary>
+    ///List of Worker Versions. The first version in the list is the latest version.
+    ///</summary>
+    ///<param name="accountId"></param>
+    ///<param name="scriptName"></param>
+    ///<param name="deployable">Only return versions that can be used in a deployment. Ignores pagination.</param>
+    ///<param name="page">Current page.</param>
+    ///<param name="perPage">Items per-page.</param>
+    ///<param name="cancellationToken"></param>
+    member this.WorkerVersionsListVersions
+        (
+            accountId: string,
+            scriptName: string,
+            ?deployable: bool,
+            ?page: int,
+            ?perPage: int,
+            ?cancellationToken: CancellationToken
+        ) =
+        async {
+            let requestParts =
+                [ RequestPart.path ("account_id", accountId)
+                  RequestPart.path ("script_name", scriptName)
+                  if deployable.IsSome then
+                      RequestPart.query ("deployable", deployable.Value)
+                  if page.IsSome then
+                      RequestPart.query ("page", page.Value)
+                  if perPage.IsSome then
+                      RequestPart.query ("per_page", perPage.Value) ]
+
+            let! (status, content) =
+                OpenApiHttp.getAsync
+                    httpClient
+                    "/accounts/{account_id}/workers/scripts/{script_name}/versions"
+                    requestParts
+                    cancellationToken
+
+            return WorkerVersionsListVersions.OK(Serializer.deserialize content)
+        }
+
+    ///<summary>
+    ///Upload a Worker Version without deploying to Cloudflare's network. You can find more about the multipart metadata on our docs: https://developers.cloudflare.com/workers/configuration/multipart-upload-metadata/.
+    ///</summary>
+    member this.WorkerVersionsUploadVersion
+        (
+            accountId: string,
+            scriptName: string,
+            ?cancellationToken: CancellationToken
+        ) =
+        async {
+            let requestParts =
+                [ RequestPart.path ("account_id", accountId)
+                  RequestPart.path ("script_name", scriptName) ]
+
+            let! (status, content) =
+                OpenApiHttp.postAsync
+                    httpClient
+                    "/accounts/{account_id}/workers/scripts/{script_name}/versions"
+                    requestParts
+                    cancellationToken
+
+            return WorkerVersionsUploadVersion.OK(Serializer.deserialize content)
+        }
+
+    ///<summary>
+    ///Get Version Detail
+    ///</summary>
+    member this.WorkerVersionsGetVersionDetail
+        (
+            accountId: string,
+            scriptName: string,
+            versionId: string,
+            ?cancellationToken: CancellationToken
+        ) =
+        async {
+            let requestParts =
+                [ RequestPart.path ("account_id", accountId)
+                  RequestPart.path ("script_name", scriptName)
+                  RequestPart.path ("version_id", versionId) ]
+
+            let! (status, content) =
+                OpenApiHttp.getAsync
+                    httpClient
+                    "/accounts/{account_id}/workers/scripts/{script_name}/versions/{version_id}"
+                    requestParts
+                    cancellationToken
+
+            return WorkerVersionsGetVersionDetail.OK(Serializer.deserialize content)
+        }
+
+    ///<summary>
     ///Deletes a Workers subdomain for an account.
     ///</summary>
     member this.WorkerSubdomainDeleteSubdomain(accountId: string, ?cancellationToken: CancellationToken) =

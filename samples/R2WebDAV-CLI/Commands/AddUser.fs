@@ -104,18 +104,11 @@ let execute (config: CloudflareConfig) (username: string) (password: string) : A
 
                         // Get current worker settings to preserve existing bindings
                         let httpClient = new HttpClient()
-                        httpClient.BaseAddress <- Uri("https://api.cloudflare.com/client/v4")
                         httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {config.ApiToken}")
 
-                        let! settingsResult =
-                            CloudFlare.Api.Compute.Workers.Http.OpenApiHttp.getAsync
-                                httpClient
-                                "/accounts/{account_id}/workers/scripts/{script_name}/settings"
-                                [CloudFlare.Api.Compute.Workers.Http.RequestPart.path("account_id", config.AccountId)
-                                 CloudFlare.Api.Compute.Workers.Http.RequestPart.path("script_name", config.WorkerName)]
-                                None
-
-                        let (_, settingsContent) = settingsResult
+                        let getUrl = $"https://api.cloudflare.com/client/v4/accounts/{config.AccountId}/workers/scripts/{config.WorkerName}/settings"
+                        let! getResponse = httpClient.GetAsync(getUrl) |> Async.AwaitTask
+                        let! settingsContent = getResponse.Content.ReadAsStringAsync() |> Async.AwaitTask
                         use settingsJsonDoc = JsonDocument.Parse(settingsContent)
                         let settingsJson = settingsJsonDoc.RootElement
 
