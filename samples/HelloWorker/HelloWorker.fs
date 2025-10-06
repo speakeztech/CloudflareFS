@@ -14,17 +14,19 @@ let fetch (request: Request) (env: Env) (ctx: ExecutionContext) =
     let path = Request.getPath request
     let method = Request.getMethod request
 
+    let statement = "Hello from F# + Fable + Cloudflare Workers"
+
     // Route handling
     let response =
         match method, path with
         | "GET", "/" ->
             // Simple response using helper
-            ok "Hello from CloudflareFS!"
+            ok statement
 
         | "GET", "/json" ->
             // JSON response using helper
             json {|
-                message = "Hello from F# + Fable + Cloudflare Workers"
+                message = statement
                 timestamp = System.DateTime.Now
                 path = path
             |} 200
