@@ -1,59 +1,126 @@
 module R2WebDAV.CLI.Commands.Status
 
+open System
+open System.Net.Http
+open System.Text.Json
 open R2WebDAV.CLI.Config
 open R2WebDAV.CLI.R2Client
+open R2WebDAV.CLI.WorkersClient
+open R2WebDAV.CLI.Naming
 open Spectre.Console
 
 let execute (config: CloudflareConfig) : Async<Result<unit, string>> =
     async {
-        let rule = Rule("[bold blue]R2WebDAV Deployment Status[/]")
+        let rule = Rule($"[bold blue]R2WebDAV Status: {config.WorkerName}[/]")
         rule.Justification <- Justify.Left
         AnsiConsole.Write(rule)
         AnsiConsole.WriteLine()
 
-        // Worker Deployment Info
+        // Worker Deployment Status
         AnsiConsole.MarkupLine("[bold]Worker Deployment[/]")
         AnsiConsole.MarkupLine($"  Name: [cyan]{config.WorkerName}[/]")
-        AnsiConsole.MarkupLine($"  Status: [yellow]⚠ Check manually with wrangler[/]")
+
+        let httpClient = new HttpClient()
+        httpClient.BaseAddress <- Uri("https://api.cloudflare.com/client/v4")
+        httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {config.ApiToken}")
+
+        let workersClient = CloudFlare.Api.Compute.Workers.WorkersClient(httpClient)
+
+        let! workerListResult = workersClient.WorkerScriptListWorkers(config.AccountId)
+
+        match workerListResult with
+        | CloudFlare.Api.Compute.Workers.Types.WorkerScriptListWorkers.OK response ->
+            match response.result with
+            | Some scripts ->
+                let workerScript = scripts |> List.tryFind (fun s -> s.id = Some config.WorkerName)
+                match workerScript with
+                | Some script ->
+                    AnsiConsole.MarkupLine($"  Status: [green]✓ Deployed[/]")
+                    match script.modified_on with
+                    | Some modifiedOn -> AnsiConsole.MarkupLine($"  Last Modified: [dim]{modifiedOn}[/]")
+                    | None -> ()
+                | None ->
+                    AnsiConsole.MarkupLine($"  Status: [yellow]⚠ Not found - worker may not be deployed[/]")
+            | None ->
+                AnsiConsole.MarkupLine($"  Status: [yellow]⚠ Unable to retrieve worker list[/]")
+        | _ ->
+            AnsiConsole.MarkupLine($"  Status: [red]✗ Error retrieving worker status[/]")
+
         AnsiConsole.WriteLine()
 
-        // R2 Buckets
-        AnsiConsole.MarkupLine("[bold]R2 Buckets[/]")
+        // Get worker settings to find bound buckets
+        let! settingsResult =
+            CloudFlare.Api.Compute.Workers.Http.OpenApiHttp.getAsync
+                httpClient
+                "/accounts/{account_id}/workers/scripts/{script_name}/settings"
+                [CloudFlare.Api.Compute.Workers.Http.RequestPart.path("account_id", config.AccountId)
+                 CloudFlare.Api.Compute.Workers.Http.RequestPart.path("script_name", config.WorkerName)]
+                None
 
-        let r2 = R2Operations(config)
-        let! result = r2.ListBuckets()
+        let (_, settingsContent) = settingsResult
+        use settingsJsonDoc = JsonDocument.Parse(settingsContent)
+        let settingsJson = settingsJsonDoc.RootElement
 
-        match result with
-        | Error err ->
-            let escaped = Markup.Escape(err)
-            AnsiConsole.MarkupLine($"  [red]Error:[/] {escaped}")
-            return Error err
-
-        | Ok buckets ->
-            if List.isEmpty buckets then
-                AnsiConsole.MarkupLine("  [yellow]No buckets found[/]")
+        // Extract bucket names from R2 bindings
+        let boundBucketNames =
+            let mutable resultProp = Unchecked.defaultof<JsonElement>
+            if settingsJson.TryGetProperty("result", &resultProp) then
+                let mutable bindingsProp = Unchecked.defaultof<JsonElement>
+                if resultProp.TryGetProperty("bindings", &bindingsProp) && bindingsProp.ValueKind = JsonValueKind.Array then
+                    bindingsProp.EnumerateArray()
+                    |> Seq.choose (fun binding ->
+                        let mutable typeProp = Unchecked.defaultof<JsonElement>
+                        let mutable bucketNameProp = Unchecked.defaultof<JsonElement>
+                        if binding.TryGetProperty("type", &typeProp) &&
+                           typeProp.GetString() = "r2_bucket" &&
+                           binding.TryGetProperty("bucket_name", &bucketNameProp) then
+                            Some (bucketNameProp.GetString())
+                        else
+                            None)
+                    |> Set.ofSeq
+                else
+                    Set.empty
             else
-                AnsiConsole.MarkupLine($"  [green]Total:[/] {List.length buckets} bucket(s)")
-                for bucket in buckets do
-                    AnsiConsole.MarkupLine($"  • [cyan]{bucket.Name}[/]")
+                Set.empty
 
-            AnsiConsole.WriteLine()
+        // R2 Buckets (scoped to this worker's WebDAV instance)
+        AnsiConsole.MarkupLine("[bold]R2 Buckets (WebDAV)[/]")
 
-            // Configured Users
-            let userBuckets =
-                buckets
-                |> List.filter (fun b -> b.Name.EndsWith("-webdav-bucket"))
+        // Filter to only buckets that are actually bound to this worker
+        let webdavBuckets =
+            boundBucketNames
+            |> Set.filter (fun name -> name.EndsWith("-webdav-bucket"))
+            |> Set.toList
+            |> List.sort
 
-            AnsiConsole.MarkupLine("[bold]Configured Users[/]")
-            if List.isEmpty userBuckets then
-                AnsiConsole.MarkupLine("  [yellow]No users configured[/]")
-            else
-                let usernames =
-                    userBuckets
-                    |> List.map (fun b -> b.Name.Substring(0, b.Name.Length - "-webdav-bucket".Length))
-                    |> String.concat ", "
+        if List.isEmpty webdavBuckets then
+            AnsiConsole.MarkupLine("  [yellow]No WebDAV buckets bound to this worker[/]")
+        else
+            AnsiConsole.MarkupLine($"  [green]Total:[/] {List.length webdavBuckets} bucket(s)")
+            for bucketName in webdavBuckets do
+                let username = bucketName.Substring(0, bucketName.Length - "-webdav-bucket".Length)
+                AnsiConsole.MarkupLine($"  • [cyan]{bucketName}[/] (user: [yellow]{username}[/])")
 
-                AnsiConsole.MarkupLine($"  [green]{List.length userBuckets}[/] user(s): [cyan]{usernames}[/]")
+        AnsiConsole.WriteLine()
 
-            return Ok ()
+        // Configured Users (derived from bound WebDAV buckets)
+        AnsiConsole.MarkupLine("[bold]Configured Users[/]")
+        if List.isEmpty webdavBuckets then
+            AnsiConsole.MarkupLine("  [yellow]No users configured for this worker[/]")
+        else
+            let usernames =
+                webdavBuckets
+                |> List.map (fun bucketName -> bucketName.Substring(0, bucketName.Length - "-webdav-bucket".Length))
+
+            AnsiConsole.MarkupLine($"  [green]{List.length usernames}[/] user(s) configured for [cyan]{config.WorkerName}[/]:")
+            for username in usernames do
+                let bucketName = getBucketName username
+                let bindingName = getBindingName username
+                let secretName = getSecretName username
+                AnsiConsole.MarkupLine($"  • [yellow]{username}[/]")
+                AnsiConsole.MarkupLine($"    Bucket: [dim]{bucketName}[/]")
+                AnsiConsole.MarkupLine($"    Binding: [dim]{bindingName}[/]")
+                AnsiConsole.MarkupLine($"    Secret: [dim]{secretName}[/]")
+
+        return Ok ()
     }

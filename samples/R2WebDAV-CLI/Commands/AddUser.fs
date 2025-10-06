@@ -1,6 +1,8 @@
 module R2WebDAV.CLI.Commands.AddUser
 
 open System
+open System.Net.Http
+open System.Text.Json
 open R2WebDAV.CLI.Config
 open R2WebDAV.CLI.Naming
 open R2WebDAV.CLI.R2Client
@@ -90,19 +92,74 @@ let execute (config: CloudflareConfig) (username: string) (password: string) : A
                     async {
                         let workers = WorkersOperations(config)
 
-                        // Create R2 bucket binding
+                        // Create R2 bucket binding for the new user
                         let bindingName = getBindingName validUsername
-                        let r2Binding =
+                        let newR2Binding =
                             CloudFlare.Api.Compute.Workers.Types.workersbindingkindr2bucket.Create(
                                 bucketName,
                                 bindingName,
                                 CloudFlare.Api.Compute.Workers.Types.workersbindingkindr2bucketType.R2_bucket
                             )
+                        let newBinding = CloudFlare.Api.Compute.Workers.Types.workersbindingitem.R2bucket newR2Binding
 
-                        // Wrap in discriminated union
-                        let binding = CloudFlare.Api.Compute.Workers.Types.workersbindingitem.R2bucket r2Binding
+                        // Get current worker settings to preserve existing bindings
+                        let httpClient = new HttpClient()
+                        httpClient.BaseAddress <- Uri("https://api.cloudflare.com/client/v4")
+                        httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {config.ApiToken}")
 
-                        let! result = workers.UpdateWorkerBindings(config.WorkerName, [binding])
+                        let! settingsResult =
+                            CloudFlare.Api.Compute.Workers.Http.OpenApiHttp.getAsync
+                                httpClient
+                                "/accounts/{account_id}/workers/scripts/{script_name}/settings"
+                                [CloudFlare.Api.Compute.Workers.Http.RequestPart.path("account_id", config.AccountId)
+                                 CloudFlare.Api.Compute.Workers.Http.RequestPart.path("script_name", config.WorkerName)]
+                                None
+
+                        let (_, settingsContent) = settingsResult
+                        use settingsJsonDoc = JsonDocument.Parse(settingsContent)
+                        let settingsJson = settingsJsonDoc.RootElement
+
+                        // Extract existing R2 bindings, excluding any that match our new binding name
+                        let existingBindings =
+                            let mutable resultProp = Unchecked.defaultof<JsonElement>
+                            if settingsJson.TryGetProperty("result", &resultProp) then
+                                let mutable bindingsProp = Unchecked.defaultof<JsonElement>
+                                if resultProp.TryGetProperty("bindings", &bindingsProp) && bindingsProp.ValueKind = JsonValueKind.Array then
+                                    bindingsProp.EnumerateArray()
+                                    |> Seq.choose (fun binding ->
+                                        let mutable typeProp = Unchecked.defaultof<JsonElement>
+                                        let mutable nameProp = Unchecked.defaultof<JsonElement>
+                                        let mutable bucketNameProp = Unchecked.defaultof<JsonElement>
+
+                                        if binding.TryGetProperty("type", &typeProp) &&
+                                           typeProp.GetString() = "r2_bucket" &&
+                                           binding.TryGetProperty("name", &nameProp) &&
+                                           binding.TryGetProperty("bucket_name", &bucketNameProp) then
+                                            let existingBindingName = nameProp.GetString()
+                                            // Skip if this is the binding we're adding/updating
+                                            if existingBindingName = bindingName then
+                                                None
+                                            else
+                                                // Recreate the binding
+                                                let r2Binding =
+                                                    CloudFlare.Api.Compute.Workers.Types.workersbindingkindr2bucket.Create(
+                                                        bucketNameProp.GetString(),
+                                                        existingBindingName,
+                                                        CloudFlare.Api.Compute.Workers.Types.workersbindingkindr2bucketType.R2_bucket
+                                                    )
+                                                Some (CloudFlare.Api.Compute.Workers.Types.workersbindingitem.R2bucket r2Binding)
+                                        else
+                                            None)
+                                    |> List.ofSeq
+                                else
+                                    []
+                            else
+                                []
+
+                        // Combine existing bindings with the new one
+                        let allBindings = newBinding :: existingBindings
+
+                        let! result = workers.UpdateWorkerBindings(config.WorkerName, allBindings)
 
                         match result with
                         | Ok () ->
