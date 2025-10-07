@@ -156,7 +156,7 @@ let execute (config: CloudflareConfig) (workerPath: string option) (force: bool)
                         try
                             let psi = ProcessStartInfo()
                             psi.FileName <- "fable"
-                            psi.Arguments <- ". --outDir dist"
+                            psi.Arguments <- ". --outDir dist --noCache"
                             psi.WorkingDirectory <- workerDirFull
                             psi.RedirectStandardOutput <- true
                             psi.RedirectStandardError <- true
@@ -164,13 +164,30 @@ let execute (config: CloudflareConfig) (workerPath: string option) (force: bool)
                             psi.CreateNoWindow <- true
 
                             use proc = Process.Start(psi)
-                            let! _ = proc.WaitForExitAsync() |> Async.AwaitTask
 
-                            if proc.ExitCode = 0 then
+                            // Read both stdout and stderr asynchronously
+                            let stdoutTask = proc.StandardOutput.ReadToEndAsync() |> Async.AwaitTask
+                            let stderrTask = proc.StandardError.ReadToEndAsync() |> Async.AwaitTask
+
+                            let! _ = proc.WaitForExitAsync() |> Async.AwaitTask
+                            let! stdout = stdoutTask
+                            let! stderr = stderrTask
+
+                            // Check for errors in output even if exit code is 0 (Fable caching issue)
+                            let hasErrors =
+                                stdout.Contains("error FSHARP:") ||
+                                stderr.Contains("error FSHARP:")
+
+                            if proc.ExitCode = 0 && not hasErrors then
                                 return Ok ()
                             else
-                                let stderr = proc.StandardError.ReadToEnd()
-                                return Error $"Fable compilation failed: {stderr}"
+                                // Fable outputs errors to stdout, not stderr
+                                let errorOutput =
+                                    if not (String.IsNullOrWhiteSpace stdout) then stdout
+                                    elif not (String.IsNullOrWhiteSpace stderr) then stderr
+                                    else "Fable compilation failed with no error output"
+
+                                return Error $"Fable compilation failed:\n\n{errorOutput}"
                         with ex ->
                             return Error $"Error running Fable: {ex.Message}"
                     } |> Async.StartAsTask)

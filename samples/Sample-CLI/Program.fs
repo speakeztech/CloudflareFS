@@ -59,7 +59,7 @@ type CliCommand =
 [<EntryPoint>]
 let main argv =
     try
-        let parser = ArgumentParser.Create<CliCommand>(programName = "r2webdav")
+        let parser = ArgumentParser.Create<CliCommand>(programName = "sample-cli")
 
         let results = parser.ParseCommandLine(argv)
 

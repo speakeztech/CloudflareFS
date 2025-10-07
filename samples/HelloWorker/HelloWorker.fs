@@ -22,7 +22,7 @@ let fetch (request: Request) (env: Env) (ctx: ExecutionContext) =
         | "GET", "/" ->
             // HTML info page in dark mode
             let url = Request.getUrl request
-            let html = """
+            let html = $"""
 <!DOCTYPE html>
 <html style="background: #000;">
 <head>
@@ -30,27 +30,30 @@ let fetch (request: Request) (env: Env) (ctx: ExecutionContext) =
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>HelloWorker - F# + Cloudflare</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { background: #000; color: #e0e0e0; }
-        body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 50px auto; padding: 0 20px; line-height: 1.6; }
-        h1 { color: #f38020; margin-bottom: 10px; }
-        h2 { color: #e0e0e0; margin-top: 30px; margin-bottom: 15px; }
-        p { margin: 10px 0; }
-        code { background: #1a1a1a; color: #f38020; padding: 2px 8px; border-radius: 4px; border: 1px solid #333; font-family: 'Courier New', monospace; }
-        .route { background: #1a1a1a; padding: 12px 15px; border-radius: 5px; margin: 8px 0; border: 1px solid #333; display: flex; align-items: center; }
-        .route code { margin: 0 8px 0 0; }
-        .route code a { color: #2196F3; }
-        .route code a:hover { color: #42a5f5; }
-        .route span { color: #999; }
-        ul { margin: 15px 0; padding: 0; list-style: none; }
-        li { margin: 0; }
-        a { color: #2196F3; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        .footer { color: #666; font-size: 0.9em; margin-top: 40px; padding-top: 20px; border-top: 1px solid #333; }
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        html, body {{ background: #000; color: #e0e0e0; }}
+        body {{ font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 50px auto; padding: 0 20px; line-height: 1.6; }}
+        h1 {{ color: #f38020; margin-bottom: 10px; }}
+        h2 {{ color: #e0e0e0; margin-top: 30px; margin-bottom: 15px; }}
+        p {{ margin: 10px 0; }}
+        code {{ background: #1a1a1a; color: #f38020; padding: 2px 8px; border-radius: 4px; border: 1px solid #333; font-family: 'Courier New', monospace; }}
+        .route {{ background: #1a1a1a; padding: 12px 15px; border-radius: 5px; margin: 8px 0; border: 1px solid #333; display: flex; align-items: center; }}
+        .route code {{ margin: 0 8px 0 0; }}
+        .route code a {{ color: #2196F3; }}
+        .route code a:hover {{ color: #42a5f5; }}
+        .route span {{ color: #999; }}
+        ul {{ margin: 15px 0; padding: 0; list-style: none; }}
+        li {{ margin: 0; }}
+        a {{ color: #2196F3; text-decoration: none; }}
+        a:hover {{ text-decoration: underline; }}
+        .footer {{ color: #666; font-size: 0.9em; margin-top: 40px; padding-top: 20px; border-top: 1px solid #333; }}
     </style>
 </head>
 <body>
     <h1>👋 HelloWorker</h1>
+
+    <h2>{statement}</h2>
+
     <p>A simple Cloudflare Worker written in F# using CloudflareFS bindings.</p>
 
     <h2>Available Routes</h2>
@@ -64,9 +67,9 @@ let fetch (request: Request) (env: Env) (ctx: ExecutionContext) =
 
     <h2>Features</h2>
     <ul>
+        <li><div class="route">🔧 Type-safe bindings via CloudflareFS</div></li>
         <li><div class="route">✨ F# + Fable compilation to JavaScript</div></li>
         <li><div class="route">⚡ Cloudflare Workers edge computing</div></li>
-        <li><div class="route">🔧 Type-safe bindings via CloudflareFS</div></li>
     </ul>
 
     <div class="footer">
