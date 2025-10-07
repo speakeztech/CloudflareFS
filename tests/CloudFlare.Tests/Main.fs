@@ -10,6 +10,7 @@ let main args =
             CoreTests.tests
             ManagementTests.tests
             RuntimeTests.tests
+            DeploymentTests.tests
         ]
 
     runTestsWithCLIArgs [] args allTests

@@ -10,6 +10,7 @@
     <Compile Include="CoreTests.fs" />
     <Compile Include="ManagementTests.fs" />
     <Compile Include="RuntimeTests.fs" />
+    <Compile Include="DeploymentTests.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
 
@@ -25,6 +26,7 @@
     <ProjectReference Include="..\..\src\Core\CloudFlare.Core\CloudFlare.Core.fsproj" />
     <ProjectReference Include="..\..\src\Management\CloudFlare.Management.D1\CloudFlare.Management.D1.fsproj" />
     <ProjectReference Include="..\..\src\Management\CloudFlare.Management.R2\CloudFlare.Management.R2.fsproj" />
+    <ProjectReference Include="..\..\src\Management\CloudFlare.Management.Workers\CloudFlare.Management.Workers.fsproj" />
     <ProjectReference Include="..\..\src\Runtime\CloudFlare.AI\CloudFlare.AI.fsproj" />
     <ProjectReference Include="..\..\src\Runtime\CloudFlare.Worker.Context\CloudFlare.Worker.Context.fsproj" />
   </ItemGroup>
