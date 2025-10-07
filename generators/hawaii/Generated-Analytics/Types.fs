@@ -1,4 +1,4 @@
-namespace rec CloudFlare.Api.Analytics.Types
+namespace rec CloudFlare.Management.Analytics.Types
 
 ///Identifier
 type argoanalyticsidentifier = string

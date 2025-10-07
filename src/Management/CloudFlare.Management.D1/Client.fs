@@ -106,7 +106,7 @@ type D1Client(httpClient: HttpClient) =
         (
             accountId: string,
             databaseId: string,
-            body: ``d1database-update-partial-request-body``,
+            body: d1databaseupdatepartialrequestbody,
             ?cancellationToken: CancellationToken
         ) =
         async {
@@ -132,7 +132,7 @@ type D1Client(httpClient: HttpClient) =
         (
             accountId: string,
             databaseId: string,
-            body: ``d1database-update-request-body``,
+            body: d1databaseupdaterequestbody,
             ?cancellationToken: CancellationToken
         ) =
         async {

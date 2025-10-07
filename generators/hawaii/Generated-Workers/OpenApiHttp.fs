@@ -1,4 +1,4 @@
-namespace CloudFlare.Api.Compute.Workers.Http
+namespace CloudFlare.Management.Workers.Http
 
 open System
 open System.Net.Http

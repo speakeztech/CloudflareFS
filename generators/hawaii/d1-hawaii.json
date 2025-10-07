@@ -1,8 +1,8 @@
 {
   "schema": "./temp/D1-openapi.json",
-  "project": "CloudFlare.Api.Storage.D1",
+  "project": "CloudFlare.Management.D1",
   "output": "./Generated-D1",
-  "namespace": "CloudFlare.Api.Storage.D1",
+  "namespace": "CloudFlare.Management.D1",
   "synchronous": false,
   "target": "fsharp",
   "generateClient": true,

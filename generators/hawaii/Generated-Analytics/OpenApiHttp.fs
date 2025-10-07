@@ -1,4 +1,4 @@
-namespace CloudFlare.Api.Analytics.Http
+namespace CloudFlare.Management.Analytics.Http
 
 open System
 open System.Net.Http
@@ -13,6 +13,8 @@ module Serializer =
     open System.Text.Json
     open System.Text.Json.Serialization
     let options = JsonSerializerOptions()
+    options.PropertyNamingPolicy <- JsonNamingPolicy.CamelCase
+    options.DefaultIgnoreCondition <- JsonIgnoreCondition.WhenWritingNull
     options.Converters.Add(JsonFSharpConverter())
     let serialize<'t> (value: 't) = JsonSerializer.Serialize(value, options)
     let deserialize<'t> (content: string) = JsonSerializer.Deserialize<'t>(content, options)
@@ -121,6 +123,8 @@ type RequestPart =
         MultiPartFormData(key, Primitive(OpenApiValue.String (value.ToString("O"))))
     static member multipartFormData(key: string, value: byte[]) =
         MultiPartFormData(key, File value)
+    static member multipartFormData(key: string, value: System.Text.Json.JsonElement) =
+        MultiPartFormData(key, Primitive(OpenApiValue.String (value.GetRawText())))
     static member multipartFormData(key: string, values: string list) = MultiPartFormData(key, Primitive(OpenApiValue.List [ for value in values -> OpenApiValue.String value ]))
     static member multipartFormData(key: string, values: Guid list) = MultiPartFormData(key, Primitive(OpenApiValue.List [ for value in values -> OpenApiValue.String (value.ToString()) ]))
     static member multipartFormData(key: string, values: int list) = MultiPartFormData(key, Primitive(OpenApiValue.List [ for value in values -> OpenApiValue.Int value ]))

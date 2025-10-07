@@ -1,4 +1,4 @@
-namespace rec CloudFlare.Api.Storage.D1.Types
+namespace rec CloudFlare.Management.D1.Types
 
 ///Account identifier tag.
 type d1accountidentifier = string

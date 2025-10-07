@@ -1,8 +1,8 @@
 {
   "schema": "./temp/Logs-openapi.json",
-  "project": "CloudFlare.Api.Logs",
+  "project": "CloudFlare.Management.Logs",
   "output": "./Generated-Logs",
-  "namespace": "CloudFlare.Api.Logs",
+  "namespace": "CloudFlare.Management.Logs",
   "synchronous": false,
   "target": "fsharp",
   "generateClient": true,

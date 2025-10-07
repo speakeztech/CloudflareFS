@@ -1,11 +1,11 @@
-namespace rec CloudFlare.Api.Compute.Workers
+namespace rec CloudFlare.Management.Workers
 
 open System.Net
 open System.Net.Http
 open System.Text
 open System.Threading
-open CloudFlare.Api.Compute.Workers.Types
-open CloudFlare.Api.Compute.Workers.Http
+open CloudFlare.Management.Workers.Types
+open CloudFlare.Management.Workers.Http
 
 ///Workers Script Management API
 type WorkersClient(httpClient: HttpClient) =

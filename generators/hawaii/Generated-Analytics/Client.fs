@@ -1,11 +1,11 @@
-namespace rec CloudFlare.Api.Analytics
+namespace rec CloudFlare.Management.Analytics
 
 open System.Net
 open System.Net.Http
 open System.Text
 open System.Threading
-open CloudFlare.Api.Analytics.Types
-open CloudFlare.Api.Analytics.Http
+open CloudFlare.Management.Analytics.Types
+open CloudFlare.Management.Analytics.Http
 
 ///Analytics API
 type AnalyticsClient(httpClient: HttpClient) =
