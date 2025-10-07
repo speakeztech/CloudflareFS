@@ -217,11 +217,11 @@ let execute (config: CloudflareConfig) (workerPath: string option) (force: bool)
             async {
                 try
                     let! settingsResult =
-                        CloudFlare.Api.Compute.Workers.Http.OpenApiHttp.getAsync
+                        CloudFlare.Management.Workers.Http.OpenApiHttp.getAsync
                             httpClient
                             "/accounts/{account_id}/workers/scripts/{script_name}/settings"
-                            [CloudFlare.Api.Compute.Workers.Http.RequestPart.path("account_id", config.AccountId)
-                             CloudFlare.Api.Compute.Workers.Http.RequestPart.path("script_name", workerName)]
+                            [CloudFlare.Management.Workers.Http.RequestPart.path("account_id", config.AccountId)
+                             CloudFlare.Management.Workers.Http.RequestPart.path("script_name", workerName)]
                             None
 
                     let (_, settingsContent) = settingsResult

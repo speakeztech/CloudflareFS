@@ -95,12 +95,12 @@ let execute (config: CloudflareConfig) (username: string) (password: string) : A
                         // Create R2 bucket binding for the new user
                         let bindingName = getBindingName validUsername
                         let newR2Binding =
-                            CloudFlare.Api.Compute.Workers.Types.workersbindingkindr2bucket.Create(
+                            CloudFlare.Management.Workers.Types.workersbindingkindr2bucket.Create(
                                 bucketName,
                                 bindingName,
-                                CloudFlare.Api.Compute.Workers.Types.workersbindingkindr2bucketType.R2_bucket
+                                CloudFlare.Management.Workers.Types.workersbindingkindr2bucketType.R2_bucket
                             )
-                        let newBinding = CloudFlare.Api.Compute.Workers.Types.workersbindingitem.R2bucket newR2Binding
+                        let newBinding = CloudFlare.Management.Workers.Types.workersbindingitem.R2bucket newR2Binding
 
                         // Get current worker settings to preserve existing bindings
                         let httpClient = new HttpClient()
@@ -135,12 +135,12 @@ let execute (config: CloudflareConfig) (username: string) (password: string) : A
                                             else
                                                 // Recreate the binding
                                                 let r2Binding =
-                                                    CloudFlare.Api.Compute.Workers.Types.workersbindingkindr2bucket.Create(
+                                                    CloudFlare.Management.Workers.Types.workersbindingkindr2bucket.Create(
                                                         bucketNameProp.GetString(),
                                                         existingBindingName,
-                                                        CloudFlare.Api.Compute.Workers.Types.workersbindingkindr2bucketType.R2_bucket
+                                                        CloudFlare.Management.Workers.Types.workersbindingkindr2bucketType.R2_bucket
                                                     )
-                                                Some (CloudFlare.Api.Compute.Workers.Types.workersbindingitem.R2bucket r2Binding)
+                                                Some (CloudFlare.Management.Workers.Types.workersbindingitem.R2bucket r2Binding)
                                         else
                                             None)
                                     |> List.ofSeq

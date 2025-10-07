@@ -15,11 +15,11 @@ let execute (config: CloudflareConfig) : Async<Result<unit, string>> =
         httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {config.ApiToken}")
 
         let! settingsResult =
-            CloudFlare.Api.Compute.Workers.Http.OpenApiHttp.getAsync
+            CloudFlare.Management.Workers.Http.OpenApiHttp.getAsync
                 httpClient
                 "/accounts/{account_id}/workers/scripts/{script_name}/settings"
-                [CloudFlare.Api.Compute.Workers.Http.RequestPart.path("account_id", config.AccountId)
-                 CloudFlare.Api.Compute.Workers.Http.RequestPart.path("script_name", config.WorkerName)]
+                [CloudFlare.Management.Workers.Http.RequestPart.path("account_id", config.AccountId)
+                 CloudFlare.Management.Workers.Http.RequestPart.path("script_name", config.WorkerName)]
                 None
 
         let (_, settingsContent) = settingsResult
