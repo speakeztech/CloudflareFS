@@ -228,21 +228,115 @@ foreach ($service in $services) {
 Remove-Item "./temp" -Recurse -Force
 ```
 
-### Step 4: Post-Processing (When Needed)
+### Step 4: Post-Processing Pipeline
 
-Some APIs require post-processing to handle Hawaii limitations:
+CloudflareFS implements an automated post-processing pipeline to handle Hawaii's current limitations and ensure production-ready bindings.
 
-**Workers Management API** requires post-processors for:
-1. **Discriminated unions** - OpenAPI discriminator schemas
-2. **JObject multipart** - Multipart form data with JObject
+#### Why Post-Processing?
 
-Use the automated generation script:
-```powershell
-cd generators/hawaii
-.\generate-workers.ps1  # Runs Hawaii + post-processors
+Hawaii is excellent at generating F# clients from OpenAPI specs, but some patterns require additional transformation:
+1. **Discriminated Unions**: OpenAPI discriminator schemas aren't natively supported
+2. **System.Text.Json**: Migration from Newtonsoft.Json for Fable compatibility
+3. **Namespace Standardization**: Ensuring consistent `CloudFlare.Management.*` naming
+
+#### Post-Processing Scripts
+
+Located in `generators/hawaii/`, these F# scripts run after Hawaii generation:
+
+**1. post-process-discriminators.fsx**
+
+Automatically generates F# discriminated unions from OpenAPI discriminator patterns.
+
+```fsharp
+// Before: Hawaii generates individual binding types
+type workersbindingkindr2bucket = { ... }
+type workersbindingkindd1 = { ... }
+type workersbindingkindkv = { ... }
+// ... 29 total binding types
+
+type workersbindings = list<workersbindingitem>  // ❌ Type 'workersbindingitem' not defined
+
+// After: Post-processor creates discriminated union
+type workersbindingitem =
+    | R2bucket of workersbindingkindr2bucket
+    | D1 of workersbindingkindd1
+    | Kv of workersbindingkindkv
+    // ... 26 more cases
+
+type workersbindings = list<workersbindingitem>  // ✅ Fully typed!
 ```
 
-See `generators/hawaii/POST-PROCESSORS.md` for details on post-processing scripts.
+**Usage**:
+```bash
+dotnet fsi post-process-discriminators.fsx ../../src/Management/CloudFlare.Management.Workers/Types.fs
+# Output: ✓ Successfully added discriminated union for workersbindingitem
+#         Cases: 29
+```
+
+**How it works**:
+1. Scans for type patterns matching `workersbindingkind*`
+2. Identifies the DU type name from list declarations
+3. Generates case constructors with proper F# naming
+4. Inserts before the list type declaration
+
+**2. System.Text.Json Migration**
+
+All Hawaii-generated `.fsproj` files now use `FSharp.SystemTextJson` instead of `Newtonsoft.Json`:
+
+```xml
+<!-- Old (Newtonsoft.Json) -->
+<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+<PackageReference Include="Fable.Remoting.Json" Version="2.18.0" />
+
+<!-- New (System.Text.Json) -->
+<PackageReference Include="FSharp.SystemTextJson" Version="1.3.13" />
+```
+
+This ensures Fable compatibility and aligns with modern F# serialization practices.
+
+#### Automated Generation Workflow
+
+For services requiring post-processing (currently Workers):
+
+```powershell
+# generators/hawaii/generate-workers.ps1
+
+# 1. Extract service spec
+dotnet fsi extract-services.fsx
+
+# 2. Generate with Hawaii
+hawaii --config workers-hawaii.json
+
+# 3. Apply post-processing
+dotnet fsi post-process-discriminators.fsx ../../src/Management/CloudFlare.Management.Workers/Types.fs
+
+# 4. Copy to source (with correct .fsproj)
+cp Generated-Workers/*.fs ../../src/Management/CloudFlare.Management.Workers/
+cp Generated-Workers/*.fsproj ../../src/Management/CloudFlare.Management.Workers/
+
+# 5. Verify compilation
+cd ../../src/Management/CloudFlare.Management.Workers && dotnet build
+```
+
+#### Post-Processing Success Stories
+
+**Workers Management API**:
+- ✅ 29 binding types successfully consolidated into discriminated union
+- ✅ Full type safety for all Worker binding configurations
+- ✅ Clean F# idioms without manual intervention
+- ✅ Zero compilation errors after post-processing
+
+**All Management APIs**:
+- ✅ System.Text.Json migration complete across 8 services
+- ✅ Consistent namespacing (`CloudFlare.Management.*`)
+- ✅ Fable-compatible serialization
+
+#### Future Enhancements
+
+These post-processing patterns are candidates for upstreaming to Hawaii:
+1. **Native discriminator support**: Hawaii could detect discriminator schemas and generate DUs directly
+2. **Attribute-based mapping**: Use `[<JsonPropertyName>]` for reserved keywords instead of backticks
+3. **Configurable serialization**: Select System.Text.Json vs Newtonsoft.Json via Hawaii config
 
 ## Lessons Learned
 
@@ -333,6 +427,7 @@ type CloudflareManagementClient(apiToken: string, ?httpClient: HttpClient) =
 ## Implementation Status
 
 ### Completed ✅
+- Workers Management API (with post-processing pipeline)
 - D1 Management API
 - R2 Management API
 - Analytics Management API
@@ -342,8 +437,8 @@ type CloudflareManagementClient(apiToken: string, ?httpClient: HttpClient) =
 - Durable Objects Management API
 
 ### In Progress 🔄
-- KV Management API (Hawaii generation issues)
-- Workers Management API (Hawaii generation issues)
+- KV Management API (Hawaii complex schema issues)
+- Logs Management API (extraction patterns pending)
 
 ### Planned 📝
 - DNS Management API

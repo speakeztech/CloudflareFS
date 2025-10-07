@@ -3,6 +3,7 @@
 [![NuGet](https://img.shields.io/nuget/v/CloudflareFS.Core.svg)](https://www.nuget.org/packages/CloudflareFS.Core/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE-MIT)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE-APACHE)
+[![Powered by Cloudflare](https://img.shields.io/badge/Powered%20by-Cloudflare-orange?logo=cloudflare&logoColor=white)](https://www.cloudflare.com)
 
 <div align="center">
 
@@ -69,6 +70,7 @@ CloudflareFS/
 | **Runtime** | CloudFlare.Vectorize | Vector database bindings |
 | **Runtime** | CloudFlare.Hyperdrive | Database connection pooling |
 | **Runtime** | CloudFlare.DurableObjects | Stateful serverless compute |
+| **Management** | CloudFlare.Management.Workers | Worker deployment and configuration |
 | **Management** | CloudFlare.Management.R2 | R2 bucket management |
 | **Management** | CloudFlare.Management.D1 | D1 database management |
 | **Management** | CloudFlare.Management.Analytics | Analytics API client |
@@ -80,13 +82,15 @@ CloudflareFS/
 ### 🔄 In Progress
 
 - CloudFlare.Management.KV (Hawaii generation issues)
-- CloudFlare.Management.Workers (Hawaii generation issues)
+- CloudFlare.Management.Logs (spec extraction pending)
 - Browser APIs (WebSockets, Streams, Cache, WebCrypto)
 
 ### 📝 Recent Updates
 
+- **Namespace Standardization** (January 2025): Unified all Management APIs under consistent `CloudFlare.Management.*` naming, removing legacy `Api.Compute.*` and `Api.Storage.*` patterns.
+- **System.Text.Json Migration**: All generated clients now use `FSharp.SystemTextJson` instead of `Newtonsoft.Json` for better Fable compatibility.
+- **Hawaii Post-Processing**: Automated post-processing pipeline for discriminated unions and type generation improvements.
 - **Vectorize V2 Migration**: Successfully migrated from deprecated V1 API to V2 (August 2024). Hawaii correctly skips deprecated operations.
-- **Pattern Matching Fixes**: Resolved F# pattern matching issues with @ symbols in generated code using backtick escaping.
 - **Full Compilation**: All Runtime and Management packages now compile cleanly with zero errors.
 
 ## Installation
@@ -101,6 +105,7 @@ dotnet add package CloudFlare.KV
 
 ### Management Packages (For Tools/Scripts)
 ```bash
+dotnet add package CloudFlare.Management.Workers
 dotnet add package CloudFlare.Management.D1
 dotnet add package CloudFlare.Management.R2
 dotnet add package CloudFlare.Management.Analytics
@@ -374,13 +379,25 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ### Development Areas
 
-Basically everything is in a constant state of flux right now. We're finding 'wrinkles' in both Glutinum and Hawaii that will need ironing out if they're going to produce "fire and forget" binding generation. Right now the focus is on finding those gaps and determining whether it's just a matter of building pre- and post-processing here in CloudflareFS or "working back" into those tools and updating them for general use.
+CloudflareFS is advancing toward production-ready bindings through systematic tool improvement and comprehensive coverage:
 
-- Complete remaining Runtime bindings (Durable Objects, Queues)
-- Fix Hawaii generation for KV/Workers Management APIs
-- Build the `cfs` CLI tool
-- Create more sample applications
-- Improve documentation
+**Completed**:
+- ✅ Management API namespace standardization (all services now use `CloudFlare.Management.*`)
+- ✅ Workers Management API with automated post-processing for discriminated unions
+- ✅ System.Text.Json migration for Fable compatibility
+- ✅ All Runtime bindings (KV, R2, D1, AI, Queues, Vectorize, Hyperdrive, DurableObjects)
+- ✅ 8 Management APIs fully generated and compiling
+
+**In Progress**:
+- 🔄 KV Management API (Hawaii generation challenges)
+- 🔄 Logs Management API (extraction patterns pending)
+- 🔄 Tool improvement analysis for Glutinum and Hawaii
+
+**Future Work**:
+- Build the `cfs` CLI tool for type-safe deployment
+- Create Firetower monitoring application
+- Expand sample applications and documentation
+- Contribute improvements back to Glutinum and Hawaii
 
 ## Support
 

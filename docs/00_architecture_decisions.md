@@ -14,13 +14,18 @@ CloudflareFS implements a **dual-layer architecture** that separates Runtime API
 - **CloudFlare.AI**: Workers AI service bindings
 
 ### ✅ Completed Management APIs (Layer 2)
+- **CloudFlare.Management.Workers**: Worker deployment and configuration (Hawaii-generated with post-processing)
 - **CloudFlare.Management.R2**: R2 bucket management (Hawaii-generated)
 - **CloudFlare.Management.D1**: D1 database management (Hawaii-generated)
 - **CloudFlare.Management.Analytics**: Analytics API (Hawaii-generated)
+- **CloudFlare.Management.Queues**: Queue management (Hawaii-generated)
+- **CloudFlare.Management.Vectorize**: Vector index management V2 (Hawaii-generated)
+- **CloudFlare.Management.Hyperdrive**: Connection config management (Hawaii-generated)
+- **CloudFlare.Management.DurableObjects**: Namespace management (Hawaii-generated)
 
 ### 🔄 In Progress
-- **CloudFlare.Management.KV**: KV namespace management (Hawaii issues)
-- **CloudFlare.Management.Workers**: Worker deployment (Hawaii issues)
+- **CloudFlare.Management.KV**: KV namespace management (Hawaii complex schema issues)
+- **CloudFlare.Management.Logs**: Logs API (extraction patterns pending)
 
 ## The Two-Layer Architecture
 
@@ -219,20 +224,23 @@ Desktop/web monitoring application:
 
 ## Lessons Learned
 
-1. **Hawaii Limitations**: Some complex OpenAPI structures cause null reference exceptions (KV, Workers specs)
+1. **Hawaii Limitations**: Some complex OpenAPI structures cause null reference exceptions (KV specs remain problematic)
 2. **OpenAPI Size**: Large specs need segmentation for tooling compatibility
-3. **Namespace Consistency**: Generated code needs namespace updates to match project structure
-4. **Dual Benefits**: Separation enables both infrastructure-as-code AND runtime operations in F#
-5. **Portability Matters**: Avoiding .NET-specific patterns (Task, HttpClient) enables compilation via Fable and Fidelity
-6. **F# Native Patterns**: Using async workflows and Result types maintains compatibility across all F# toolchains
+3. **Namespace Standardization**: Consistent `CloudFlare.Management.*` naming eliminates confusion and improves discoverability
+4. **Post-Processing Pipeline**: Automated discriminated union generation and System.Text.Json migration are essential for production-ready clients
+5. **Dual Benefits**: Separation enables both infrastructure-as-code AND runtime operations in F#
+6. **Portability Matters**: Avoiding .NET-specific patterns (Task, HttpClient) enables compilation via Fable and Fidelity
+7. **F# Native Patterns**: Using async workflows and Result types maintains compatibility across all F# toolchains
+8. **Discriminator Support**: Hawaii doesn't natively support OpenAPI discriminator schemas; post-processing successfully bridges this gap
 
 ## Next Steps
 
-1. **Fix Hawaii Issues**: Debug null reference exceptions for KV/Workers specs
-2. **Complete Runtime Bindings**: Durable Objects, Queues, Vectorize
-3. **Expand Management APIs**: DNS, Zero Trust, Workers deployment
+1. **Fix Hawaii Issues**: Debug null reference exceptions for KV specs
+2. **Complete Management APIs**: Logs extraction and generation
+3. **Expand Management APIs**: DNS, Zero Trust, additional services
 4. **Build CLI Tool**: Implement `cfs` leveraging both API layers
 5. **Create Firetower**: Monitoring tool using Management APIs
+6. **Tool Contributions**: Submit post-processing patterns back to Hawaii for native discriminator support
 
 ## Conclusion
 

@@ -140,6 +140,29 @@ hawaii --config generators/hawaii/d1-hawaii.json
 - Use `async { }` not `Task<T>` for Fable/Fidelity compatibility
 - Return `Async<Result<'T, 'Error>>` for functional error handling
 - No System.Net.Http or .NET-specific dependencies
+- Use `FSharp.SystemTextJson` for serialization (not `Newtonsoft.Json`)
+
+### 5. Post-Processing Pipeline
+- **Discriminated Union Generation**: `post-process-discriminators.fsx` automatically creates DU types for binding variants
+- **System.Text.Json Migration**: All generated clients use `FSharp.SystemTextJson` for Fable compatibility
+- **Namespace Correction**: Automated fixes for any namespace mismatches during generation
+
+**Example Post-Processing**:
+```bash
+# After Hawaii generation
+dotnet fsi post-process-discriminators.fsx ../../src/Management/CloudFlare.Management.Workers/Types.fs
+# Output: Creates workersbindingitem DU with 29 cases
+```
+
+**Generated Output**:
+```fsharp
+// Auto-generated discriminated union
+type workersbindingitem =
+    | Assets of workersbindingkindassets
+    | D1 of workersbindingkindd1
+    | R2bucket of workersbindingkindr2bucket
+    // ... 26 more cases
+```
 
 ## Common Issues and Solutions
 
@@ -155,10 +178,17 @@ hawaii --config generators/hawaii/d1-hawaii.json
 **Long-Term Solution**: Attribute-based semantic mapping (`CompiledName` for Glutinum, `JsonPropertyName` for Hawaii)
 **Reference**: See `08_conversion_patterns.md` and `09_tool_improvement_analysis.md`
 
+### Issue: Hawaii Discriminated Unions
+**Problem**: Hawaii doesn't natively support OpenAPI discriminator schemas
+**Solution**: Post-processing script generates F# discriminated unions from binding type patterns
+**Status**: ✅ Solved with automated post-processing
+**Example**: Workers binding types (29 variants) now fully typed via `post-process-discriminators.fsx`
+
 ### Issue: Hawaii Null Reference Exceptions
-**Problem**: Complex nested schemas cause Hawaii crashes (KV, Workers APIs)
-**Current Status**: Under investigation
-**Workaround**: May require manual implementation or Hawaii enhancements for complex schemas
+**Problem**: Complex nested schemas cause Hawaii crashes (currently only KV Management API)
+**Current Status**: Under investigation for KV schemas
+**Workaround**: Manual implementation or schema simplification may be required
+**Completed**: Workers Management API now fully functional with post-processing pipeline
 
 ### Issue: Duplicate Type Definitions
 **Problem**: Same types defined in multiple services

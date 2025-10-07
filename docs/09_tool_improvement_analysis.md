@@ -878,20 +878,21 @@ jobs:
 
 ## Metrics for Success
 
-### Current State (Baseline)
-- **Manual Intervention Required**: ~80% of generated code
-- **Compilation Success Rate**: 100% after manual fixes, ~20% before
-- **Generation Time**: ~5 minutes (with manual fixes: +30 minutes)
+### Current State (January 2025)
+- **Manual Intervention Required**: ~10% of generated code (down from 80%)
+- **Compilation Success Rate**: 100% after automated post-processing, ~90% before
+- **Generation Time**: ~5 minutes (with post-processing: +2 minutes)
 - **Services with Issues**:
-  - Vectorize (pattern matching)
-  - KV/Workers (Hawaii null ref)
-  - DurableObjects (object expressions)
+  - ✅ Workers (resolved with post-processing pipeline)
+  - ✅ Vectorize (pattern matching resolved with backticks)
+  - ✅ DurableObjects (compiled successfully)
+  - 🔄 KV (Hawaii null ref issues remain)
 
-### Target State (After Improvements)
+### Target State (After Tool Improvements)
 - **Manual Intervention Required**: <5%
-- **Compilation Success Rate**: >95% immediate
+- **Compilation Success Rate**: >95% immediate (without post-processing)
 - **Generation Time**: ~5 minutes (total, including validation)
-- **Services with Issues**: 0 (all automated fixes)
+- **Services with Issues**: 0 (all native tool support)
 
 ## Tool-Specific Analysis
 
@@ -946,9 +947,10 @@ Based on the repository and documentation:
 - Early-stage tool with potential rough edges
 
 **CloudflareFS-Specific Issues**:
-1. Null reference exceptions on KV/Workers specs (complex schemas)
-2. Special character handling in discriminated unions
-3. Reserved keyword escaping
+1. ✅ Workers spec discriminated unions (resolved with post-processing)
+2. 🔄 KV spec null reference exceptions (complex schemas - still under investigation)
+3. ⚠️ Special character handling in discriminated unions (workaround: backticks)
+4. ⚠️ Reserved keyword escaping (workaround: backticks)
 
 **Recommended Enhancement Points**:
 1. Enhanced null safety in schema parsing
