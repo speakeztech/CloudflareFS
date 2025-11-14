@@ -210,6 +210,20 @@ Manually triggers a search and analysis.
 
 ## Features
 
+### 📱 Phone Notifications (NEW!)
+
+The agent includes a sophisticated notification system powered by **Cloudflare Durable Objects**:
+
+- **Smart Deduplication** - Never get spammed with the same deal twice
+- **Rate Limiting** - Control notification frequency (daily limits, minimum hours between)
+- **Intelligent Filtering** - Only notify for significant deals (price thresholds, historical lows)
+- **Multiple Channels** - Pushover, Telegram, Discord, SMS, and more
+- **Stateful Singleton** - Durable Object manages notification state persistently
+
+**Recommended**: Use [Pushover](https://pushover.net/) for instant, reliable phone notifications ($5 one-time purchase).
+
+See [NOTIFICATIONS.md](NOTIFICATIONS.md) for complete setup guide and [EXAMPLE_INTEGRATION.md](EXAMPLE_INTEGRATION.md) for code examples.
+
 ### Intelligent Model Validation
 
 The agent uses multiple validation techniques to ensure accuracy:
@@ -363,12 +377,13 @@ The current implementation includes placeholder search results. For production u
 ## Future Enhancements
 
 - [ ] Integration with real web search APIs
-- [ ] Email/Discord notifications for price drops
+- [x] **Phone notifications via Pushover/Telegram/Discord** (IMPLEMENTED!)
+- [x] **Durable Object for smart notification management** (IMPLEMENTED!)
 - [ ] Database storage (D1) for more comprehensive history
 - [ ] Price prediction using ML models
 - [ ] Multi-currency support
 - [ ] Comparison charts and visualizations
-- [ ] Mobile app with push notifications
+- [ ] Web dashboard for notification settings
 
 ## Contributing
 

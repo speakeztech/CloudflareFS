@@ -15,7 +15,21 @@ id = "your-kv-namespace-id"  # Replace with your KV namespace ID
 [ai]
 binding = "AI"
 
+# Durable Object for notification management
+[[durable_objects.bindings]]
+name = "NOTIFICATION_MANAGER"
+class_name = "NotificationManagerDO"
+script_name = "laptop-deal-agent"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["NotificationManagerDO"]
+
 # Environment variables
 [vars]
 ENVIRONMENT = "production"
 SEARCH_KEYWORDS = "ASUS ROG Flow Z13 2025 GZ302 Black Friday deal price"
+
+# Notification credentials should be set as secrets (not in this file!)
+# Use: wrangler secret put PUSHOVER_API_TOKEN
+# Use: wrangler secret put PUSHOVER_USER_KEY

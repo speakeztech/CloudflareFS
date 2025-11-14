@@ -9,6 +9,9 @@
     <Compile Include="Types.fs" />
     <Compile Include="SearchAgent.fs" />
     <Compile Include="PriceAnalyzer.fs" />
+    <Compile Include="NotificationTypes.fs" />
+    <Compile Include="NotificationChannels.fs" />
+    <Compile Include="NotificationManager.fs" />
     <Compile Include="LaptopDealAgent.fs" />
   </ItemGroup>
 
@@ -16,6 +19,7 @@
     <ProjectReference Include="..\..\src\Runtime\CloudFlare.Worker.Context\CloudFlare.Worker.Context.fsproj" />
     <ProjectReference Include="..\..\src\Runtime\CloudFlare.AI\CloudFlare.AI.fsproj" />
     <ProjectReference Include="..\..\src\Runtime\CloudFlare.KV\CloudFlare.KV.fsproj" />
+    <ProjectReference Include="..\..\src\Runtime\CloudFlare.DurableObjects\CloudFlare.DurableObjects.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
