@@ -4,15 +4,18 @@ An intelligent Cloudflare Worker built with F# and CloudflareFS that automatical
 
 ## Overview
 
-This project demonstrates an agentic system built with F# and Fable that:
+This project demonstrates an **AI-powered parallel actor system** built with F# and Fable that:
 
-- **Searches the web** for specific laptop models using Cloudflare AI
-- **Validates product matches** to ensure accuracy (model numbers, RAM configurations)
-- **Extracts pricing information** from search results
-- **Tracks price history** using Cloudflare KV storage
-- **Analyzes price trends** and provides purchase recommendations
-- **Runs automatically** every hour via Cloudflare cron triggers
-- **Generates HTML reports** with current best prices and historical data
+- 🤖 **AI-Powered Analysis** - Uses Cloudflare AI (Llama-3-8B) to intelligently extract product details from web pages
+- ⚡ **Parallel Actor System** - Durable Objects act as independent search agents, one per laptop model
+- 🔄 **Idempotent Processing** - Only processes new URLs or price drops, ignoring duplicates
+- 💰 **Smart Price Filtering** - Enforces thresholds ($2,000 for 64GB, $2,300 for 128GB)
+- ✅ **Strict Validation** - Verifies model numbers, condition (new/refurbished), and retailer reputation
+- 📦 **Quantity Tracking** - Extracts stock availability ("Only 3 left") from listings
+- 📊 **Deep Page Scraping** - Fetches and analyzes individual product pages, not just search results
+- 🏪 **Reputable Retailers Only** - Validates against whitelist (Best Buy, Amazon, Newegg, etc.)
+- 📱 **React Dashboard** - Beautiful DaisyUI v4 interface to view all deals
+- 🔔 **Pushover Notifications** - Instant phone alerts linking to dashboard
 
 ## Target Laptops
 
@@ -32,53 +35,85 @@ The agent uses sophisticated validation to ensure it only tracks these exact mod
 
 ## Architecture
 
-### Components
+### 🎯 AI-Powered Actor System
 
-1. **Types.fs** - Core data structures
-   - `LaptopModel` - Discriminated union for the two laptop variants
-   - `SearchResult` - Web search results
-   - `PriceInfo` - Extracted price information
-   - `PriceHistoryEntry` - Historical price data
-   - `DealAnalysis` - Price analysis and recommendations
+**See [AI_ACTOR_SYSTEM.md](AI_ACTOR_SYSTEM.md) for comprehensive architecture documentation.**
 
-2. **SearchAgent.fs** - Web search and scraping
-   - Model number extraction and validation
-   - Price extraction from text (supports $, €, £)
-   - Black Friday deal detection
-   - Discount percentage extraction
-   - Stock availability checking
-   - Retailer identification
+Quick overview:
 
-3. **PriceAnalyzer.fs** - Price analysis and reporting
-   - Price trend analysis (increasing/decreasing/stable)
-   - Historical price comparison
+```
+Orchestrator (Main Worker)
+    │
+    ├─→ SearchActor (64GB) ──→ AI Analyzer ──→ Valid Deals
+    │   • Idempotent state                      │
+    │   • Price tracking                        │
+    │   • URL deduplication                     │
+    │                                           ↓
+    └─→ SearchActor (128GB) ──→ AI Analyzer ──→ KV Storage
+        • Independent execution                  │
+        • Parallel processing                    │
+        • Isolated failures                      ↓
+                                            React Dashboard
+                                                 │
+                                                 ↓
+                                          Pushover Notifications
+```
+
+### Core Components
+
+1. **AIAnalyzer.fs** - Cloudflare AI-powered page analysis
+   - Deep page scraping (fetches actual HTML)
+   - Intelligent product extraction using Llama-3-8B
+   - Validates model, condition, price, retailer, quantity
+   - Returns structured PriceInfo or rejects invalid listings
+
+2. **SearchActor.fs** - Durable Object actor (one per model)
+   - Maintains idempotent state (tracked URLs + prices)
+   - Only processes new URLs or price drops
+   - Coordinates parallel searches
+   - Persists state across worker invocations
+
+3. **SearchOrchestrator.fs** - Parallel coordination
+   - Spawns actors for each model
+   - Executes searches in parallel
+   - Aggregates results from all actors
+
+4. **Types.fs** - Enhanced data structures
+   - Added: `Condition`, `Quantity`, `StockText`, `Title`
+   - New: `TrackedUrl`, `SearchActorState` for idempotency
+
+5. **PriceAnalyzer.fs** - Price analysis and reporting
+   - Price trend analysis
+   - Historical comparison
    - Purchase recommendations
-   - KV storage operations
    - HTML report generation
 
-4. **LaptopDealAgent.fs** - Main worker
-   - Scheduled task execution
-   - HTTP request handling
-   - Manual trigger support
-   - Status endpoints
+6. **NotificationManager.fs** - Durable Object for smart notifications
+   - Deduplication
+   - Rate limiting
+   - Multi-channel support (Pushover, Telegram, Discord, SMS)
 
-### Data Flow
+### Price Thresholds
 
-```
-Cron Trigger (hourly)
-    ↓
-Search Agent
-    ↓ (Web searches with AI)
-Multiple Search Results
-    ↓ (Validation & Parsing)
-Filtered Price Information
-    ↓
-KV Storage (Price History)
-    ↓
-Price Analyzer
-    ↓ (Analysis & Recommendations)
-HTML Report
-```
+| Model | RAM | Max Price | Enforced By |
+|-------|-----|-----------|-------------|
+| GZ302EA-R9641TB | 64GB | **$2,000** | AI Analyzer |
+| GZ302EA-XS99 | 128GB | **$2,300** | AI Analyzer |
+
+### Validation Rules
+
+✅ **Must Pass (or rejected):**
+- Exact model number match
+- New OR Certified Refurbished condition
+- Price under threshold
+- Reputable retailer (Best Buy, Amazon, Newegg, B&H, ASUS, etc.)
+- In stock or available
+
+📦 **Extracted (if available):**
+- Quantity (e.g., "Only 3 left in stock")
+- Stock text
+- Discount percentage
+- Original price
 
 ## Prerequisites
 

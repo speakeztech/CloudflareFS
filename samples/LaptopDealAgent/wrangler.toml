@@ -21,9 +21,19 @@ name = "NOTIFICATION_MANAGER"
 class_name = "NotificationManagerDO"
 script_name = "laptop-deal-agent"
 
+# Durable Object for parallel search actors
+[[durable_objects.bindings]]
+name = "SEARCH_ACTOR"
+class_name = "SearchActorDO"
+script_name = "laptop-deal-agent"
+
 [[migrations]]
 tag = "v1"
 new_classes = ["NotificationManagerDO"]
+
+[[migrations]]
+tag = "v2"
+new_classes = ["SearchActorDO"]
 
 # Environment variables
 [vars]

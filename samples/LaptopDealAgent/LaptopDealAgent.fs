@@ -8,6 +8,9 @@ open CloudFlare.Worker.Context.Globals
 open CloudFlare.Worker.Context.Helpers
 open CloudFlare.Worker.Context.Helpers.ResponseBuilder
 open LaptopDealAgent.Types
+open LaptopDealAgent.AIAnalyzer
+open LaptopDealAgent.SearchActor
+open LaptopDealAgent.SearchOrchestrator
 open LaptopDealAgent.SearchAgent
 open LaptopDealAgent.PriceAnalyzer
 
@@ -17,6 +20,7 @@ type LaptopAgentEnv =
     inherit Env
     abstract PRICE_HISTORY: obj
     abstract AI: obj
+    abstract SEARCH_ACTOR: obj
 
 /// Store current deals in KV for API access
 let storeCurrentDeals (kv: obj) (deals: PriceInfo list) : JS.Promise<unit> =
@@ -61,24 +65,11 @@ let runScheduledTask (env: LaptopAgentEnv) : JS.Promise<string> =
         printfn "🤖 Starting laptop deal agent..."
 
         try
-            // Configuration
-            let config = {
-                SearchKeywords = [
-                    "ASUS ROG Flow Z13 2025 GZ302EA-R9641TB 64GB Black Friday"
-                    "ASUS ROG Flow Z13 2025 GZ302EA-XS99 128GB Black Friday"
-                    "ROG Flow Z13 GZ302 AMD Ryzen AI Max+ 395 price"
-                    "ASUS ROG Flow Z13 2025 Black Friday deal"
-                ]
-                MaxSearchResults = 20
-                MinPriceConfidence = 0.7
-                EnableNotifications = true
-            }
+            // Execute parallel AI-powered searches using actor system
+            printfn "🔍 Orchestrating parallel AI searches with idempotency..."
+            let! priceInfos = orchestrateParallelSearches env
 
-            // Search for deals
-            printfn "🔍 Searching for laptop deals..."
-            let! priceInfos = searchForDeals env.AI config
-
-            printfn $"Found {priceInfos.Length} price listings"
+            printfn $"✅ Found {priceInfos.Length} valid deals from parallel actors"
 
             // Store price information
             printfn "💾 Storing price history..."
@@ -239,3 +230,10 @@ let handler: obj =
         fetch = fetch
         scheduled = handleScheduled
     |} :> obj
+
+// Export the Durable Object classes
+[<ExportNamed("NotificationManagerDO")>]
+let notificationManagerDO = LaptopDealAgent.NotificationManager.NotificationManagerDO
+
+[<ExportNamed("SearchActorDO")>]
+let searchActorDO = LaptopDealAgent.SearchActor.SearchActorDO

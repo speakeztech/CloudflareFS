@@ -31,7 +31,7 @@ type SearchResult = {
 
 /// Price information extracted from a search result
 type PriceInfo = {
-    Model: LaptopModel
+    Model: string
     Price: decimal option
     Currency: string
     Retailer: string
@@ -41,6 +41,10 @@ type PriceInfo = {
     DiscountPercentage: float option
     OriginalPrice: decimal option
     DetectedAt: DateTime
+    Condition: string option
+    Quantity: int option
+    StockText: string option
+    Title: string
 }
 
 /// Historical price data point
@@ -72,4 +76,29 @@ type AgentConfig = {
     MaxSearchResults: int
     MinPriceConfidence: float
     EnableNotifications: bool
+}
+
+/// Tracked URL with price for idempotency
+type TrackedUrl = {
+    Url: string
+    LastPrice: decimal
+    LastSeen: DateTime
+    FirstSeen: DateTime
+    PriceHistory: (DateTime * decimal) list
+}
+
+/// Search actor state for idempotency
+type SearchActorState = {
+    Model: LaptopModel
+    TrackedUrls: Map<string, TrackedUrl>
+    TotalDealsFound: int
+    LastRun: DateTime option
+}
+
+/// Default state for a search actor
+let defaultSearchActorState model = {
+    Model = model
+    TrackedUrls = Map.empty
+    TotalDealsFound = 0
+    LastRun = None
 }
