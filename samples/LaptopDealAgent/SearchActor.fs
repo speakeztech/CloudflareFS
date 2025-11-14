@@ -40,8 +40,8 @@ type SearchActorDO(state: DurableObjectState, env: obj) =
             | None -> ()
         }
 
-    /// Check if URL should be processed (new or price drop)
-    member this.ShouldProcessUrl(url: string, newPrice: decimal) : bool * string =
+    /// Check if URL should be processed (new, price drop, or stock drop)
+    member this.ShouldProcessUrl(url: string, newPrice: decimal, newQuantity: int option) : bool * string =
         match actorState with
         | None -> (true, "No state initialized")
         | Some st ->
@@ -49,15 +49,31 @@ type SearchActorDO(state: DurableObjectState, env: obj) =
             | None ->
                 (true, "New URL")
             | Some tracked ->
-                if newPrice < tracked.LastPrice then
+                // Check for price drop
+                let priceDropped = newPrice < tracked.LastPrice
+
+                // Check for quantity drop (stock running out)
+                let quantityDropped =
+                    match tracked.LastQuantity, newQuantity with
+                    | Some oldQty, Some newQty when newQty < oldQty ->
+                        true
+                    | _ -> false
+
+                if priceDropped then
                     let drop = tracked.LastPrice - newPrice
                     let percentDrop = (drop / tracked.LastPrice) * 100M
                     (true, $"Price drop: ${drop:F2} ({percentDrop:F1}%)")
+                elif quantityDropped then
+                    match tracked.LastQuantity, newQuantity with
+                    | Some oldQty, Some newQty ->
+                        let qtyDrop = oldQty - newQty
+                        (true, $"Stock drop: {qtyDrop} units ({oldQty} → {newQty})")
+                    | _ -> (false, "No changes")
                 else
                     (false, $"Already tracked at ${tracked.LastPrice:F2}")
 
-    /// Update tracked URL with new price
-    member this.UpdateTrackedUrl(url: string, price: decimal) =
+    /// Update tracked URL with new price and quantity
+    member this.UpdateTrackedUrl(url: string, price: decimal, quantity: int option) =
         match actorState with
         | None -> ()
         | Some st ->
@@ -70,17 +86,31 @@ type SearchActorDO(state: DurableObjectState, env: obj) =
                     {
                         Url = url
                         LastPrice = price
+                        LastQuantity = quantity
                         LastSeen = now
                         FirstSeen = now
                         PriceHistory = [(now, price)]
+                        QuantityHistory =
+                            match quantity with
+                            | Some qty -> [(now, qty)]
+                            | None -> []
                     }
                 | Some tracked ->
                     // Update existing
+                    let newQuantityHistory =
+                        match quantity with
+                        | Some qty ->
+                            (now, qty) :: tracked.QuantityHistory
+                            |> List.take (min 50 (tracked.QuantityHistory.Length + 1))
+                        | None -> tracked.QuantityHistory
+
                     {
                         tracked with
                             LastPrice = price
+                            LastQuantity = quantity
                             LastSeen = now
                             PriceHistory = (now, price) :: tracked.PriceHistory |> List.take (min 50 (tracked.PriceHistory.Length + 1))
+                            QuantityHistory = newQuantityHistory
                     }
 
             actorState <- Some {
@@ -129,12 +159,12 @@ type SearchActorDO(state: DurableObjectState, env: obj) =
                                 | None ->
                                     return None
                                 | Some price ->
-                                    // Check if we should process this URL
-                                    let shouldProcess, reason = this.ShouldProcessUrl(url, price)
+                                    // Check if we should process this URL (checks for price drop or stock drop)
+                                    let shouldProcess, reason = this.ShouldProcessUrl(url, price, priceInfo.Quantity)
 
                                     if shouldProcess then
                                         printfn "[SearchActor %s] ✓ Processing: %s - %s" model.ModelNumber url reason
-                                        this.UpdateTrackedUrl(url, price)
+                                        this.UpdateTrackedUrl(url, price, priceInfo.Quantity)
                                         return Some priceInfo
                                     else
                                         printfn "[SearchActor %s] ⊘ Skipping: %s - %s" model.ModelNumber url reason

@@ -8,7 +8,7 @@ This project demonstrates an **AI-powered parallel actor system** built with F# 
 
 - 🤖 **AI-Powered Analysis** - Uses Cloudflare AI (Llama-3-8B) to intelligently extract product details from web pages
 - ⚡ **Parallel Actor System** - Durable Objects act as independent search agents, one per laptop model
-- 🔄 **Idempotent Processing** - Only processes new URLs or price drops, ignoring duplicates
+- 🔄 **Idempotent Processing** - Only processes new URLs, price drops, or stock drops (ignoring duplicates)
 - 💰 **Smart Price Filtering** - Enforces thresholds ($2,000 for 64GB, $2,300 for 128GB)
 - ✅ **Strict Validation** - Verifies model numbers, condition (new/refurbished), and retailer reputation
 - 📦 **Quantity Tracking** - Extracts stock availability ("Only 3 left") from listings
@@ -68,10 +68,10 @@ Orchestrator (Main Worker)
    - Returns structured PriceInfo or rejects invalid listings
 
 2. **SearchActor.fs** - Durable Object actor (one per model)
-   - Maintains idempotent state (tracked URLs + prices)
-   - Only processes new URLs or price drops
+   - Maintains idempotent state (tracked URLs + prices + quantities)
+   - Only processes new URLs, price drops, or stock drops
    - Coordinates parallel searches
-   - Persists state across worker invocations
+   - Persists state across worker invocations with price and quantity history
 
 3. **SearchOrchestrator.fs** - Parallel coordination
    - Spawns actors for each model
@@ -80,7 +80,8 @@ Orchestrator (Main Worker)
 
 4. **Types.fs** - Enhanced data structures
    - Added: `Condition`, `Quantity`, `StockText`, `Title`
-   - New: `TrackedUrl`, `SearchActorState` for idempotency
+   - New: `TrackedUrl` with price and quantity history for idempotency
+   - New: `SearchActorState` for maintaining actor state
 
 5. **PriceAnalyzer.fs** - Price analysis and reporting
    - Price trend analysis

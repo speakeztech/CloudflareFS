@@ -78,13 +78,15 @@ type AgentConfig = {
     EnableNotifications: bool
 }
 
-/// Tracked URL with price for idempotency
+/// Tracked URL with price and quantity for idempotency
 type TrackedUrl = {
     Url: string
     LastPrice: decimal
+    LastQuantity: int option
     LastSeen: DateTime
     FirstSeen: DateTime
     PriceHistory: (DateTime * decimal) list
+    QuantityHistory: (DateTime * int) list
 }
 
 /// Search actor state for idempotency

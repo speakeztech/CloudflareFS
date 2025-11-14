@@ -66,11 +66,11 @@ The system uses a **distributed actor model** powered by Cloudflare Durable Obje
 Each SearchActor is a **stateful singleton** for a specific laptop model:
 
 **Responsibilities:**
-- Maintain idempotency state (tracked URLs + prices)
+- Maintain idempotency state (tracked URLs + prices + quantities)
 - Execute web searches for assigned model
 - Deep analyze each URL with AI
-- Track price changes over time
-- Filter duplicates (only process new URLs or price drops)
+- Track price and quantity changes over time
+- Filter duplicates (only process new URLs, price drops, or stock drops)
 
 **State:**
 ```fsharp
@@ -84,29 +84,42 @@ type SearchActorState = {
 type TrackedUrl = {
     Url: string
     LastPrice: decimal
+    LastQuantity: int option
     LastSeen: DateTime
     FirstSeen: DateTime
     PriceHistory: (DateTime * decimal) list
+    QuantityHistory: (DateTime * int) list
 }
 ```
 
 **Key Methods:**
 - `ExecuteSearch` - Orchestrates search for the model
-- `ShouldProcessUrl` - Idempotency check (new URL or price drop?)
-- `UpdateTrackedUrl` - Updates price tracking
+- `ShouldProcessUrl` - Idempotency check (new URL, price drop, or stock drop?)
+- `UpdateTrackedUrl` - Updates price and quantity tracking with history
 - `PerformWebSearch` - Gets candidate URLs (placeholder for real search API)
 
 **Idempotency Logic:**
 ```fsharp
-member this.ShouldProcessUrl(url: string, newPrice: decimal) : bool * string =
+member this.ShouldProcessUrl(url: string, newPrice: decimal, newQuantity: int option) : bool * string =
     match st.TrackedUrls.TryFind url with
     | None ->
         (true, "New URL")  // ✓ Process new URLs
     | Some tracked ->
-        if newPrice < tracked.LastPrice then
-            (true, $"Price drop!")  // ✓ Process price drops
+        // Check for price drop
+        let priceDropped = newPrice < tracked.LastPrice
+
+        // Check for quantity drop (stock running out)
+        let quantityDropped =
+            match tracked.LastQuantity, newQuantity with
+            | Some oldQty, Some newQty when newQty < oldQty -> true
+            | _ -> false
+
+        if priceDropped then
+            (true, "Price drop!")  // ✓ Process price drops
+        elif quantityDropped then
+            (true, "Stock drop!")  // ✓ Process stock drops
         else
-            (false, $"Already tracked")  // ✗ Skip unchanged
+            (false, "Already tracked")  // ✗ Skip unchanged
 ```
 
 ### 2. AIAnalyzer
@@ -256,8 +269,8 @@ Any listing above these thresholds is **automatically rejected** by the AI analy
 ```
 1. Actor searches for URLs
 2. Finds: https://bestbuy.com/asus-rog-z13
-3. Checks: TrackedUrls[$1,899]
-4. AI analyzes page → $1,699
+3. Checks: TrackedUrls[$1,899, qty: 15]
+4. AI analyzes page → $1,699, qty: 15
 5. Decision: ✓ Process (price drop $200!)
 6. Updates: URL → $1,699 in TrackedUrls
 7. Adds to history: (now, $1,699)
@@ -265,13 +278,27 @@ Any listing above these thresholds is **automatically rejected** by the AI analy
 9. → Triggers notification (if configured)
 ```
 
+### Scenario 4: Stock Drop!
+
+```
+1. Actor searches for URLs
+2. Finds: https://bestbuy.com/asus-rog-z13
+3. Checks: TrackedUrls[$1,899, qty: 15]
+4. AI analyzes page → $1,899, qty: 3
+5. Decision: ✓ Process (stock drop: 12 units, 15 → 3)
+6. Updates: URL → qty: 3 in TrackedUrls
+7. Adds to quantity history: (now, 3)
+8. Returns: PriceInfo with updated quantity
+9. → Triggers notification: "⚠️ Only 3 left!"
+```
+
 ## Integration with Notifications
 
-When a price drop is detected, the system can trigger Pushover notifications:
+When a price drop or stock drop is detected, the system can trigger Pushover notifications:
 
 ```fsharp
+// Price drop notification
 if newPrice < tracked.LastPrice then
-    // This is a price drop - notify user!
     let event = {
         Model = model.ModelNumber
         Price = newPrice
@@ -279,7 +306,17 @@ if newPrice < tracked.LastPrice then
         Priority = High  // Price drop = high priority
         // ...
     }
+    notifyDeal env userId event rules channels dashboardUrl
 
+// Stock drop notification (running out!)
+| Some oldQty, Some newQty when newQty < oldQty ->
+    let event = {
+        Model = model.ModelNumber
+        Quantity = Some newQty
+        StockText = Some $"Only {newQty} left in stock!"
+        Priority = if newQty <= 5 then High else Normal
+        // ...
+    }
     notifyDeal env userId event rules channels dashboardUrl
 ```
 
@@ -407,9 +444,20 @@ type LaptopAgentEnv =
 2. Find same 9 URLs
 3. Idempotency: 8 unchanged, 1 price drop ($1,899 → $1,699)
 4. Process: 1 price drop
-5. Update tracking, add to history
+5. Update tracking, add to price history
 6. Result: 1 updated deal
 7. Notification: "🔥 PRICE DROP $200!"
+```
+
+**Hour 4 (Stock drop!):**
+```
+1. Same actors
+2. Find same 9 URLs
+3. Idempotency: 8 unchanged, 1 stock drop (15 → 3 units)
+4. Process: 1 stock drop (same price, different quantity)
+5. Update tracking, add to quantity history
+6. Result: 1 updated deal
+7. Notification: "⚠️ Only 3 left in stock!"
 ```
 
 ## Development Tips
