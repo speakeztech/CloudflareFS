@@ -123,31 +123,47 @@ Orchestrator (Main Worker)
 - Wrangler CLI: `npm install -g wrangler`
 - Cloudflare account with:
   - Workers enabled
-  - KV namespace created
-  - AI binding configured (optional, for enhanced search)
+  - D1 database created
+  - AI binding configured
+  - Durable Objects enabled
 
 ## Setup
 
-### 1. Create KV Namespace
+### 1. Create D1 Database
 
 ```bash
-# Create a KV namespace for price history
-wrangler kv:namespace create "PRICE_HISTORY"
+cd samples/LaptopDealAgent
 
-# Note the namespace ID returned
+# Create D1 database
+wrangler d1 create laptop-deals
+
+# Note the database ID returned and update wrangler.toml
 ```
 
-### 2. Update Configuration
+See [D1_SETUP.md](D1_SETUP.md) for complete database setup instructions.
 
-Edit `wrangler.toml` and update the KV namespace ID:
+### 2. Run Database Migration
+
+```bash
+# Apply schema locally for development
+wrangler d1 execute laptop-deals --local --file=./migrations/0001_initial_schema.sql
+
+# Apply schema to production
+wrangler d1 execute laptop-deals --file=./migrations/0001_initial_schema.sql
+```
+
+### 3. Update Configuration
+
+Edit `wrangler.toml` and update the D1 database ID:
 
 ```toml
-[[kv_namespaces]]
-binding = "PRICE_HISTORY"
-id = "your-kv-namespace-id-here"  # Replace with actual ID
+[[d1_databases]]
+binding = "DB"
+database_name = "laptop-deals"
+database_id = "your-d1-database-id"  # Replace with ID from step 1
 ```
 
-### 3. Install Dependencies
+### 4. Install Dependencies
 
 ```bash
 cd samples/LaptopDealAgent

@@ -7,57 +7,22 @@ open CloudFlare.Worker.Context
 open CloudFlare.Worker.Context.Globals
 open CloudFlare.Worker.Context.Helpers
 open CloudFlare.Worker.Context.Helpers.ResponseBuilder
+open CloudFlare.D1
 open LaptopDealAgent.Types
 open LaptopDealAgent.AIAnalyzer
 open LaptopDealAgent.SearchActor
 open LaptopDealAgent.SearchOrchestrator
 open LaptopDealAgent.SearchAgent
 open LaptopDealAgent.PriceAnalyzer
+open LaptopDealAgent.D1Storage
 
 /// Environment bindings
 [<AllowNullLiteral>]
 type LaptopAgentEnv =
     inherit Env
-    abstract PRICE_HISTORY: obj
+    abstract DB: D1Database
     abstract AI: obj
     abstract SEARCH_ACTOR: obj
-
-/// Store current deals in KV for API access
-let storeCurrentDeals (kv: obj) (deals: PriceInfo list) : JS.Promise<unit> =
-    promise {
-        try
-            let dealsData = {|
-                deals = deals
-                lastUpdated = DateTime.UtcNow
-                totalDeals = deals.Length
-            |}
-
-            let json = JS.JSON.stringify(dealsData)
-            do! kv?put("current_deals", json) |> unbox<JS.Promise<unit>>
-
-            printfn "Stored %d current deals" deals.Length
-        with
-        | ex ->
-            printfn "Error storing current deals: %s" ex.Message
-    }
-
-/// Store current analyses in KV for API access
-let storeCurrentAnalyses (kv: obj) (analyses: DealAnalysis list) : JS.Promise<unit> =
-    promise {
-        try
-            let analysisData = {|
-                analyses = analyses
-                generatedAt = DateTime.UtcNow
-            |}
-
-            let json = JS.JSON.stringify(analysisData)
-            do! kv?put("current_analyses", json) |> unbox<JS.Promise<unit>>
-
-            printfn "Stored %d analyses" analyses.Length
-        with
-        | ex ->
-            printfn "Error storing analyses: %s" ex.Message
-    }
 
 /// Run the scheduled agent task
 let runScheduledTask (env: LaptopAgentEnv) : JS.Promise<string> =
@@ -71,28 +36,17 @@ let runScheduledTask (env: LaptopAgentEnv) : JS.Promise<string> =
 
             printfn $"✅ Found {priceInfos.Length} valid deals from parallel actors"
 
-            // Store price information
-            printfn "💾 Storing price history..."
+            // Store deals in D1 database
+            printfn "💾 Storing deals in D1 database..."
             do!
                 priceInfos
-                |> List.map (storePriceHistory env.PRICE_HISTORY)
+                |> List.map (upsertDeal env.DB)
                 |> Promise.all
                 |> Promise.map ignore
 
-            // Store current deals for API access
-            do! storeCurrentDeals env.PRICE_HISTORY priceInfos
-
-            // Analyze prices for each model
-            printfn "📊 Analyzing prices..."
-            let! analyses =
-                [ GZ302EA_R9641TB; GZ302EA_XS99 ]
-                |> List.map (analyzePrices env.PRICE_HISTORY priceInfos)
-                |> Promise.all
-
-            let analysisList = analyses |> Array.toList
-
-            // Store current analyses for API access
-            do! storeCurrentAnalyses env.PRICE_HISTORY analysisList
+            // Get analysis from D1
+            printfn "📊 Analyzing prices from D1..."
+            let! analysisList = getAnalysis env.DB
 
             // Generate report
             printfn "📝 Generating report..."
@@ -143,36 +97,28 @@ let fetch (request: Request) (env: LaptopAgentEnv) (ctx: ExecutionContext) =
             ))
 
         | "GET", "/api/deals" ->
-            // Get current deals
+            // Get current deals from D1
             try
-                let! dealsJson = env.PRICE_HISTORY?get("current_deals") |> unbox<JS.Promise<string>>
+                let! deals = getAllDeals env.DB
 
-                if isNull dealsJson || dealsJson = "" then
-                    return json {|
-                        deals = []
-                        lastUpdated = DateTime.UtcNow
-                        totalDeals = 0
-                    |} 200
-                else
-                    let dealsData = JS.JSON.parse(dealsJson)
-                    return Response.json(dealsData)
+                return json {|
+                    deals = deals
+                    lastUpdated = DateTime.UtcNow
+                    totalDeals = deals.Length
+                |} 200
             with
             | ex ->
                 return json {| error = ex.Message |} 500
 
         | "GET", "/api/analysis" ->
-            // Get current analyses
+            // Get current analyses from D1
             try
-                let! analysisJson = env.PRICE_HISTORY?get("current_analyses") |> unbox<JS.Promise<string>>
+                let! analyses = getAnalysis env.DB
 
-                if isNull analysisJson || analysisJson = "" then
-                    return json {|
-                        analyses = []
-                        generatedAt = DateTime.UtcNow
-                    |} 200
-                else
-                    let analysisData = JS.JSON.parse(analysisJson)
-                    return Response.json(analysisData)
+                return json {|
+                    analyses = analyses
+                    generatedAt = DateTime.UtcNow
+                |} 200
             with
             | ex ->
                 return json {| error = ex.Message |} 500
@@ -191,14 +137,16 @@ let fetch (request: Request) (env: LaptopAgentEnv) (ctx: ExecutionContext) =
             return json status 200
 
         | "GET", "/history" | "GET", "/api/history" ->
-            // Get price history for a specific model
+            // Get price history for deals
             try
-                let! history64GB = retrievePriceHistory env.PRICE_HISTORY GZ302EA_R9641TB
-                let! history128GB = retrievePriceHistory env.PRICE_HISTORY GZ302EA_XS99
+                // For now, return all deals with their current prices
+                // Could be extended to query price_history table for specific URLs
+                let! deals64GB = getDealsByModel env.DB "GZ302EA-R9641TB"
+                let! deals128GB = getDealsByModel env.DB "GZ302EA-XS99"
 
                 let result = {|
-                    GZ302EA_R9641TB = history64GB |> List.take (min 10 history64GB.Length)
-                    GZ302EA_XS99 = history128GB |> List.take (min 10 history128GB.Length)
+                    GZ302EA_R9641TB = deals64GB
+                    GZ302EA_XS99 = deals128GB
                 |}
 
                 return json result 200

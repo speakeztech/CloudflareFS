@@ -325,15 +325,27 @@ if newPrice < tracked.LastPrice then
 ### Durable Object Storage (per Actor)
 
 - **Key:** `"state"`
-- **Value:** `SearchActorState`
+- **Value:** `SearchActorState` (TrackedUrls map for idempotency)
 - **Persistence:** Permanent
 - **Scope:** Per model (one actor per model)
+- **Purpose:** Transient actor state for idempotency checking
 
-### KV Storage (Global)
+### D1 Database Storage (Global)
 
-- **current_deals** - Latest deals from all actors
-- **current_analyses** - Price analyses
-- **price_history_{model}_{retailer}_{timestamp}** - Individual price entries
+**Tables:**
+- **models** - Laptop models being tracked
+- **retailers** - Reputable retailers
+- **deals** - All current and past deals
+- **price_history** - Complete price/quantity change history
+
+**Benefits:**
+- Relational queries with JOINs
+- Time-series analysis
+- Aggregations (MIN/MAX/AVG price)
+- Indexed for fast lookups
+- Dashboard can query exactly what it needs
+
+See [D1_SETUP.md](D1_SETUP.md) for complete database documentation.
 
 ## API Endpoints
 

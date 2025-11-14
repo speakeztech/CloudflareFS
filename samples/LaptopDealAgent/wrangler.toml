@@ -6,10 +6,11 @@ compatibility_date = "2024-01-01"
 [triggers]
 crons = ["0 * * * *"]
 
-# KV namespace for storing price history
-[[kv_namespaces]]
-binding = "PRICE_HISTORY"
-id = "your-kv-namespace-id"  # Replace with your KV namespace ID
+# D1 database for storing deals and price history
+[[d1_databases]]
+binding = "DB"
+database_name = "laptop-deals"
+database_id = "your-d1-database-id"  # Replace with your D1 database ID after running: wrangler d1 create laptop-deals
 
 # AI binding for web search and analysis
 [ai]
