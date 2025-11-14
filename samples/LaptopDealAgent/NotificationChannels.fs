@@ -226,7 +226,7 @@ let sendNotification (channel: NotificationChannel) (message: NotificationMessag
         }
 
 /// Create a notification message from a deal
-let createDealNotification (event: NotificationEvent) : NotificationMessage =
+let createDealNotification (event: NotificationEvent) (dashboardUrl: string option) : NotificationMessage =
     let priceDropInfo =
         match event.PreviousLowestPrice with
         | Some prevPrice ->
@@ -252,9 +252,15 @@ let createDealNotification (event: NotificationEvent) : NotificationMessage =
 
 Act fast - deals can expire quickly!"""
 
+    // Use dashboard URL if provided, otherwise use the direct retailer URL
+    let notificationUrl =
+        match dashboardUrl with
+        | Some url -> url
+        | None -> event.Url
+
     {
         Title = title
         Body = body
-        Url = Some event.Url
+        Url = Some notificationUrl
         Priority = event.Priority
     }

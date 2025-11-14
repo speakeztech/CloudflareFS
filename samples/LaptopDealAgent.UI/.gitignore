@@ -1,0 +1,29 @@
+# Build outputs
+dist/
+src/.fable/
+.fable/
+
+# Dependencies
+node_modules/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Wrangler
+.wrangler/
+.dev.vars
+worker-configuration.d.ts
+
+# Logs
+*.log
+npm-debug.log*

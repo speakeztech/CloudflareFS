@@ -146,7 +146,7 @@ type NotificationManagerDO(state: DurableObjectState, env: obj) =
         }
 
     /// Process notification event
-    member this.ProcessNotification(event: NotificationEvent, rules: NotificationRule, channels: NotificationChannel list) : JS.Promise<bool> =
+    member this.ProcessNotification(event: NotificationEvent, rules: NotificationRule, channels: NotificationChannel list, dashboardUrl: string option) : JS.Promise<bool> =
         promise {
             try
                 do! this.InitializeAsync()
@@ -170,7 +170,7 @@ type NotificationManagerDO(state: DurableObjectState, env: obj) =
 
                 else
                     // Send notifications to all channels
-                    let message = createDealNotification event
+                    let message = createDealNotification event dashboardUrl
 
                     printfn "Sending notification: %s" message.Title
 
@@ -220,8 +220,9 @@ type NotificationManagerDO(state: DurableObjectState, env: obj) =
                     let event = body?event |> unbox<NotificationEvent>
                     let rules = body?rules |> unbox<NotificationRule>
                     let channels = body?channels |> unbox<NotificationChannel list>
+                    let dashboardUrl = body?dashboardUrl |> Option.ofObj |> Option.map unbox<string>
 
-                    let! success = this.ProcessNotification(event, rules, channels)
+                    let! success = this.ProcessNotification(event, rules, channels, dashboardUrl)
 
                     let response = createObj [
                         "success" ==> success
@@ -267,7 +268,7 @@ let getNotificationManager (env: obj) (userId: string) : obj =
     namespace?get(id)
 
 /// Send notification via Durable Object
-let notifyDeal (env: obj) (userId: string) (event: NotificationEvent) (rules: NotificationRule) (channels: NotificationChannel list) : JS.Promise<bool> =
+let notifyDeal (env: obj) (userId: string) (event: NotificationEvent) (rules: NotificationRule) (channels: NotificationChannel list) (dashboardUrl: string option) : JS.Promise<bool> =
     promise {
         try
             let manager = getNotificationManager env userId
@@ -276,6 +277,7 @@ let notifyDeal (env: obj) (userId: string) (event: NotificationEvent) (rules: No
                 "event" ==> event
                 "rules" ==> rules
                 "channels" ==> channels
+                "dashboardUrl" ==> (dashboardUrl |> Option.toObj)
             ]
 
             let requestInit = jsOptions(fun o ->

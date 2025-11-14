@@ -18,6 +18,43 @@ type LaptopAgentEnv =
     abstract PRICE_HISTORY: obj
     abstract AI: obj
 
+/// Store current deals in KV for API access
+let storeCurrentDeals (kv: obj) (deals: PriceInfo list) : JS.Promise<unit> =
+    promise {
+        try
+            let dealsData = {|
+                deals = deals
+                lastUpdated = DateTime.UtcNow
+                totalDeals = deals.Length
+            |}
+
+            let json = JS.JSON.stringify(dealsData)
+            do! kv?put("current_deals", json) |> unbox<JS.Promise<unit>>
+
+            printfn "Stored %d current deals" deals.Length
+        with
+        | ex ->
+            printfn "Error storing current deals: %s" ex.Message
+    }
+
+/// Store current analyses in KV for API access
+let storeCurrentAnalyses (kv: obj) (analyses: DealAnalysis list) : JS.Promise<unit> =
+    promise {
+        try
+            let analysisData = {|
+                analyses = analyses
+                generatedAt = DateTime.UtcNow
+            |}
+
+            let json = JS.JSON.stringify(analysisData)
+            do! kv?put("current_analyses", json) |> unbox<JS.Promise<unit>>
+
+            printfn "Stored %d analyses" analyses.Length
+        with
+        | ex ->
+            printfn "Error storing analyses: %s" ex.Message
+    }
+
 /// Run the scheduled agent task
 let runScheduledTask (env: LaptopAgentEnv) : JS.Promise<string> =
     promise {
@@ -51,6 +88,9 @@ let runScheduledTask (env: LaptopAgentEnv) : JS.Promise<string> =
                 |> Promise.all
                 |> Promise.map ignore
 
+            // Store current deals for API access
+            do! storeCurrentDeals env.PRICE_HISTORY priceInfos
+
             // Analyze prices for each model
             printfn "📊 Analyzing prices..."
             let! analyses =
@@ -59,6 +99,9 @@ let runScheduledTask (env: LaptopAgentEnv) : JS.Promise<string> =
                 |> Promise.all
 
             let analysisList = analyses |> Array.toList
+
+            // Store current analyses for API access
+            do! storeCurrentAnalyses env.PRICE_HISTORY analysisList
 
             // Generate report
             printfn "📝 Generating report..."
@@ -108,6 +151,41 @@ let fetch (request: Request) (env: LaptopAgentEnv) (ctx: ExecutionContext) =
                 o.status <- Some 200.0
             ))
 
+        | "GET", "/api/deals" ->
+            // Get current deals
+            try
+                let! dealsJson = env.PRICE_HISTORY?get("current_deals") |> unbox<JS.Promise<string>>
+
+                if isNull dealsJson || dealsJson = "" then
+                    return json {|
+                        deals = []
+                        lastUpdated = DateTime.UtcNow
+                        totalDeals = 0
+                    |} 200
+                else
+                    let dealsData = JS.JSON.parse(dealsJson)
+                    return Response.json(dealsData)
+            with
+            | ex ->
+                return json {| error = ex.Message |} 500
+
+        | "GET", "/api/analysis" ->
+            // Get current analyses
+            try
+                let! analysisJson = env.PRICE_HISTORY?get("current_analyses") |> unbox<JS.Promise<string>>
+
+                if isNull analysisJson || analysisJson = "" then
+                    return json {|
+                        analyses = []
+                        generatedAt = DateTime.UtcNow
+                    |} 200
+                else
+                    let analysisData = JS.JSON.parse(analysisJson)
+                    return Response.json(analysisData)
+            with
+            | ex ->
+                return json {| error = ex.Message |} 500
+
         | "GET", "/status" ->
             // Return status information
             let status = {|
@@ -121,7 +199,7 @@ let fetch (request: Request) (env: LaptopAgentEnv) (ctx: ExecutionContext) =
 
             return json status 200
 
-        | "GET", "/history" ->
+        | "GET", "/history" | "GET", "/api/history" ->
             // Get price history for a specific model
             try
                 let! history64GB = retrievePriceHistory env.PRICE_HISTORY GZ302EA_R9641TB
@@ -137,7 +215,7 @@ let fetch (request: Request) (env: LaptopAgentEnv) (ctx: ExecutionContext) =
             | ex ->
                 return json {| error = ex.Message |} 500
 
-        | "POST", "/trigger" ->
+        | "POST", "/trigger" | "POST", "/api/trigger" ->
             // Manual trigger
             ctx.waitUntil(runScheduledTask env |> Promise.map ignore)
 
@@ -148,7 +226,7 @@ let fetch (request: Request) (env: LaptopAgentEnv) (ctx: ExecutionContext) =
             let notFoundInfo = {|
                 error = "Not Found"
                 path = path
-                availableRoutes = ["/"; "/status"; "/history"; "/trigger"]
+                availableRoutes = ["/"; "/api/deals"; "/api/analysis"; "/api/history"; "/status"; "/trigger"]
             |}
 
             return json notFoundInfo 404

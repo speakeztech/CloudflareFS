@@ -110,6 +110,9 @@ let checkAndNotifyDeal
                         printfn "⚠️  No notification channels configured"
                     else
                         // Send notification via Durable Object
+                        // Dashboard URL will be the link in the notification
+                        let dashboardUrl = Some "https://your-dashboard.pages.dev"
+
                         printfn "📱 Attempting to send notification..."
                         let! notified = notifyDeal
                             env
@@ -117,6 +120,7 @@ let checkAndNotifyDeal
                             event
                             rules
                             channels
+                            dashboardUrl  // Link to React dashboard
 
                         if notified then
                             printfn "✓ Deal notification sent successfully!"
