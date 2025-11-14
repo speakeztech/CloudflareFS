@@ -1,0 +1,163 @@
+module LaptopDealAgent.Main
+
+open System
+open Fable.Core
+open Fable.Core.JsInterop
+open CloudFlare.Worker.Context
+open CloudFlare.Worker.Context.Globals
+open CloudFlare.Worker.Context.Helpers
+open CloudFlare.Worker.Context.Helpers.ResponseBuilder
+open LaptopDealAgent.Types
+open LaptopDealAgent.SearchAgent
+open LaptopDealAgent.PriceAnalyzer
+
+/// Environment bindings
+[<AllowNullLiteral>]
+type LaptopAgentEnv =
+    inherit Env
+    abstract PRICE_HISTORY: obj
+    abstract AI: obj
+
+/// Run the scheduled agent task
+let runScheduledTask (env: LaptopAgentEnv) : JS.Promise<string> =
+    promise {
+        printfn "🤖 Starting laptop deal agent..."
+
+        try
+            // Configuration
+            let config = {
+                SearchKeywords = [
+                    "ASUS ROG Flow Z13 2025 GZ302EA-R9641TB 64GB Black Friday"
+                    "ASUS ROG Flow Z13 2025 GZ302EA-XS99 128GB Black Friday"
+                    "ROG Flow Z13 GZ302 AMD Ryzen AI Max+ 395 price"
+                    "ASUS ROG Flow Z13 2025 Black Friday deal"
+                ]
+                MaxSearchResults = 20
+                MinPriceConfidence = 0.7
+                EnableNotifications = true
+            }
+
+            // Search for deals
+            printfn "🔍 Searching for laptop deals..."
+            let! priceInfos = searchForDeals env.AI config
+
+            printfn $"Found {priceInfos.Length} price listings"
+
+            // Store price information
+            printfn "💾 Storing price history..."
+            do!
+                priceInfos
+                |> List.map (storePriceHistory env.PRICE_HISTORY)
+                |> Promise.all
+                |> Promise.map ignore
+
+            // Analyze prices for each model
+            printfn "📊 Analyzing prices..."
+            let! analyses =
+                [ GZ302EA_R9641TB; GZ302EA_XS99 ]
+                |> List.map (analyzePrices env.PRICE_HISTORY priceInfos)
+                |> Promise.all
+
+            let analysisList = analyses |> Array.toList
+
+            // Generate report
+            printfn "📝 Generating report..."
+            let report = formatAnalysisReport analysisList
+
+            // Print summary to logs
+            for analysis in analysisList do
+                printfn $"\n{'='|> String.replicate 60}"
+                printfn $"Model: {analysis.Model.FullName}"
+                printfn $"Current Best: {analysis.CurrentBestPrice |> Option.map (sprintf \"$%.2f\") |> Option.defaultValue \"N/A\"}"
+                printfn $"Retailer: {analysis.BestRetailer |> Option.defaultValue \"N/A\"}"
+                printfn $"Trend: {analysis.PriceTrend}"
+                printfn $"Recommendation: {analysis.Recommendation}"
+                printfn $"{'='|> String.replicate 60}\n"
+
+            printfn "✅ Laptop deal agent completed successfully"
+            return report
+
+        with
+        | ex ->
+            let errorMsg = $"❌ Error in scheduled task: {ex.Message}"
+            printfn "%s" errorMsg
+            return errorMsg
+    }
+
+/// Handle scheduled execution
+let handleScheduled (event: obj) (env: LaptopAgentEnv) (ctx: ExecutionContext) =
+    promise {
+        printfn "⏰ Scheduled event triggered"
+        let! result = runScheduledTask env
+        printfn "📋 Result: %s" (if result.Contains("Error") then "Failed" else "Success")
+    }
+
+/// Handle HTTP requests (for manual triggers and viewing reports)
+let fetch (request: Request) (env: LaptopAgentEnv) (ctx: ExecutionContext) =
+    promise {
+        let path = Request.getPath request
+        let method = Request.getMethod request
+
+        match method, path with
+        | "GET", "/" ->
+            // Run the agent and return the report
+            let! report = runScheduledTask env
+
+            return Response.Create(U2.Case1 report, jsOptions(fun o ->
+                o.headers <- Some (U2.Case1 (createObj ["Content-Type" ==> "text/html; charset=utf-8"]))
+                o.status <- Some 200.0
+            ))
+
+        | "GET", "/status" ->
+            // Return status information
+            let status = {|
+                status = "running"
+                timestamp = DateTime.UtcNow
+                models = [|
+                    GZ302EA_R9641TB.FullName
+                    GZ302EA_XS99.FullName
+                |]
+            |}
+
+            return json status 200
+
+        | "GET", "/history" ->
+            // Get price history for a specific model
+            try
+                let! history64GB = retrievePriceHistory env.PRICE_HISTORY GZ302EA_R9641TB
+                let! history128GB = retrievePriceHistory env.PRICE_HISTORY GZ302EA_XS99
+
+                let result = {|
+                    GZ302EA_R9641TB = history64GB |> List.take (min 10 history64GB.Length)
+                    GZ302EA_XS99 = history128GB |> List.take (min 10 history128GB.Length)
+                |}
+
+                return json result 200
+            with
+            | ex ->
+                return json {| error = ex.Message |} 500
+
+        | "POST", "/trigger" ->
+            // Manual trigger
+            ctx.waitUntil(runScheduledTask env |> Promise.map ignore)
+
+            return json {| message = "Agent triggered"; status = "running" |} 202
+
+        | _ ->
+            // 404 for unknown routes
+            let notFoundInfo = {|
+                error = "Not Found"
+                path = path
+                availableRoutes = ["/"; "/status"; "/history"; "/trigger"]
+            |}
+
+            return json notFoundInfo 404
+    }
+
+/// Export the handlers
+[<ExportDefault>]
+let handler: obj =
+    {|
+        fetch = fetch
+        scheduled = handleScheduled
+    |} :> obj

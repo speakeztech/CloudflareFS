@@ -1,0 +1,24 @@
+# Build outputs
+dist/
+bin/
+obj/
+
+# Dependencies
+node_modules/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Worker specific
+.wrangler/
+worker-configuration.d.ts

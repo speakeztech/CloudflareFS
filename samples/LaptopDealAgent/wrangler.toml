@@ -1,0 +1,21 @@
+name = "laptop-deal-agent"
+main = "dist/LaptopDealAgent.js"
+compatibility_date = "2024-01-01"
+
+# Scheduled execution - runs every hour
+[triggers]
+crons = ["0 * * * *"]
+
+# KV namespace for storing price history
+[[kv_namespaces]]
+binding = "PRICE_HISTORY"
+id = "your-kv-namespace-id"  # Replace with your KV namespace ID
+
+# AI binding for web search and analysis
+[ai]
+binding = "AI"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+SEARCH_KEYWORDS = "ASUS ROG Flow Z13 2025 GZ302 Black Friday deal price"
