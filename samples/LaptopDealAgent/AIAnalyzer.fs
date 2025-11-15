@@ -126,16 +126,19 @@ If this is NOT the correct device or doesn't meet criteria, return: {{"isMatch":
                     if not isValidCondition then
                         printfn "Invalid condition: %s (must be New or Certified Refurbished)" condition
                         return None
+                    else
 
                     // Validate price threshold
                     if price > maxPrice then
                         printfn "Price $%.2f exceeds max $%.2f" price maxPrice
                         return None
+                    else
 
                     // Validate retailer
                     if not (isReputableRetailer url retailer) then
                         printfn "Not a reputable retailer: %s" retailer
                         return None
+                    else
 
                     // Calculate discount
                     let discountPercentage =

@@ -3,6 +3,7 @@ module LaptopDealAgent.SearchOrchestrator
 open System
 open Fable.Core
 open Fable.Core.JsInterop
+open CloudFlare.Worker.Context
 open LaptopDealAgent.Types
 open LaptopDealAgent.SearchActor
 
@@ -71,15 +72,15 @@ let getActorStatuses (env: obj) : JS.Promise<Map<string, SearchActorState option
                             "action" ==> "getState"
                         ]
 
-                        let requestInit = jsOptions(fun o ->
-                            o.method <- Some "POST"
-                            o.headers <- Some (U2.Case1 (createObj [
+                        let requestInit = createObj [
+                            "method" ==> "POST"
+                            "headers" ==> createObj [
                                 "Content-Type" ==> "application/json"
-                            ]))
-                            o.body <- Some (U2.Case1 (JS.JSON.stringify(payload)))
-                        )
+                            ]
+                            "body" ==> JS.JSON.stringify(payload)
+                        ]
 
-                        let! response = actor?fetch("https://fake-host/", requestInit) |> unbox<JS.Promise<obj>>
+                        let! response = actor?fetch("https://fake-host/", requestInit) |> unbox<JS.Promise<Response>>
 
                         if response?ok |> unbox<bool> then
                             let! state = response?json() |> unbox<JS.Promise<SearchActorState option>>
@@ -113,15 +114,15 @@ let resetAllActors (env: obj) : JS.Promise<unit> =
                             "action" ==> "reset"
                         ]
 
-                        let requestInit = jsOptions(fun o ->
-                            o.method <- Some "POST"
-                            o.headers <- Some (U2.Case1 (createObj [
+                        let requestInit = createObj [
+                            "method" ==> "POST"
+                            "headers" ==> createObj [
                                 "Content-Type" ==> "application/json"
-                            ]))
-                            o.body <- Some (U2.Case1 (JS.JSON.stringify(payload)))
-                        )
+                            ]
+                            "body" ==> JS.JSON.stringify(payload)
+                        ]
 
-                        let! response = actor?fetch("https://fake-host/", requestInit) |> unbox<JS.Promise<obj>>
+                        let! response = actor?fetch("https://fake-host/", requestInit) |> unbox<JS.Promise<Response>>
 
                         if response?ok |> unbox<bool> then
                             printfn "✓ Reset actor for %s" model.ModelNumber

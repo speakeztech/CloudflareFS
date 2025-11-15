@@ -3,6 +3,8 @@ module LaptopDealAgent.NotificationChannels
 open System
 open Fable.Core
 open Fable.Core.JsInterop
+open Fetch
+open CloudFlare.Worker.Context
 open LaptopDealAgent.NotificationTypes
 
 /// Send notification via Pushover (recommended for phone notifications)
@@ -30,22 +32,19 @@ let sendPushover (apiToken: string) (userKey: string) (message: NotificationMess
             ]
 
             let! response =
-                Fetch.fetch("https://api.pushover.net/1/messages.json", jsOptions(fun o ->
-                    o.method <- Some "POST"
-                    o.headers <- Some (U2.Case1 (createObj [
-                        "Content-Type" ==> "application/json"
-                    ]))
-                    o.body <- Some (U2.Case1 (JS.JSON.stringify(payload)))
-                ))
+                fetch "https://api.pushover.net/1/messages.json" [
+                    Method HttpMethod.POST
+                    requestHeaders [
+                        ContentType "application/json"
+                    ]
+                    Body (unbox (JS.JSON.stringify(payload)))
+                ]
 
-            let! json = response.json() |> unbox<JS.Promise<obj>>
-            let status = json?status |> unbox<int>
-
-            if status = 1 then
+            if response.Ok then
                 printfn "✓ Pushover notification sent successfully"
                 return true
             else
-                printfn "✗ Pushover notification failed: %A" json
+                printfn "✗ Pushover notification failed: %d" response.Status
                 return false
 
         with
@@ -80,22 +79,19 @@ let sendTelegram (botToken: string) (chatId: string) (message: NotificationMessa
             ]
 
             let! response =
-                Fetch.fetch(url, jsOptions(fun o ->
-                    o.method <- Some "POST"
-                    o.headers <- Some (U2.Case1 (createObj [
-                        "Content-Type" ==> "application/json"
-                    ]))
-                    o.body <- Some (U2.Case1 (JS.JSON.stringify(payload)))
-                ))
+                fetch url [
+                    Method HttpMethod.POST
+                    requestHeaders [
+                        ContentType "application/json"
+                    ]
+                    Body (unbox (JS.JSON.stringify(payload)))
+                ]
 
-            let! json = response.json() |> unbox<JS.Promise<obj>>
-            let ok = json?ok |> unbox<bool>
-
-            if ok then
+            if response.Ok then
                 printfn "✓ Telegram notification sent successfully"
                 return true
             else
-                printfn "✗ Telegram notification failed: %A" json
+                printfn "✗ Telegram notification failed: %d" response.Status
                 return false
 
         with
@@ -129,19 +125,19 @@ let sendDiscord (webhookUrl: string) (message: NotificationMessage) : JS.Promise
             ]
 
             let! response =
-                Fetch.fetch(webhookUrl, jsOptions(fun o ->
-                    o.method <- Some "POST"
-                    o.headers <- Some (U2.Case1 (createObj [
-                        "Content-Type" ==> "application/json"
-                    ]))
-                    o.body <- Some (U2.Case1 (JS.JSON.stringify(payload)))
-                ))
+                fetch webhookUrl [
+                    Method HttpMethod.POST
+                    requestHeaders [
+                        ContentType "application/json"
+                    ]
+                    Body (unbox (JS.JSON.stringify(payload)))
+                ]
 
-            if response.ok then
+            if response.Ok then
                 printfn "✓ Discord notification sent successfully"
                 return true
             else
-                printfn "✗ Discord notification failed: %d" response.status
+                printfn "✗ Discord notification failed: %d" response.Status
                 return false
 
         with
@@ -170,24 +166,24 @@ let sendTwilioSMS (accountSid: string) (authToken: string) (fromNumber: string) 
 
             let authHeader =
                 let credentials = $"{accountSid}:{authToken}"
-                let encoded = JS.btoa(credentials)
+                let encoded : string = emitJsExpr credentials "btoa($0)"
                 $"Basic {encoded}"
 
             let! response =
-                Fetch.fetch(url, jsOptions(fun o ->
-                    o.method <- Some "POST"
-                    o.headers <- Some (U2.Case1 (createObj [
-                        "Content-Type" ==> "application/x-www-form-urlencoded"
-                        "Authorization" ==> authHeader
-                    ]))
-                    o.body <- Some (U2.Case1 formData)
-                ))
+                fetch url [
+                    Method HttpMethod.POST
+                    requestHeaders [
+                        ContentType "application/x-www-form-urlencoded"
+                        Authorization authHeader
+                    ]
+                    Body (unbox formData)
+                ]
 
-            if response.ok then
+            if response.Ok then
                 printfn "✓ Twilio SMS sent successfully"
                 return true
             else
-                printfn "✗ Twilio SMS failed: %d" response.status
+                printfn "✗ Twilio SMS failed: %d" response.Status
                 return false
 
         with
@@ -232,7 +228,10 @@ let createDealNotification (event: NotificationEvent) (dashboardUrl: string opti
         | Some prevPrice ->
             let savings = prevPrice - event.Price
             let percentSavings = (savings / prevPrice) * 100M
-            $"Price dropped ${savings:F2} ({percentSavings:F1}%) from ${prevPrice:F2}"
+            let savingsStr = savings.ToString("F2")
+            let percentStr = percentSavings.ToString("F1")
+            let prevPriceStr = prevPrice.ToString("F2")
+            $"Price dropped ${savingsStr} ({percentStr}%%) from ${prevPriceStr}"
         | None ->
             "New deal found!"
 

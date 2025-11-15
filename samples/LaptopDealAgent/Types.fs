@@ -49,7 +49,7 @@ type PriceInfo = {
 
 /// Historical price data point
 type PriceHistoryEntry = {
-    Model: LaptopModel
+    Model: string
     Price: decimal
     Currency: string
     Retailer: string

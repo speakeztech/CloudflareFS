@@ -54,13 +54,16 @@ let runScheduledTask (env: LaptopAgentEnv) : JS.Promise<string> =
 
             // Print summary to logs
             for analysis in analysisList do
-                printfn $"\n{'='|> String.replicate 60}"
-                printfn $"Model: {analysis.Model.FullName}"
-                printfn $"Current Best: {analysis.CurrentBestPrice |> Option.map (sprintf \"$%.2f\") |> Option.defaultValue \"N/A\"}"
-                printfn $"Retailer: {analysis.BestRetailer |> Option.defaultValue \"N/A\"}"
-                printfn $"Trend: {analysis.PriceTrend}"
-                printfn $"Recommendation: {analysis.Recommendation}"
-                printfn $"{'='|> String.replicate 60}\n"
+                let separator = String.replicate 60 "="
+                let currentBestStr = analysis.CurrentBestPrice |> Option.map (sprintf "$%.2f") |> Option.defaultValue "N/A"
+                let retailerStr = analysis.BestRetailer |> Option.defaultValue "N/A"
+                printfn "\n%s" separator
+                printfn "Model: %s" analysis.Model.FullName
+                printfn "Current Best: %s" currentBestStr
+                printfn "Retailer: %s" retailerStr
+                printfn "Trend: %s" analysis.PriceTrend
+                printfn "Recommendation: %s" analysis.Recommendation
+                printfn "%s\n" separator
 
             printfn "✅ Laptop deal agent completed successfully"
             return report
@@ -91,10 +94,12 @@ let fetch (request: Request) (env: LaptopAgentEnv) (ctx: ExecutionContext) =
             // Run the agent and return the report
             let! report = runScheduledTask env
 
-            return Response.Create(U2.Case1 report, jsOptions(fun o ->
-                o.headers <- Some (U2.Case1 (createObj ["Content-Type" ==> "text/html; charset=utf-8"]))
-                o.status <- Some 200.0
-            ))
+            let init : ResponseInit =
+                createObj [
+                    "headers" ==> createObj ["Content-Type" ==> "text/html; charset=utf-8"]
+                    "status" ==> 200.0
+                ] |> unbox
+            return Response.Create(U2.Case1 report, init)
 
         | "GET", "/api/deals" ->
             // Get current deals from D1
@@ -156,7 +161,8 @@ let fetch (request: Request) (env: LaptopAgentEnv) (ctx: ExecutionContext) =
 
         | "POST", "/trigger" | "POST", "/api/trigger" ->
             // Manual trigger
-            ctx.waitUntil(runScheduledTask env |> Promise.map ignore)
+            let task = runScheduledTask env |> Promise.map ignore |> unbox<JS.Promise<obj>>
+            ctx.waitUntil(task)
 
             return json {| message = "Agent triggered"; status = "running" |} 202
 
@@ -171,17 +177,12 @@ let fetch (request: Request) (env: LaptopAgentEnv) (ctx: ExecutionContext) =
             return json notFoundInfo 404
     }
 
-/// Export the handlers
+/// Export the handlers and Durable Object classes
 [<ExportDefault>]
-let handler: obj =
-    {|
-        fetch = fetch
-        scheduled = handleScheduled
-    |} :> obj
-
-// Export the Durable Object classes
-[<ExportNamed("NotificationManagerDO")>]
-let notificationManagerDO = LaptopDealAgent.NotificationManager.NotificationManagerDO
-
-[<ExportNamed("SearchActorDO")>]
-let searchActorDO = LaptopDealAgent.SearchActor.SearchActorDO
+let exports: obj =
+    createObj [
+        "fetch" ==> fetch
+        "scheduled" ==> handleScheduled
+        "NotificationManagerDO" ==> jsConstructor<LaptopDealAgent.NotificationManager.NotificationManagerDO>
+        "SearchActorDO" ==> jsConstructor<LaptopDealAgent.SearchActor.SearchActorDO>
+    ]

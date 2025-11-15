@@ -138,14 +138,14 @@ let upsertDeal (db: D1Database) (priceInfo: PriceInfo) : JS.Promise<int option> 
                                 WHERE id = ?
                             """)
                                 .bind(
-                                    priceInfo.Price |> Option.toObj,
-                                    priceInfo.Quantity |> Option.toObj,
+                                    priceInfo.Price |> Option.map box |> Option.toObj,
+                                    priceInfo.Quantity |> Option.map box |> Option.toObj,
                                     priceInfo.StockText |> Option.toObj,
                                     priceInfo.Condition |> Option.toObj,
                                     priceInfo.InStock,
                                     priceInfo.IsBlackFridayDeal,
-                                    priceInfo.DiscountPercentage |> Option.toObj,
-                                    priceInfo.OriginalPrice |> Option.toObj,
+                                    priceInfo.DiscountPercentage |> Option.map box |> Option.toObj,
+                                    priceInfo.OriginalPrice |> Option.map box |> Option.toObj,
                                     priceInfo.Title,
                                     existing.id
                                 )
@@ -169,7 +169,7 @@ let upsertDeal (db: D1Database) (priceInfo: PriceInfo) : JS.Promise<int option> 
                                     .bind(
                                         existing.id,
                                         priceInfo.Price |> Option.defaultValue 0M,
-                                        priceInfo.Quantity |> Option.toObj
+                                        priceInfo.Quantity |> Option.map box |> Option.toObj
                                     )
                                     .run()
                             ()
@@ -192,14 +192,14 @@ let upsertDeal (db: D1Database) (priceInfo: PriceInfo) : JS.Promise<int option> 
                                     modelId,
                                     retailerId,
                                     priceInfo.Url,
-                                    priceInfo.Price |> Option.toObj,
-                                    priceInfo.Quantity |> Option.toObj,
+                                    priceInfo.Price |> Option.map box |> Option.toObj,
+                                    priceInfo.Quantity |> Option.map box |> Option.toObj,
                                     priceInfo.StockText |> Option.toObj,
                                     priceInfo.Condition |> Option.toObj,
                                     priceInfo.InStock,
                                     priceInfo.IsBlackFridayDeal,
-                                    priceInfo.DiscountPercentage |> Option.toObj,
-                                    priceInfo.OriginalPrice |> Option.toObj,
+                                    priceInfo.DiscountPercentage |> Option.map box |> Option.toObj,
+                                    priceInfo.OriginalPrice |> Option.map box |> Option.toObj,
                                     priceInfo.Title
                                 )
                                 .first<{| id: int |}>()
@@ -212,7 +212,7 @@ let upsertDeal (db: D1Database) (priceInfo: PriceInfo) : JS.Promise<int option> 
                                     .bind(
                                         r.id,
                                         priceInfo.Price |> Option.defaultValue 0M,
-                                        priceInfo.Quantity |> Option.toObj
+                                        priceInfo.Quantity |> Option.map box |> Option.toObj
                                     )
                                     .run()
 

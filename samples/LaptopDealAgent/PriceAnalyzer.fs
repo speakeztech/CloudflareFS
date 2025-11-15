@@ -58,25 +58,29 @@ let generateRecommendation (analysis: DealAnalysis) : string =
     | Some currentPrice, Some lowestPrice ->
         let savings = lowestPrice - currentPrice
         let percentSavings = (savings / lowestPrice) * 100M
+        let currentPriceStr = currentPrice.ToString("F2")
+        let lowestPriceStr = lowestPrice.ToString("F2")
+        let percentStr = percentSavings.ToString("F1")
 
         if currentPrice <= lowestPrice then
-            $"🎉 BEST PRICE EVER! Current price ${currentPrice:F2} is at or below historical low. Strong buy recommendation!"
+            $"🎉 BEST PRICE EVER! Current price ${currentPriceStr} is at or below historical low. Strong buy recommendation!"
         elif percentSavings > 15M then
-            $"Great Deal! Current price ${currentPrice:F2} is {percentSavings:F1}% below historical low (${lowestPrice:F2}). Recommended purchase."
+            $"Great Deal! Current price ${currentPriceStr} is {percentStr}%% below historical low (${lowestPriceStr}). Recommended purchase."
         elif percentSavings > 5M then
-            $"Good Deal. Current price ${currentPrice:F2} is {percentSavings:F1}% above historical low but still competitive."
+            $"Good Deal. Current price ${currentPriceStr} is {percentStr}%% above historical low but still competitive."
         elif analysis.PriceTrend = "decreasing" then
-            $"Prices are trending down. Current: ${currentPrice:F2}. Consider waiting a few days."
+            $"Prices are trending down. Current: ${currentPriceStr}. Consider waiting a few days."
         elif analysis.PriceTrend = "increasing" then
-            $"⚠️ Prices are rising. Current: ${currentPrice:F2}. May want to purchase soon."
+            $"⚠️ Prices are rising. Current: ${currentPriceStr}. May want to purchase soon."
         else
-            $"Current price ${currentPrice:F2}. Historical low: ${lowestPrice:F2}. Price is stable."
+            $"Current price ${currentPriceStr}. Historical low: ${lowestPriceStr}. Price is stable."
 
 /// Store price information in KV
 let storePriceHistory (kv: obj) (priceInfo: PriceInfo) : JS.Promise<unit> =
     promise {
         try
-            let key = $"price_history_{priceInfo.Model.ModelNumber}_{priceInfo.Retailer}_{DateTime.UtcNow:yyyyMMdd_HHmmss}"
+            let timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss")
+            let key = $"price_history_{priceInfo.Model}_{priceInfo.Retailer}_{timestamp}"
 
             let entry: PriceHistoryEntry = {
                 Model = priceInfo.Model
@@ -148,16 +152,17 @@ let analyzePrices (kv: obj) (currentPrices: PriceInfo list) (model: LaptopModel)
         let! history = retrievePriceHistory kv model
 
         // Find current best price
+        let modelNumber = model.ModelNumber
         let currentBestPrice =
             currentPrices
-            |> List.choose (fun p -> if p.Model = model then p.Price else None)
+            |> List.choose (fun p -> if p.Model = modelNumber then p.Price else None)
             |> function
                 | [] -> None
                 | prices -> Some (List.min prices)
 
         let bestRetailer =
             currentPrices
-            |> List.filter (fun p -> p.Model = model && p.Price = currentBestPrice)
+            |> List.filter (fun p -> p.Model = modelNumber && p.Price = currentBestPrice)
             |> List.tryHead
             |> Option.map (fun p -> p.Retailer)
 
@@ -199,11 +204,14 @@ let formatAnalysisReport (analyses: DealAnalysis list) : string =
             analysis.PriceHistory
             |> List.take (min 5 analysis.PriceHistory.Length)
             |> List.map (fun h ->
+                let timestamp = h.Timestamp.ToString("yyyy-MM-dd HH:mm")
+                let price = h.Price.ToString("F2")
+                let blackFridayStatus = if h.IsBlackFridayDeal then "🔥 Yes" else "No"
                 $"""<tr>
-                    <td>{h.Timestamp:yyyy-MM-dd HH:mm}</td>
+                    <td>{timestamp}</td>
                     <td>{h.Retailer}</td>
-                    <td>${h.Price:F2}</td>
-                    <td>{if h.IsBlackFridayDeal then "🔥 Yes" else "No"}</td>
+                    <td>${price}</td>
+                    <td>{blackFridayStatus}</td>
                 </tr>"""
             )
             |> String.concat "\n"
@@ -260,150 +268,152 @@ let formatAnalysisReport (analyses: DealAnalysis list) : string =
         |> List.map formatAnalysis
         |> String.concat "\n"
 
-    $"""
-<!DOCTYPE html>
+    let lastUpdated = now.ToString("yyyy-MM-dd HH:mm:ss")
+
+    let html =
+        """<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ASUS ROG Flow Z13 Black Friday Deal Tracker</title>
     <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        body {{
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
             font-family: system-ui, -apple-system, sans-serif;
             background: #000;
             color: #e0e0e0;
             padding: 20px;
             line-height: 1.6;
-        }}
-        .container {{
+        }
+        .container {
             max-width: 1200px;
             margin: 0 auto;
-        }}
-        h1 {{
+        }
+        h1 {
             color: #f38020;
             margin-bottom: 10px;
             font-size: 2em;
-        }}
-        .updated {{
+        }
+        .updated {
             color: #999;
             margin-bottom: 30px;
-        }}
-        .laptop-section {{
+        }
+        .laptop-section {
             background: #1a1a1a;
             border: 1px solid #333;
             border-radius: 8px;
             padding: 25px;
             margin-bottom: 30px;
-        }}
-        .laptop-section h2 {{
+        }
+        .laptop-section h2 {
             color: #f38020;
             margin-bottom: 20px;
-        }}
-        .price-info {{
+        }
+        .price-info {
             display: grid;
             grid-template-columns: 1fr 2fr;
             gap: 20px;
             margin-bottom: 20px;
-        }}
-        .current-price {{
+        }
+        .current-price {
             background: #0a0a0a;
             padding: 20px;
             border-radius: 5px;
             text-align: center;
-        }}
-        .price {{
+        }
+        .price {
             font-size: 3em;
             color: #4CAF50;
             font-weight: bold;
             margin: 10px 0;
-        }}
-        .retailer {{
+        }
+        .retailer {
             color: #999;
-        }}
-        .stats {{
+        }
+        .stats {
             background: #0a0a0a;
             padding: 20px;
             border-radius: 5px;
-        }}
-        .stat {{
+        }
+        .stat {
             margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
             border-bottom: 1px solid #222;
-        }}
-        .stat:last-child {{
+        }
+        .stat:last-child {
             border-bottom: none;
-        }}
-        .label {{
+        }
+        .label {
             color: #999;
-        }}
-        .value {{
+        }
+        .value {
             color: #e0e0e0;
             font-weight: bold;
-        }}
-        .recommendation {{
+        }
+        .recommendation {
             background: #0a0a0a;
             padding: 20px;
             border-radius: 5px;
             margin-bottom: 20px;
-        }}
-        .recommendation h3 {{
+        }
+        .recommendation h3 {
             color: #f38020;
             margin-bottom: 10px;
-        }}
-        .recommendation p {{
+        }
+        .recommendation p {
             font-size: 1.1em;
             line-height: 1.5;
-        }}
-        .history {{
+        }
+        .history {
             margin-top: 20px;
-        }}
-        .history h3 {{
+        }
+        .history h3 {
             color: #f38020;
             margin-bottom: 15px;
-        }}
-        table {{
+        }
+        table {
             width: 100%;
             border-collapse: collapse;
             background: #0a0a0a;
             border-radius: 5px;
             overflow: hidden;
-        }}
-        th {{
+        }
+        th {
             background: #222;
             color: #f38020;
             padding: 12px;
             text-align: left;
-        }}
-        td {{
+        }
+        td {
             padding: 10px 12px;
             border-bottom: 1px solid #222;
-        }}
-        tr:last-child td {{
+        }
+        tr:last-child td {
             border-bottom: none;
-        }}
-        .footer {{
+        }
+        .footer {
             text-align: center;
             color: #666;
             margin-top: 50px;
             padding-top: 20px;
             border-top: 1px solid #333;
-        }}
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🎮 ASUS ROG Flow Z13 Black Friday Deal Tracker</h1>
-        <p class="updated">Last updated: {now:yyyy-MM-dd HH:mm:ss} UTC</p>
+        <p class="updated">Last updated: """ + lastUpdated + """ UTC</p>
 
-        {analysisHtml}
+        """ + analysisHtml + """
 
         <div class="footer">
             <p>Powered by CloudflareFS - Automated price monitoring every hour</p>
         </div>
     </div>
 </body>
-</html>
-    """
+</html>"""
+    html

@@ -3,14 +3,15 @@ module LaptopDealAgent.SearchActor
 open System
 open Fable.Core
 open Fable.Core.JsInterop
+open CloudFlare.Worker.Context
+open CloudFlare.Worker.Context.Globals
 open CloudFlare.DurableObjects
 open LaptopDealAgent.Types
 open LaptopDealAgent.AIAnalyzer
 
 /// Search Actor - Durable Object for parallel search execution with idempotency
 [<AllowNullLiteral>]
-type SearchActorDO(state: DurableObjectState, env: obj) =
-    inherit DurableObject(state, env)
+type SearchActorDO(state: DurableObjectState<obj>, env: obj) =
 
     let mutable actorState: SearchActorState option = None
 
@@ -62,7 +63,9 @@ type SearchActorDO(state: DurableObjectState, env: obj) =
                 if priceDropped then
                     let drop = tracked.LastPrice - newPrice
                     let percentDrop = (drop / tracked.LastPrice) * 100M
-                    (true, $"Price drop: ${drop:F2} ({percentDrop:F1}%)")
+                    let dropStr = drop.ToString("F2")
+                    let percentStr = percentDrop.ToString("F1")
+                    (true, $"Price drop: ${dropStr} ({percentStr}%%)")
                 elif quantityDropped then
                     match tracked.LastQuantity, newQuantity with
                     | Some oldQty, Some newQty ->
@@ -70,7 +73,8 @@ type SearchActorDO(state: DurableObjectState, env: obj) =
                         (true, $"Stock drop: {qtyDrop} units ({oldQty} → {newQty})")
                     | _ -> (false, "No changes")
                 else
-                    (false, $"Already tracked at ${tracked.LastPrice:F2}")
+                    let lastPriceStr = tracked.LastPrice.ToString("F2")
+                    (false, $"Already tracked at ${lastPriceStr}")
 
     /// Update tracked URL with new price and quantity
     member this.UpdateTrackedUrl(url: string, price: decimal, quantity: int option) =
@@ -231,67 +235,76 @@ type SearchActorDO(state: DurableObjectState, env: obj) =
         }
 
     /// Handle HTTP requests to the Durable Object
-    override this.fetch(request: obj) : JS.Promise<obj> =
-        promise {
-            try
-                let req = request |> unbox<CloudFlare.Worker.Context.Request>
-                let! body = req.json() |> unbox<JS.Promise<obj>>
+    interface DurableObject with
+        member this.fetch(request: Request) : U2<Response, JS.Promise<Response>> =
+            let handleRequest() =
+                promise {
+                    try
+                        let! body = request.json() |> unbox<JS.Promise<obj>>
 
-                let action = body?action |> unbox<string>
+                        let action = body?action |> unbox<string>
 
-                match action with
-                | "init" ->
-                    let modelStr = body?model |> unbox<string>
-                    let model =
-                        if modelStr.Contains("R9641TB") then GZ302EA_R9641TB
-                        else GZ302EA_XS99
+                        match action with
+                        | "init" ->
+                            let modelStr = body?model |> unbox<string>
+                            let model =
+                                if modelStr.Contains("R9641TB") then GZ302EA_R9641TB
+                                else GZ302EA_XS99
 
-                    actorState <- Some (defaultSearchActorState model)
-                    do! this.SaveStateAsync()
+                            actorState <- Some (defaultSearchActorState model)
+                            do! this.SaveStateAsync()
 
-                    return CloudFlare.Worker.Context.Response.json({| success = true |}) :> obj
+                            return Response.json({| success = true |})
 
-                | "search" ->
-                    let searchQuery = body?query |> unbox<string>
-                    let maxResults = body?maxResults |> unbox<int>
+                        | "search" ->
+                            let searchQuery = body?query |> unbox<string>
+                            let maxResults = body?maxResults |> unbox<int>
 
-                    let! results = this.ExecuteSearch(searchQuery, maxResults)
+                            let! results = this.ExecuteSearch(searchQuery, maxResults)
 
-                    let response = createObj [
-                        "success" ==> true
-                        "results" ==> results
-                        "count" ==> results.Length
-                    ]
+                            let response = createObj [
+                                "success" ==> true
+                                "results" ==> results
+                                "count" ==> results.Length
+                            ]
 
-                    return CloudFlare.Worker.Context.Response.json(response) :> obj
+                            return Response.json(response)
 
-                | "getState" ->
-                    let! state = this.GetState()
+                        | "getState" ->
+                            let! state = this.GetState()
 
-                    return CloudFlare.Worker.Context.Response.json(state) :> obj
+                            return Response.json(state)
 
-                | "reset" ->
-                    do! this.ResetState()
+                        | "reset" ->
+                            do! this.ResetState()
 
-                    return CloudFlare.Worker.Context.Response.json({| success = true |}) :> obj
+                            return Response.json({| success = true |})
 
-                | _ ->
-                    return CloudFlare.Worker.Context.Response.create($"Unknown action: {action}", 400.0) :> obj
+                        | _ ->
+                            let init : ResponseInit = createObj [ "status" ==> 400.0 ] |> unbox
+                            return Response.Create(U2.Case1 $"Unknown action: {action}", init)
 
-            with ex ->
-                printfn "[SearchActor] Error in fetch: %s" ex.Message
-                return CloudFlare.Worker.Context.Response.create($"Error: {ex.Message}", 500.0) :> obj
-        }
+                    with ex ->
+                        printfn "[SearchActor] Error in fetch: %s" ex.Message
+                        let init : ResponseInit = createObj [ "status" ==> 500.0 ] |> unbox
+                        return Response.Create(U2.Case1 $"Error: {ex.Message}", init)
+                }
+            U2.Case2 (handleRequest())
+
+        member _.alarm() = JS.Constructors.Promise.Create(fun resolve _ -> resolve())
+        member _.webSocketMessage(ws, message) = JS.Constructors.Promise.Create(fun resolve _ -> resolve())
+        member _.webSocketClose(ws, code, reason, wasClean) = JS.Constructors.Promise.Create(fun resolve _ -> resolve())
+        member _.webSocketError(ws, error) = JS.Constructors.Promise.Create(fun resolve _ -> resolve())
 
 /// Helper to get SearchActor instance
 let getSearchActor (env: obj) (model: LaptopModel) : obj =
-    let namespace = env?SEARCH_ACTOR
+    let ``namespace`` = env?SEARCH_ACTOR
 
     // Generate stable ID based on model
-    let id = namespace?idFromName(model.ModelNumber)
+    let id = ``namespace``?idFromName(model.ModelNumber)
 
     // Get the Durable Object stub
-    namespace?get(id)
+    ``namespace``?get(id)
 
 /// Initialize a search actor with model
 let initializeSearchActor (env: obj) (model: LaptopModel) : JS.Promise<unit> =
@@ -304,15 +317,15 @@ let initializeSearchActor (env: obj) (model: LaptopModel) : JS.Promise<unit> =
                 "model" ==> model.ModelNumber
             ]
 
-            let requestInit = jsOptions(fun o ->
-                o.method <- Some "POST"
-                o.headers <- Some (U2.Case1 (createObj [
+            let requestInit = createObj [
+                "method" ==> "POST"
+                "headers" ==> createObj [
                     "Content-Type" ==> "application/json"
-                ]))
-                o.body <- Some (U2.Case1 (JS.JSON.stringify(payload)))
-            )
+                ]
+                "body" ==> JS.JSON.stringify(payload)
+            ]
 
-            let! response = actor?fetch("https://fake-host/", requestInit) |> unbox<JS.Promise<obj>>
+            let! response = actor?fetch("https://fake-host/", requestInit) |> unbox<JS.Promise<Response>>
 
             if response?ok |> unbox<bool> then
                 printfn "✓ SearchActor initialized for %s" model.ModelNumber
@@ -335,15 +348,15 @@ let executeSearch (env: obj) (model: LaptopModel) (query: string) (maxResults: i
                 "maxResults" ==> maxResults
             ]
 
-            let requestInit = jsOptions(fun o ->
-                o.method <- Some "POST"
-                o.headers <- Some (U2.Case1 (createObj [
+            let requestInit = createObj [
+                "method" ==> "POST"
+                "headers" ==> createObj [
                     "Content-Type" ==> "application/json"
-                ]))
-                o.body <- Some (U2.Case1 (JS.JSON.stringify(payload)))
-            )
+                ]
+                "body" ==> JS.JSON.stringify(payload)
+            ]
 
-            let! response = actor?fetch("https://fake-host/", requestInit) |> unbox<JS.Promise<obj>>
+            let! response = actor?fetch("https://fake-host/", requestInit) |> unbox<JS.Promise<Response>>
 
             if response?ok |> unbox<bool> then
                 let! result = response?json() |> unbox<JS.Promise<obj>>

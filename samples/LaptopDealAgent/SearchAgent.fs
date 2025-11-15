@@ -171,7 +171,7 @@ let parseSearchResult (result: SearchResult) : PriceInfo option =
             let currency = priceOpt |> Option.map snd |> Option.defaultValue "USD"
 
             Some {
-                Model = model
+                Model = model.ModelNumber
                 Price = price
                 Currency = currency
                 Retailer = extractRetailer result.Url
@@ -181,6 +181,10 @@ let parseSearchResult (result: SearchResult) : PriceInfo option =
                 DiscountPercentage = extractDiscountPercentage fullText
                 OriginalPrice = None  // Could be extracted from "was $X, now $Y" patterns
                 DetectedAt = DateTime.UtcNow
+                Condition = Some "New"  // Default assumption for new listings
+                Quantity = None  // Not available from basic search
+                StockText = None  // Not available from basic search
+                Title = result.Title
             }
 
 /// Perform web search using Cloudflare AI
@@ -212,7 +216,7 @@ Return results as JSON array with: url, title, snippet, source
                     Snippet = "13.4\" 2.5K 180Hz Gaming Laptop with AMD Ryzen AI Max+ 395, 64GB RAM"
                     Source = "Best Buy"
                     Timestamp = DateTime.UtcNow
-                },
+                }
                 {
                     Url = "https://www.newegg.com/asus-rog-flow-z13-2025"
                     Title = "ASUS ROG Flow Z13 GZ302EA-XS99 128GB"

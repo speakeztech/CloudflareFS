@@ -3,6 +3,8 @@ module LaptopDealAgent.NotificationManager
 open System
 open Fable.Core
 open Fable.Core.JsInterop
+open CloudFlare.Worker.Context
+open CloudFlare.Worker.Context.Globals
 open CloudFlare.DurableObjects
 open LaptopDealAgent.Types
 open LaptopDealAgent.NotificationTypes
@@ -10,8 +12,7 @@ open LaptopDealAgent.NotificationChannels
 
 /// Durable Object that manages notification state and prevents spam
 [<AllowNullLiteral>]
-type NotificationManagerDO(state: DurableObjectState, env: obj) =
-    inherit DurableObject(state, env)
+type NotificationManagerDO(state: DurableObjectState<obj>, env: obj) =
 
     let mutable notificationState = defaultNotificationState
 
@@ -50,7 +51,7 @@ type NotificationManagerDO(state: DurableObjectState, env: obj) =
             printfn "Daily notification counter reset"
 
     /// Check if we should notify based on rules
-    member this.ShouldNotify(event: NotificationEvent, rules: NotificationRule) : bool =
+    member this.ShouldNotify (event: NotificationEvent) (rules: NotificationRule) : bool =
         // Reset daily counter if needed
         this.ResetDailyCounterIfNeeded()
 
@@ -89,7 +90,7 @@ type NotificationManagerDO(state: DurableObjectState, env: obj) =
         )
 
     /// Check if deal meets notification rules
-    member this.MeetsRules(event: NotificationEvent, rules: NotificationRule) : bool =
+    member this.MeetsRules (event: NotificationEvent) (rules: NotificationRule) : bool =
         // Check model filter
         let modelMatch =
             rules.ModelsToWatch.IsEmpty ||
@@ -205,67 +206,76 @@ type NotificationManagerDO(state: DurableObjectState, env: obj) =
         }
 
     /// Handle HTTP requests to the Durable Object
-    override this.fetch(request: obj) : JS.Promise<obj> =
-        promise {
-            try
-                let req = request |> unbox<CloudFlare.Worker.Context.Request>
-                let url = req.url
-                let method = req.method
+    interface DurableObject with
+        member this.fetch(request: Request) : U2<Response, JS.Promise<Response>> =
+            let handleRequest() =
+                promise {
+                    try
+                        let url = request.url
+                        let method = request.method
 
-                match method with
-                | "POST" ->
-                    // Process notification request
-                    let! body = req.json() |> unbox<JS.Promise<obj>>
+                        match method with
+                        | "POST" ->
+                            // Process notification request
+                            let! body = request.json() |> unbox<JS.Promise<obj>>
 
-                    let event = body?event |> unbox<NotificationEvent>
-                    let rules = body?rules |> unbox<NotificationRule>
-                    let channels = body?channels |> unbox<NotificationChannel list>
-                    let dashboardUrl = body?dashboardUrl |> Option.ofObj |> Option.map unbox<string>
+                            let event = body?event |> unbox<NotificationEvent>
+                            let rules = body?rules |> unbox<NotificationRule>
+                            let channels = body?channels |> unbox<NotificationChannel list>
+                            let dashboardUrl = body?dashboardUrl |> Option.ofObj |> Option.map unbox<string>
 
-                    let! success = this.ProcessNotification(event, rules, channels, dashboardUrl)
+                            let! success = this.ProcessNotification(event, rules, channels, dashboardUrl)
 
-                    let response = createObj [
-                        "success" ==> success
-                        "state" ==> notificationState
-                    ]
+                            let response = createObj [
+                                "success" ==> success
+                                "state" ==> notificationState
+                            ]
 
-                    return CloudFlare.Worker.Context.Response.json(response) :> obj
+                            return Response.json(response)
 
-                | "GET" ->
-                    // Get current state
-                    do! this.InitializeAsync()
+                        | "GET" ->
+                            // Get current state
+                            do! this.InitializeAsync()
 
-                    let response = createObj [
-                        "state" ==> notificationState
-                    ]
+                            let response = createObj [
+                                "state" ==> notificationState
+                            ]
 
-                    return CloudFlare.Worker.Context.Response.json(response) :> obj
+                            return Response.json(response)
 
-                | "DELETE" ->
-                    // Clear history
-                    notificationState <- defaultNotificationState
-                    do! this.SaveStateAsync()
+                        | "DELETE" ->
+                            // Clear history
+                            notificationState <- defaultNotificationState
+                            do! this.SaveStateAsync()
 
-                    return CloudFlare.Worker.Context.Response.json({| message = "History cleared" |}) :> obj
+                            return Response.json({| message = "History cleared" |})
 
-                | _ ->
-                    return CloudFlare.Worker.Context.Response.create("Method not allowed", 405.0) :> obj
+                        | _ ->
+                            let init : ResponseInit = createObj [ "status" ==> 405.0 ] |> unbox
+                            return Response.Create(U2.Case1 "Method not allowed", init)
 
-            with
-            | ex ->
-                printfn "Error in Durable Object fetch: %s" ex.Message
-                return CloudFlare.Worker.Context.Response.create($"Error: {ex.Message}", 500.0) :> obj
-        }
+                    with
+                    | ex ->
+                        printfn "Error in Durable Object fetch: %s" ex.Message
+                        let init : ResponseInit = createObj [ "status" ==> 500.0 ] |> unbox
+                        return Response.Create(U2.Case1 $"Error: {ex.Message}", init)
+                }
+            U2.Case2 (handleRequest())
+
+        member _.alarm() = JS.Constructors.Promise.Create(fun resolve _ -> resolve())
+        member _.webSocketMessage(ws, message) = JS.Constructors.Promise.Create(fun resolve _ -> resolve())
+        member _.webSocketClose(ws, code, reason, wasClean) = JS.Constructors.Promise.Create(fun resolve _ -> resolve())
+        member _.webSocketError(ws, error) = JS.Constructors.Promise.Create(fun resolve _ -> resolve())
 
 /// Helper to get Durable Object instance
 let getNotificationManager (env: obj) (userId: string) : obj =
-    let namespace = env?NOTIFICATION_MANAGER
+    let ``namespace`` = env?NOTIFICATION_MANAGER
 
     // Generate stable ID based on user ID
-    let id = namespace?idFromName(userId)
+    let id = ``namespace``?idFromName(userId)
 
     // Get the Durable Object stub
-    namespace?get(id)
+    ``namespace``?get(id)
 
 /// Send notification via Durable Object
 let notifyDeal (env: obj) (userId: string) (event: NotificationEvent) (rules: NotificationRule) (channels: NotificationChannel list) (dashboardUrl: string option) : JS.Promise<bool> =
@@ -280,15 +290,15 @@ let notifyDeal (env: obj) (userId: string) (event: NotificationEvent) (rules: No
                 "dashboardUrl" ==> (dashboardUrl |> Option.toObj)
             ]
 
-            let requestInit = jsOptions(fun o ->
-                o.method <- Some "POST"
-                o.headers <- Some (U2.Case1 (createObj [
+            let requestInit = createObj [
+                "method" ==> "POST"
+                "headers" ==> createObj [
                     "Content-Type" ==> "application/json"
-                ]))
-                o.body <- Some (U2.Case1 (JS.JSON.stringify(payload)))
-            )
+                ]
+                "body" ==> JS.JSON.stringify(payload)
+            ]
 
-            let! response = manager?fetch("https://fake-host/notify", requestInit) |> unbox<JS.Promise<obj>>
+            let! response = manager?fetch("https://fake-host/notify", requestInit) |> unbox<JS.Promise<Response>>
 
             let! result = response?json() |> unbox<JS.Promise<obj>>
             let success = result?success |> unbox<bool>

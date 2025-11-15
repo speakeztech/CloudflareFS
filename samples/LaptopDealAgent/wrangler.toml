@@ -8,9 +8,9 @@ crons = ["0 * * * *"]
 
 # D1 database for storing deals and price history
 [[d1_databases]]
-binding = "DB"
+binding = "laptop_deals"
 database_name = "laptop-deals"
-database_id = "your-d1-database-id"  # Replace with your D1 database ID after running: wrangler d1 create laptop-deals
+database_id = "6a845443-c66b-4993-987a-8e29948c6233"
 
 # AI binding for web search and analysis
 [ai]
