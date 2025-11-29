@@ -3980,7 +3980,7 @@ type WorkerScriptDownloadWorker =
 [<RequireQualifiedAccess>]
 type WorkerScriptUploadWorkerModule =
     ///Upload Worker Module response.
-    | OK of payload: string
+    | OK of payload: workersscriptresponsesingle
 
 [<RequireQualifiedAccess>]
 type WorkerScriptPutContent =
@@ -4072,9 +4072,9 @@ type WorkerSubdomainDeleteSubdomain =
 [<RequireQualifiedAccess>]
 type WorkerSubdomainGetSubdomain =
     ///Get Subdomain response.
-    | OK of payload: string
+    | OK of payload: workersapiresponsenullresult
 
 [<RequireQualifiedAccess>]
 type WorkerSubdomainCreateSubdomain =
     ///Create Subdomain response.
-    | OK of payload: string
+    | OK of payload: workersapiresponsenullresult

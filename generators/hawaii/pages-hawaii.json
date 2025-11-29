@@ -1,0 +1,10 @@
+{
+  "schema": "./schemas/Pages-openapi.json",
+  "project": "CloudFlare.Management.Pages",
+  "output": "../../src/Management/CloudFlare.Management.Pages",
+  "namespace": "CloudFlare.Management.Pages",
+  "synchronous": false,
+  "target": "fsharp",
+  "generateClient": true,
+  "clientName": "PagesClient"
+}

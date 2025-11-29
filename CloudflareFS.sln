@@ -51,6 +51,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CloudFlare.KV", "src\Runtim
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CloudFlare.Management.Workers", "src\Management\CloudFlare.Management.Workers\CloudFlare.Management.Workers.fsproj", "{7D8B790D-6AA3-4B4B-9EFC-B84E25AD1557}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CloudFlare.Management.Pages", "src\Management\CloudFlare.Management.Pages\CloudFlare.Management.Pages.fsproj", "{2B9AAC2F-DAA7-4E6D-BA2C-3CF664B5180F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -289,6 +291,18 @@ Global
 		{7D8B790D-6AA3-4B4B-9EFC-B84E25AD1557}.Release|x64.Build.0 = Release|Any CPU
 		{7D8B790D-6AA3-4B4B-9EFC-B84E25AD1557}.Release|x86.ActiveCfg = Release|Any CPU
 		{7D8B790D-6AA3-4B4B-9EFC-B84E25AD1557}.Release|x86.Build.0 = Release|Any CPU
+		{2B9AAC2F-DAA7-4E6D-BA2C-3CF664B5180F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B9AAC2F-DAA7-4E6D-BA2C-3CF664B5180F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B9AAC2F-DAA7-4E6D-BA2C-3CF664B5180F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2B9AAC2F-DAA7-4E6D-BA2C-3CF664B5180F}.Debug|x64.Build.0 = Debug|Any CPU
+		{2B9AAC2F-DAA7-4E6D-BA2C-3CF664B5180F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2B9AAC2F-DAA7-4E6D-BA2C-3CF664B5180F}.Debug|x86.Build.0 = Debug|Any CPU
+		{2B9AAC2F-DAA7-4E6D-BA2C-3CF664B5180F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B9AAC2F-DAA7-4E6D-BA2C-3CF664B5180F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B9AAC2F-DAA7-4E6D-BA2C-3CF664B5180F}.Release|x64.ActiveCfg = Release|Any CPU
+		{2B9AAC2F-DAA7-4E6D-BA2C-3CF664B5180F}.Release|x64.Build.0 = Release|Any CPU
+		{2B9AAC2F-DAA7-4E6D-BA2C-3CF664B5180F}.Release|x86.ActiveCfg = Release|Any CPU
+		{2B9AAC2F-DAA7-4E6D-BA2C-3CF664B5180F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -316,5 +330,6 @@ Global
 		{130A8BFB-4A9D-4934-9E59-C4CAF4FE0C7E} = {09108480-725A-3CF3-E626-E2F33F0A58E4}
 		{02D52813-5D6D-4F24-B84B-8DFCAC2F7597} = {09108480-725A-3CF3-E626-E2F33F0A58E4}
 		{7D8B790D-6AA3-4B4B-9EFC-B84E25AD1557} = {F3244B3D-53C5-18F9-F232-08909C1DCBB5}
+		{2B9AAC2F-DAA7-4E6D-BA2C-3CF664B5180F} = {F3244B3D-53C5-18F9-F232-08909C1DCBB5}
 	EndGlobalSection
 EndGlobal

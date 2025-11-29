@@ -1196,17 +1196,16 @@ type r2v4responseErrors =
 type r2v4response =
     { errors: list<r2v4responseErrors>
       messages: r2messages
-      result: System.Text.Json.JsonElement
+      result: Option<System.Text.Json.JsonElement>
       ///Whether the API call was successful.
       success: bool }
     ///Creates an instance of r2v4response with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (errors: list<r2v4responseErrors>,
                           messages: r2messages,
-                          result: System.Text.Json.JsonElement,
                           success: bool): r2v4response =
         { errors = errors
           messages = messages
-          result = result
+          result = None
           success = success }
 
 type r2v4responsefailureErrors =
@@ -1255,7 +1254,7 @@ type r2v4responselist =
 [<RequireQualifiedAccess>]
 type R2ListBuckets =
     ///List Buckets response.
-    | OK of payload: string
+    | OK of payload: r2v4responselist
 
 type R2CreateBucketPayload =
     { ///Location of the bucket.
@@ -1273,7 +1272,7 @@ type R2CreateBucketPayload =
 [<RequireQualifiedAccess>]
 type R2CreateBucket =
     ///Create Bucket response.
-    | OK of payload: string
+    | OK of payload: r2v4response
 
 [<RequireQualifiedAccess>]
 type R2DeleteBucket =
@@ -1283,7 +1282,7 @@ type R2DeleteBucket =
 [<RequireQualifiedAccess>]
 type R2GetBucket =
     ///Get Bucket response.
-    | OK of payload: string
+    | OK of payload: r2v4response
 
 [<RequireQualifiedAccess>]
 type R2PatchBucket =

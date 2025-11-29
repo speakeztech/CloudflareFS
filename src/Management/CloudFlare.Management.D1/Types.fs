@@ -85,17 +85,16 @@ type Messages =
 type d1apiresponsecommon =
     { errors: list<Errors>
       messages: list<Messages>
-      result: System.Text.Json.JsonElement
+      result: Option<System.Text.Json.JsonElement>
       ///Whether the API call was successful
       success: bool }
     ///Creates an instance of d1apiresponsecommon with all optional fields initialized to None. The required fields are parameters of this function
     static member Create (errors: list<Errors>,
                           messages: list<Messages>,
-                          result: System.Text.Json.JsonElement,
                           success: bool): d1apiresponsecommon =
         { errors = errors
           messages = messages
-          result = result
+          result = None
           success = success }
 
 type d1apiresponsecommonfailure =
@@ -257,7 +256,7 @@ type d1readreplicationdetails =
 [<RequireQualifiedAccess>]
 type CloudflareD1ListDatabases =
     ///List D1 databases response
-    | OK of payload: string
+    | OK of payload: d1apiresponsecommon
 
 type CloudflareD1CreateDatabasePayload =
     { ///D1 database name.
@@ -272,27 +271,27 @@ type CloudflareD1CreateDatabasePayload =
 [<RequireQualifiedAccess>]
 type CloudflareD1CreateDatabase =
     ///Returns the created D1 database's metadata
-    | OK of payload: string
+    | OK of payload: d1apiresponsecommon
 
 [<RequireQualifiedAccess>]
 type CloudflareD1DeleteDatabase =
     ///Delete D1 database response
-    | OK of payload: string
+    | OK of payload: d1apiresponsecommon
 
 [<RequireQualifiedAccess>]
 type CloudflareD1GetDatabase =
     ///Database details response
-    | OK of payload: string
+    | OK of payload: d1apiresponsecommon
 
 [<RequireQualifiedAccess>]
 type CloudflareD1UpdatePartialDatabase =
     ///Database details response
-    | OK of payload: string
+    | OK of payload: d1apiresponsecommon
 
 [<RequireQualifiedAccess>]
 type CloudflareD1UpdateDatabase =
     ///Database details response
-    | OK of payload: string
+    | OK of payload: d1apiresponsecommon
 
 type CloudflareD1QueryDatabasePayload =
     { ``params``: Option<d1params>
@@ -304,7 +303,7 @@ type CloudflareD1QueryDatabasePayload =
 [<RequireQualifiedAccess>]
 type CloudflareD1QueryDatabase =
     ///Query response
-    | OK of payload: string
+    | OK of payload: d1apiresponsecommon
 
 type CloudflareD1RawDatabaseQueryPayload =
     { ``params``: Option<d1params>
@@ -316,4 +315,4 @@ type CloudflareD1RawDatabaseQueryPayload =
 [<RequireQualifiedAccess>]
 type CloudflareD1RawDatabaseQuery =
     ///Raw query response
-    | OK of payload: string
+    | OK of payload: d1apiresponsecommon
