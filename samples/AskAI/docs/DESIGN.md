@@ -47,10 +47,10 @@ Phase 1 uses discrete components with focused responsibilities:
 │                         ask-ai Worker (F#/Fable)                            │
 │                        (Query API Endpoint)                                 │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  Bindings: AI (AutoRAG), D1 (logging)                                      │
-│  Routes: POST /ask, POST /ask-stream, GET /health                          │
+│  Bindings: AI (AutoRAG), D1 (logging)                                       │
+│  Routes: POST /ask, POST /ask-stream, GET /health                           │
 │  • Receives questions from frontend                                         │
-│  • Calls AI Search for RAG-based answers                                   │
+│  • Calls AI Search for RAG-based answers                                    │
 │  • Supports streaming SSE responses                                         │
 │  • Query logging to D1 for analytics                                        │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -67,11 +67,11 @@ Phase 1 uses discrete components with focused responsibilities:
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌───────────────────────────────────────┐ ┌───────────────────────────────────┐
-│         Logging Layer (D1)           │ │      Content Layer (R2)           │
+│         Logging Layer (D1)            │ │      Content Layer (R2)           │
 ├───────────────────────────────────────┤ ├───────────────────────────────────┤
-│ • Query log                          │ │ • Markdown files                  │
-│ • Query patterns                     │ │ • Custom metadata                 │
-│ • Analytics                          │ │ • AI Search source                │
+│ • Query log                           │ │ • Markdown files                  │
+│ • Query patterns                      │ │ • Custom metadata                 │
+│ • Analytics                           │ │ • AI Search source                │
 └───────────────────────────────────────┘ └───────────────────────────────────┘
 
 Note: AI Search (AutoRAG) provides built-in similarity caching, eliminating the
