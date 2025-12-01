@@ -317,7 +317,7 @@ AI Search handles chunking, embedding, vector storage, and retrieval as a manage
 
 ## References
 
-- [Cloudflare AI Search (AutoRAG)](https://developers.cloudflare.com/ai-gateway/providers/autorag/)
+- [Cloudflare AI Search (AutoRAG)](https://developers.cloudflare.com/ai-search/)
 - [CloudflareFS GitHub](https://github.com/speakeztech/CloudflareFS)
 - [Fable Compiler](https://fable.io/)
 - [Hawaii OpenAPI Generator](https://github.com/Zaid-Ajaj/Hawaii)
