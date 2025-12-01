@@ -1,0 +1,15 @@
+{
+  "name": "ask-ai-worker",
+  "version": "1.0.0",
+  "description": "RAG-powered question answering worker using CloudflareFS",
+  "type": "module",
+  "scripts": {
+    "build": "dotnet fable src -o dist --noCache",
+    "bundle": "esbuild dist/Main.js --bundle --format=esm --outfile=dist/worker.js"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "esbuild": "^0.24.0"
+  },
+  "dependencies": {}
+}

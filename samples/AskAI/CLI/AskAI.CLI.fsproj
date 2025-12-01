@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>AskAI_CLI</RootNamespace>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>ask-ai-cli</ToolCommandName>
+    <PackageId>AskAI.CLI</PackageId>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Core/Config.fs" />
+    <Compile Include="Core/ContentSync.fs" />
+    <Compile Include="Commands/Provision.fs" />
+    <Compile Include="Commands/Deploy.fs" />
+    <Compile Include="Commands/Sync.fs" />
+    <Compile Include="Commands/Status.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Argu" Version="6.2.5" />
+  </ItemGroup>
+
+  <!--
+    Note: In a full implementation, you would reference the Hawaii-generated
+    Management API bindings here:
+
+    <ProjectReference Include="../../../src/Management/CloudFlare.Management.R2/CloudFlare.Management.R2.fsproj" />
+    <ProjectReference Include="../../../src/Management/CloudFlare.Management.D1/CloudFlare.Management.D1.fsproj" />
+    <ProjectReference Include="../../../src/Management/CloudFlare.Management.Workers/CloudFlare.Management.Workers.fsproj" />
+  -->
+
+</Project>

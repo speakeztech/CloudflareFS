@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="src/Types.fs" />
+    <Compile Include="src/Handlers.fs" />
+    <Compile Include="src/Main.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../src/Runtime/CloudFlare.Worker.Context/CloudFlare.Worker.Context.fsproj" />
+    <ProjectReference Include="../../../src/Runtime/CloudFlare.D1/CloudFlare.D1.fsproj" />
+    <ProjectReference Include="../../../src/Runtime/CloudFlare.AI/CloudFlare.AI.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fable.Core" Version="4.3.0" />
+  </ItemGroup>
+
+</Project>
