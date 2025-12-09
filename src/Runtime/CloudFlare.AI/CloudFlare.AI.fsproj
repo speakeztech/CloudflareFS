@@ -3,19 +3,12 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageId>CloudflareFS.AI</PackageId>
-    <Version>0.1.0</Version>
-    <Authors>CloudflareFS Contributors</Authors>
-    <Description>F# bindings for Cloudflare Workers AI</Description>
-    <PackageLicenseExpression>MIT OR Apache-2.0</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/yourusername/CloudflareFS</RepositoryUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>fsharp;cloudflare;workers;ai;fable;bindings</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="Generated.fs" />
     <Compile Include="Library.fs" />
+    <Compile Include="Extensions.fs" />
   </ItemGroup>
 
   <ItemGroup>

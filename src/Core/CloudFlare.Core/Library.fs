@@ -1,14 +1,20 @@
 ﻿namespace CloudFlare.Core
 
 open System
+open Fable.Core
+open Fable.Core.JsInterop
 
 module Environment =
+    // Access process.env in Node.js/Cloudflare Workers environment
+    [<Emit("(typeof process !== 'undefined' && process.env && process.env[$0]) || ''")>]
+    let private getEnvVar (name: string) : string = jsNative
+
     let isDevelopment () =
-        let env = System.Environment.GetEnvironmentVariable("ENVIRONMENT")
+        let env = getEnvVar "ENVIRONMENT"
         env = "development" || env = "dev" || String.IsNullOrEmpty(env)
 
     let isProduction () =
-        let env = System.Environment.GetEnvironmentVariable("ENVIRONMENT")
+        let env = getEnvVar "ENVIRONMENT"
         env = "production" || env = "prod"
 
 module Version =
