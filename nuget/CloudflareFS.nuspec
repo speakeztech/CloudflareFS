@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>CloudflareFS</id>
+    <version>0.1.0</version>
+    <title>CloudflareFS - F# Bindings for Cloudflare Workers</title>
+    <authors>CloudflareFS Contributors</authors>
+    <description>F# and Fable bindings for Cloudflare Workers, including R2, KV, D1, Durable Objects, Queues, Vectorize, Hyperdrive, and AI.</description>
+    <license type="expression">MIT OR Apache-2.0</license>
+    <projectUrl>https://github.com/speakeztech/CloudflareFS</projectUrl>
+    <repository type="git" url="https://github.com/speakeztech/CloudflareFS" />
+    <readme>README.md</readme>
+    <tags>fsharp cloudflare workers fable bindings r2 kv d1 durable-objects queues vectorize hyperdrive ai</tags>
+    <dependencies>
+      <group targetFramework="net8.0">
+        <dependency id="Fable.Core" version="4.3.0" />
+        <dependency id="Fable.Promise" version="3.2.0" />
+      </group>
+      <group targetFramework="netstandard2.0">
+        <dependency id="Fable.Core" version="4.3.0" />
+        <dependency id="Fable.Promise" version="3.2.0" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

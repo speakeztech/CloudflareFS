@@ -484,6 +484,10 @@ $RECYCLE.BIN/
 *.swp
 
 # CloudflareFS specific
+nuget/bin/
+nuget/obj/
+nuget/out/
+nuget/CloudflareFS.fsproj
 .claude/
 temp/
 tmp/
