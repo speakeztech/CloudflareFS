@@ -6,11 +6,11 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <PackageId>CloudflareFS</PackageId>
+    <PackageId>CloudflareFS.Runtime</PackageId>
     <Version>0.1.0</Version>
-    <Title>CloudflareFS - F# Bindings for Cloudflare Workers</Title>
+    <Title>CloudflareFS.Runtime - F# Fable Bindings for Cloudflare Workers</Title>
     <Authors>CloudflareFS Contributors</Authors>
-    <Description>F# and Fable bindings for Cloudflare Workers, including R2, KV, D1, Durable Objects, Queues, Vectorize, Hyperdrive, and AI.</Description>
+    <Description>F# and Fable bindings for Cloudflare Workers Runtime APIs, including R2, KV, D1, Durable Objects, Queues, Vectorize, Hyperdrive, and AI. For use with Fable to compile F# to JavaScript.</Description>
     <PackageLicenseExpression>MIT OR Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/speakeztech/CloudflareFS</PackageProjectUrl>
     <RepositoryUrl>https://github.com/speakeztech/CloudflareFS</RepositoryUrl>
@@ -28,10 +28,9 @@
     <PackageReference Include="Fable.Promise" Version="3.2.0" />
   </ItemGroup>
 
-  <!-- README and nuspec -->
+  <!-- README -->
   <ItemGroup>
     <None Include="..\README.md" Pack="true" PackagePath="" />
-    <None Include="CloudflareFS.nuspec" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <!-- Core: DLLs and XML docs -->
@@ -60,19 +59,6 @@
     <None Include="..\src\Runtime\CloudFlare.Vectorize\bin\Release\net8.0\CloudFlare.Vectorize.xml" Pack="true" PackagePath="lib\net8.0" />
     <None Include="..\src\Runtime\CloudFlare.Worker.Context\bin\Release\net8.0\CloudFlare.Worker.Context.dll" Pack="true" PackagePath="lib\net8.0" />
     <None Include="..\src\Runtime\CloudFlare.Worker.Context\bin\Release\net8.0\CloudFlare.Worker.Context.xml" Pack="true" PackagePath="lib\net8.0" />
-  </ItemGroup>
-
-  <!-- Management: DLLs (netstandard2.0) -->
-  <ItemGroup>
-    <None Include="..\src\Management\CloudFlare.Management.Analytics\bin\Release\netstandard2.0\CloudFlare.Management.Analytics.dll" Pack="true" PackagePath="lib\netstandard2.0" />
-    <None Include="..\src\Management\CloudFlare.Management.D1\bin\Release\netstandard2.0\CloudFlare.Management.D1.dll" Pack="true" PackagePath="lib\netstandard2.0" />
-    <None Include="..\src\Management\CloudFlare.Management.DurableObjects\bin\Release\netstandard2.0\CloudFlare.Management.DurableObjects.dll" Pack="true" PackagePath="lib\netstandard2.0" />
-    <None Include="..\src\Management\CloudFlare.Management.Hyperdrive\bin\Release\netstandard2.0\CloudFlare.Management.Hyperdrive.dll" Pack="true" PackagePath="lib\netstandard2.0" />
-    <None Include="..\src\Management\CloudFlare.Management.Pages\bin\Release\netstandard2.0\CloudFlare.Management.Pages.dll" Pack="true" PackagePath="lib\netstandard2.0" />
-    <None Include="..\src\Management\CloudFlare.Management.Queues\bin\Release\netstandard2.0\CloudFlare.Management.Queues.dll" Pack="true" PackagePath="lib\netstandard2.0" />
-    <None Include="..\src\Management\CloudFlare.Management.R2\bin\Release\netstandard2.0\CloudFlare.Management.R2.dll" Pack="true" PackagePath="lib\netstandard2.0" />
-    <None Include="..\src\Management\CloudFlare.Management.Vectorize\bin\Release\netstandard2.0\CloudFlare.Management.Vectorize.dll" Pack="true" PackagePath="lib\netstandard2.0" />
-    <None Include="..\src\Management\CloudFlare.Management.Workers\bin\Release\netstandard2.0\CloudFlare.Management.Workers.dll" Pack="true" PackagePath="lib\netstandard2.0" />
   </ItemGroup>
 
   <!-- Fable: consolidated project file for Fable compilation -->

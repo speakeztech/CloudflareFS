@@ -3,13 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageId>CloudflareFS.KV</PackageId>
-    <Version>0.1.0</Version>
-    <Authors>CloudflareFS Contributors</Authors>
-    <Description>F# bindings for Cloudflare KV Storage</Description>
-    <PackageLicenseExpression>MIT OR Apache-2.0</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/yourusername/CloudflareFS</RepositoryUrl>
-    <PackageTags>fsharp;cloudflare;kv;storage;workers;fable</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

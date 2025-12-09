@@ -117,7 +117,7 @@ pipeline "Build and Pack" {
     }
 
     stage "pack" {
-        run "dotnet pack CloudflareFS.proj -c Release -o out"
+        run "dotnet pack CloudflareFS.Runtime.proj -c Release -o out"
     }
 
     runIfOnlySpecified false
