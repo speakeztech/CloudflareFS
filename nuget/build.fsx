@@ -37,9 +37,9 @@ let getCompileItems (fsprojPath: string) : string list =
         |> Option.map (fun a -> a.Value))
     |> Seq.toList
 
-/// Generates the unified CloudflareFS.fsproj for Fable
+/// Generates the unified CloudflareFS.Runtime.fsproj for Fable
 let generateFableFsproj () =
-    printfn "Generating CloudflareFS.fsproj..."
+    printfn "Generating CloudflareFS.Runtime.fsproj..."
 
     let compileItems =
         fableProjects
@@ -98,26 +98,29 @@ let generateFableFsproj () =
             ""
         ]
 
-    let outputPath = Path.Combine(nugetDir, "CloudflareFS.fsproj")
+    let objDir = Path.Combine(nugetDir, "obj")
+    Directory.CreateDirectory(objDir) |> ignore
+    let outputPath = Path.Combine(objDir, "CloudflareFS.Runtime.fsproj")
     File.WriteAllText(outputPath, fsprojContent)
     printfn "Generated: %s" outputPath
 
-pipeline "Build and Pack" {
-    description "Build and pack CloudflareFS NuGet package"
+pipeline "CloudflareFS NuGet" {
+    description "Build and pack CloudflareFS.Runtime and CloudflareFS.Management NuGet packages"
 
-    stage "build" {
+    stage "Build .sln" {
         workingDir root
         run "dotnet build CloudflareFS.sln -c Release"
     }
 
-    stage "generate-fsproj" {
+    stage "Generate Unified Fable .fsproj" {
         run (fun _ ->
             generateFableFsproj ()
         )
     }
 
-    stage "pack" {
+    stage "Pack" {
         run "dotnet pack CloudflareFS.Runtime.proj -c Release -o out"
+        run "dotnet pack CloudflareFS.Management.proj -c Release -o out"
     }
 
     runIfOnlySpecified false
