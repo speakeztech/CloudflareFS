@@ -7,7 +7,7 @@
 
 <div align="center">
 
-  ### 🚧 Preliminary Work - Not Production Ready 🚧
+  ### v0.1.0 available via [nuget](https://www.nuget.org/packages?q=CloudflareFS&includeComputedFrameworks=true&prerel=true&sortby=relevance) ###
 
 </div>
 
