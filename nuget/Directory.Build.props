@@ -1,0 +1,29 @@
+<Project>
+  <!--
+    Shared NuGet package properties for CloudflareFS packages.
+    These properties are inherited by CloudflareFS.Runtime.proj and CloudflareFS.Management.proj.
+  -->
+
+  <PropertyGroup>
+    <!-- Version: Can be overridden via CLI with /p:PackageVersion=x.y.z -->
+    <Version>0.1.0</Version>
+    <PackageVersion>$(Version)</PackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package Metadata">
+    <Authors>CloudflareFS Contributors</Authors>
+    <Company>CloudflareFS</Company>
+    <Copyright>Copyright (c) CloudflareFS Contributors</Copyright>
+    <PackageLicenseExpression>MIT OR Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/speakeztech/CloudflareFS</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/speakeztech/CloudflareFS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Build Settings">
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+</Project>

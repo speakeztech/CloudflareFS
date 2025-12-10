@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore CloudflareFS.sln
+
+      - name: Build
+        run: dotnet build CloudflareFS.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test CloudflareFS.sln -c Release --no-build --verbosity normal
+
+      - name: Generate Fable project file
+        working-directory: nuget
+        run: dotnet fsi build.fsx --stage "Generate Unified Fable .fsproj"
+
+      - name: Pack (validation only)
+        working-directory: nuget
+        run: |
+          dotnet pack CloudflareFS.Runtime.proj -c Release -o out
+          dotnet pack CloudflareFS.Management.proj -c Release -o out
+
+      - name: Upload packages as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: nuget/out/*.nupkg

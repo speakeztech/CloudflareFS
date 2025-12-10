@@ -7,19 +7,10 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <PackageId>CloudflareFS.Runtime</PackageId>
-    <Version>0.1.0</Version>
     <Title>CloudflareFS.Runtime - F# Fable Bindings for Cloudflare Workers</Title>
-    <Authors>CloudflareFS Contributors</Authors>
     <Description>F# and Fable bindings for Cloudflare Workers Runtime APIs, including R2, KV, D1, Durable Objects, Queues, Vectorize, Hyperdrive, and AI. For use with Fable to compile F# to JavaScript.</Description>
-    <PackageLicenseExpression>MIT OR Apache-2.0</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/speakeztech/CloudflareFS</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/speakeztech/CloudflareFS</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReadmeFile>README.Runtime.md</PackageReadmeFile>
     <PackageTags>fsharp;cloudflare;workers;fable;bindings;r2;kv;d1;durable-objects;queues;vectorize;hyperdrive;ai</PackageTags>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <!-- Package Dependencies (these will be transitive dependencies for consumers) -->
@@ -30,7 +21,7 @@
 
   <!-- README -->
   <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="" />
+    <None Include="README.Runtime.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <!-- Core: DLLs and XML docs -->

@@ -8,19 +8,10 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>CloudflareFS.Management</PackageId>
-    <Version>0.1.0</Version>
     <Title>CloudflareFS.Management - F# Clients for Cloudflare Management APIs</Title>
-    <Authors>CloudflareFS Contributors</Authors>
     <Description>F# clients for Cloudflare Management APIs, including D1, R2, KV, Durable Objects, Queues, Vectorize, Hyperdrive, Workers, Pages, and Analytics. For use in .NET applications to manage Cloudflare resources.</Description>
-    <PackageLicenseExpression>MIT OR Apache-2.0</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/speakeztech/CloudflareFS</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/speakeztech/CloudflareFS</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReadmeFile>README.Management.md</PackageReadmeFile>
     <PackageTags>fsharp;cloudflare;management;api;client;r2;kv;d1;durable-objects;queues;vectorize;hyperdrive;workers;pages;analytics</PackageTags>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <!-- Package Dependencies -->
@@ -30,7 +21,7 @@
 
   <!-- README -->
   <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="" />
+    <None Include="README.Management.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <!-- Management: DLLs -->

@@ -1,0 +1,58 @@
+name: Publish to NuGet
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on tags like v0.1.0, v1.0.0, etc.
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          # Strip 'v' prefix from tag (v1.0.0 -> 1.0.0)
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing version: $VERSION"
+
+      - name: Build solution
+        run: dotnet build CloudflareFS.sln -c Release
+
+      - name: Generate Fable project file
+        working-directory: nuget
+        run: dotnet fsi build.fsx --stage "Generate Unified Fable .fsproj"
+
+      - name: Pack CloudflareFS.Runtime
+        working-directory: nuget
+        run: dotnet pack CloudflareFS.Runtime.proj -c Release -o out /p:PackageVersion=${{ steps.version.outputs.version }}
+
+      - name: Pack CloudflareFS.Management
+        working-directory: nuget
+        run: dotnet pack CloudflareFS.Management.proj -c Release -o out /p:PackageVersion=${{ steps.version.outputs.version }}
+
+      - name: Push to NuGet
+        working-directory: nuget/out
+        run: |
+          dotnet nuget push CloudflareFS.Runtime.${{ steps.version.outputs.version }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          dotnet nuget push CloudflareFS.Management.${{ steps.version.outputs.version }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Upload packages as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: nuget/out/*.nupkg
