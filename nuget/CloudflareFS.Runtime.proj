@@ -63,7 +63,7 @@
 
   <!-- Fable: consolidated project file for Fable compilation -->
   <ItemGroup>
-    <None Include="CloudflareFS.fsproj" Pack="true" PackagePath="fable" />
+    <None Include="obj\CloudflareFS.Runtime.fsproj" Pack="true" PackagePath="fable" />
   </ItemGroup>
 
   <!-- Fable sources: Core -->

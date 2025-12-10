@@ -1,0 +1,49 @@
+<!--
+    This file defines the NuGet package structure for the CloudflareFS Management library,
+    which provides F# clients for Cloudflare Management APIs.
+-->
+<Project>
+  <Sdk Name="Microsoft.Build.NoTargets" Version="3.7.0" />
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>CloudflareFS.Management</PackageId>
+    <Version>0.1.0</Version>
+    <Title>CloudflareFS.Management - F# Clients for Cloudflare Management APIs</Title>
+    <Authors>CloudflareFS Contributors</Authors>
+    <Description>F# clients for Cloudflare Management APIs, including D1, R2, KV, Durable Objects, Queues, Vectorize, Hyperdrive, Workers, Pages, and Analytics. For use in .NET applications to manage Cloudflare resources.</Description>
+    <PackageLicenseExpression>MIT OR Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/speakeztech/CloudflareFS</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/speakeztech/CloudflareFS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>fsharp;cloudflare;management;api;client;r2;kv;d1;durable-objects;queues;vectorize;hyperdrive;workers;pages;analytics</PackageTags>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <!-- Package Dependencies -->
+  <ItemGroup>
+    <PackageReference Include="FSharp.SystemTextJson" Version="1.3.13" />
+  </ItemGroup>
+
+  <!-- README -->
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <!-- Management: DLLs -->
+  <ItemGroup>
+    <None Include="..\src\Management\CloudFlare.Management.Analytics\bin\Release\netstandard2.0\CloudFlare.Management.Analytics.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+    <None Include="..\src\Management\CloudFlare.Management.D1\bin\Release\netstandard2.0\CloudFlare.Management.D1.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+    <None Include="..\src\Management\CloudFlare.Management.DurableObjects\bin\Release\netstandard2.0\CloudFlare.Management.DurableObjects.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+    <None Include="..\src\Management\CloudFlare.Management.Hyperdrive\bin\Release\netstandard2.0\CloudFlare.Management.Hyperdrive.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+    <None Include="..\src\Management\CloudFlare.Management.Pages\bin\Release\netstandard2.0\CloudFlare.Management.Pages.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+    <None Include="..\src\Management\CloudFlare.Management.Queues\bin\Release\netstandard2.0\CloudFlare.Management.Queues.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+    <None Include="..\src\Management\CloudFlare.Management.R2\bin\Release\netstandard2.0\CloudFlare.Management.R2.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+    <None Include="..\src\Management\CloudFlare.Management.Vectorize\bin\Release\netstandard2.0\CloudFlare.Management.Vectorize.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+    <None Include="..\src\Management\CloudFlare.Management.Workers\bin\Release\netstandard2.0\CloudFlare.Management.Workers.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+  </ItemGroup>
+
+</Project>
