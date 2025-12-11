@@ -1,7 +1,7 @@
 # CloudflareFS
 
-[![NuGet Runtime](https://img.shields.io/nuget/v/CloudflareFS.Runtime.svg)](https://www.nuget.org/packages/CloudflareFS.Runtime)
-[![NuGet Management](https://img.shields.io/nuget/v/CloudflareFS.Management.svg)](https://www.nuget.org/packages/CloudflareFS.Management)
+[![CloudflareFS.Runtime](https://img.shields.io/nuget/v/CloudflareFS.Runtime?label=CloudflareFS.Runtime)](https://www.nuget.org/packages/CloudflareFS.Runtime)
+[![CloudflareFS.Management](https://img.shields.io/nuget/v/CloudflareFS.Management?label=CloudflareFS.Management)](https://www.nuget.org/packages/CloudflareFS.Management)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE-MIT)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE-APACHE)
 [![Powered by Cloudflare](https://img.shields.io/badge/Powered%20by-Cloudflare-orange?logo=cloudflare&logoColor=white)](https://www.cloudflare.com)
